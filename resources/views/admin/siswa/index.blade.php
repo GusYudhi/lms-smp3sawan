@@ -7,21 +7,23 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="bg-white rounded-3 shadow-sm p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="h3 mb-2 text-primary">
-                            <i class="fas fa-user-graduate me-2"></i>Data Siswa
-                        </h1>
-                        <p class="text-muted mb-0">Kelola data siswa: tambahkan, edit, lihat, atau ekspor data</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary me-2">
-                            <i class="fas fa-plus me-1"></i> Tambah Siswa
-                        </a>
-                        <button class="btn btn-outline-secondary" onclick="exportData()">
-                            <i class="fas fa-file-export me-1"></i> Ekspor
-                        </button>
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h3 mb-2 text-high-contrast">
+                                <i class="fas fa-user-graduate text-primary me-2"></i>Data Siswa
+                            </h1>
+                            <p class="text-subtle mb-0 fw-medium">Kelola data siswa: tambahkan, edit, lihat, atau ekspor data</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary me-2 shadow-sm">
+                                <i class="fas fa-plus me-1"></i> Tambah Siswa
+                            </a>
+                            <button class="btn btn-outline-secondary shadow-sm" onclick="exportData()">
+                                <i class="fas fa-file-export me-1"></i> Ekspor
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -31,53 +33,53 @@
     <!-- Statistik Siswa -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card card-stats text-center h-100 hover-card">
                 <div class="card-body">
                     <div class="text-primary fs-1 mb-3">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h5 class="card-title text-muted">Total Siswa</h5>
-                    <h3 class="text-primary">{{ $students->total() }}</h3>
-                    <small class="text-muted">Siswa Terdaftar</small>
+                    <h6 class="card-title text-medium-contrast fw-semibold mb-2">Total Siswa</h6>
+                    <h2 class="text-primary fw-bold mb-1">{{ $students->total() }}</h2>
+                    <small class="text-subtle fw-medium">Siswa Terdaftar</small>
                 </div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card card-stats text-center h-100 hover-card">
                 <div class="card-body">
                     <div class="text-success fs-1 mb-3">
                         <i class="fas fa-user-check"></i>
                     </div>
-                    <h5 class="card-title text-muted">Siswa Aktif</h5>
-                    <h3 class="text-success">{{ $students->total() }}</h3>
-                    <small class="text-muted">Status Aktif</small>
+                    <h6 class="card-title text-medium-contrast fw-semibold mb-2">Siswa Aktif</h6>
+                    <h2 class="text-success fw-bold mb-1">{{ $students->total() }}</h2>
+                    <small class="text-subtle fw-medium">Status Aktif</small>
                 </div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card card-stats text-center h-100 hover-card">
                 <div class="card-body">
                     <div class="text-info fs-1 mb-3">
                         <i class="fas fa-male"></i>
                     </div>
-                    <h5 class="card-title text-muted">Laki-laki</h5>
-                    <h3 class="text-info">{{ rand(90, 120) }}</h3>
-                    <small class="text-muted">Siswa Putra</small>
+                    <h6 class="card-title text-medium-contrast fw-semibold mb-2">Laki-laki</h6>
+                    <h2 class="text-info fw-bold mb-1">{{ rand(90, 120) }}</h2>
+                    <small class="text-subtle fw-medium">Siswa Putra</small>
                 </div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card card-stats text-center h-100 hover-card">
                 <div class="card-body">
                     <div class="text-warning fs-1 mb-3">
                         <i class="fas fa-female"></i>
                     </div>
-                    <h5 class="card-title text-muted">Perempuan</h5>
-                    <h3 class="text-warning">{{ rand(80, 110) }}</h3>
-                    <small class="text-muted">Siswa Putri</small>
+                    <h6 class="card-title text-medium-contrast fw-semibold mb-2">Perempuan</h6>
+                    <h2 class="text-warning fw-bold mb-1">{{ rand(80, 110) }}</h2>
+                    <small class="text-subtle fw-medium">Siswa Putri</small>
                 </div>
             </div>
         </div>
@@ -86,21 +88,24 @@
     <!-- Filter dan Pencarian -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card card-modern border-0 shadow-sm">
                 <div class="card-body">
+                    <h6 class="card-title text-high-contrast fw-semibold mb-3">
+                        <i class="fas fa-filter text-primary me-2"></i>Filter & Pencarian
+                    </h6>
                     <form method="GET" action="{{ route('admin.siswa.index') }}" id="filterForm">
                         <div class="row g-3 align-items-end">
                             <!-- Search Input -->
                             <div class="col-md-4">
-                                <label for="studentSearch" class="form-label">Pencarian</label>
+                                <label for="studentSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
                                 <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-search"></i>
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
                                     </span>
                                     <input type="text"
                                            name="search"
                                            id="studentSearch"
-                                           class="form-control"
+                                           class="form-control border-start-0"
                                            placeholder="Cari nama, NIS, NISN..."
                                            value="{{ request('search') }}">
                                 </div>
@@ -108,7 +113,7 @@
 
                             <!-- Class Filter -->
                             <div class="col-md-2">
-                                <label for="classFilter" class="form-label">Kelas</label>
+                                <label for="classFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
                                 <select name="kelas" id="classFilter" class="form-select">
                                     <option value="">Semua Kelas</option>
                                     <option value="7" {{ request('kelas') === '7' ? 'selected' : '' }}>Kelas 7</option>
@@ -119,7 +124,7 @@
 
                             <!-- Gender Filter -->
                             <div class="col-md-2">
-                                <label for="genderFilter" class="form-label">Jenis Kelamin</label>
+                                <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Jenis Kelamin</label>
                                 <select name="gender" id="genderFilter" class="form-select">
                                     <option value="">Semua</option>
                                     <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
@@ -129,7 +134,7 @@
 
                             <!-- Status Filter -->
                             <div class="col-md-2">
-                                <label for="statusFilter" class="form-label">Status</label>
+                                <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
                                 <select name="status" id="statusFilter" class="form-select">
                                     <option value="">Semua Status</option>
                                     <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
@@ -140,10 +145,10 @@
                             <!-- Action Buttons -->
                             <div class="col-md-2">
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary shadow-sm fw-medium">
                                         <i class="fas fa-search me-1"></i> Cari
                                     </button>
-                                    <a href="{{ route('admin.siswa.index') }}" class="btn btn-outline-secondary">
+                                    <a href="{{ route('admin.siswa.index') }}" class="btn btn-outline-secondary shadow-sm fw-medium">
                                         <i class="fas fa-redo me-1"></i> Reset
                                     </a>
                                 </div>
@@ -157,16 +162,16 @@
     <!-- Tabel Data Siswa -->
     <div class="row">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom-0 py-3">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-table me-2"></i>Daftar Siswa
-                            </h5>
+                            <h6 class="card-title mb-0 text-high-contrast fw-semibold">
+                                <i class="fas fa-table text-primary me-2"></i>Daftar Siswa
+                            </h6>
                         </div>
                         <div class="col-auto">
-                            <span class="badge bg-light text-dark" id="table-info">
+                            <span class="badge bg-primary-subtle text-primary border fw-medium" id="table-info">
                                 @include('admin.siswa.partials.table-info')
                             </span>
                         </div>
@@ -177,7 +182,7 @@
                         @include('admin.siswa.partials.table')
                     </div>
                 </div>
-                <div class="card-footer bg-white border-top">
+                <div class="card-footer bg-light border-top-0 py-3">
                     <div id="pagination-container">
                         @include('admin.siswa.partials.pagination')
                     </div>

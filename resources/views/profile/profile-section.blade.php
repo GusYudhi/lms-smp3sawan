@@ -1,28 +1,51 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="" id="profile-page">
-    <h1 class="page-title">Profil Pengguna & Pengaturan Akun</h1>
-
-    <div class="form-container-card" style="width: 700px;">
-        <!-- Profile Photo Section -->
-        <div class="profile-photo-section" style="text-align: center; margin-bottom: 30px;">
-            <div class="profile-photo-container" style="position: relative; display: inline-block;">
-            <img id="profile-photo-preview"
-                 src="{{ auth()->user()->profile_photo ? asset('storage/profile_photos/' . auth()->user()->profile_photo) : asset('assets/image/profile-default.svg') }}"
-                 alt="Profile Photo"
-                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #ddd;">
-            <button type="button" id="change-photo-btn"
-                style="position: absolute; bottom: 0; right: 0; background: #007bff; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer;"
-                onclick="document.getElementById('profile-photo-input').click();">
-                <i class="fas fa-camera"></i>
-            </button>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h3 text-high-contrast fw-bold mb-2">
+                        <i class="fas fa-user-cog text-primary me-2"></i>Profil Pengguna & Pengaturan Akun
+                    </h1>
+                    <p class="text-subtle mb-0">Kelola informasi pribadi dan pengaturan keamanan akun Anda</p>
+                </div>
             </div>
-            <input type="file" id="profile-photo-input" accept="image/*" style="display: none;" onchange="previewPhoto(this)">
-            <p style="margin-top: 10px; color: #666; font-size: 14px;">Klik ikon kamera untuk mengubah foto profil</p>
         </div>
+    </div>
 
-        <script>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <!-- Profile Photo Section -->
+            <div class="card card-stats border-0 shadow-sm mb-4">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h5 class="card-title mb-0 text-high-contrast fw-semibold">
+                        <i class="fas fa-camera text-primary me-2"></i>Foto Profil
+                    </h5>
+                </div>
+                <div class="card-body text-center p-4">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img id="profile-photo-preview"
+                             src="{{ auth()->user()->profile_photo ? asset('storage/profile_photos/' . auth()->user()->profile_photo) : asset('assets/image/profile-default.svg') }}"
+                             alt="Profile Photo"
+                             class="rounded-circle border border-3 border-light shadow"
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <button type="button" id="change-photo-btn"
+                                class="btn btn-primary rounded-circle position-absolute bottom-0 end-0 p-2"
+                                style="width: 40px; height: 40px;"
+                                onclick="document.getElementById('profile-photo-input').click();">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="profile-photo-input" accept="image/*" class="d-none" onchange="previewPhoto(this)">
+                    <p class="text-subtle small mb-0">Klik ikon kamera untuk mengubah foto profil</p>
+                    <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB)</small>
+                </div>
+            </div>
+
+<script>
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -54,20 +77,22 @@
             const extension = file.name.split('.').pop().toLowerCase();
 
             if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
-                alert('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
+                showAlert('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.', 'danger');
                 return;
             }
 
             if (file.size > maxSize) {
-                alert('Ukuran file terlalu besar. Maksimal 2MB.');
+                showAlert('Ukuran file terlalu besar. Maksimal 2MB.', 'danger');
                 return;
             }
 
-            // Show loading indicator
-            const preview = document.getElementById('profile-photo-preview');
-            const originalSrc = preview.src;
+            // Show loading state
+            const changeBtn = document.getElementById('change-photo-btn');
+            const originalHtml = changeBtn.innerHTML;
+            changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            changeBtn.disabled = true;
 
-            // Create fresh FormData for each upload
+            // Create FormData
             const formData = new FormData();
             formData.append('profile_photo', file);
 
@@ -80,11 +105,6 @@
                 formData.append('_token', token);
             }
 
-            console.log('FormData entries:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value instanceof File ? `File: ${value.name} (${value.size} bytes)` : value);
-            }
-
             fetch('{{ route("profile.update-photo") }}', {
                 method: 'POST',
                 body: formData,
@@ -94,19 +114,11 @@
                 }
             })
             .then(async response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', Object.fromEntries(response.headers));
-
-                // Get response text first
                 const responseText = await response.text();
-                console.log('Response text:', responseText);
-
-                // Try to parse as JSON
                 let data;
                 try {
                     data = JSON.parse(responseText);
                 } catch (e) {
-                    console.error('Failed to parse JSON:', e);
                     throw new Error(`Server returned non-JSON response: ${responseText}`);
                 }
 
@@ -117,42 +129,110 @@
                 return data;
             })
             .then(data => {
-                console.log('Response data:', data);
                 if(data.success) {
-                    alert('Foto profil berhasil diperbarui!');
+                    showAlert('Foto profil berhasil diperbarui!', 'success');
                     if(data.profile_photo_url) {
-                        preview.src = data.profile_photo_url;
+                        document.getElementById('profile-photo-preview').src = data.profile_photo_url;
                     }
                 } else {
-                    alert('Terjadi kesalahan: ' + data.message);
-                    preview.src = originalSrc; // Restore original image
-                    console.error('Upload error:', data);
+                    showAlert('Terjadi kesalahan: ' + data.message, 'danger');
                 }
             })
             .catch(error => {
                 console.error('Upload error:', error);
-                alert('Terjadi kesalahan saat menyimpan foto: ' + error.message);
-                preview.src = originalSrc; // Restore original image
+                showAlert('Terjadi kesalahan saat menyimpan foto: ' + error.message, 'danger');
+                // Restore original image would need to be implemented
+            })
+            .finally(() => {
+                // Restore button state
+                changeBtn.innerHTML = originalHtml;
+                changeBtn.disabled = false;
             });
         }
-        </script>
 
-        <script>
+        // Password visibility toggle
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(fieldId + '-toggle-icon');
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Alert helper function
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert-floating');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-floating position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    <div class="flex-grow-1">${message}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
         // Password strength checker
         function checkPasswordStrength(password) {
             const isValidLength = password.length >= 8;
-
-            // Update UI indicator
             const lengthCheck = document.getElementById('length-check');
+
             if (lengthCheck) {
-                lengthCheck.style.color = isValidLength ? 'green' : 'red';
-                lengthCheck.innerHTML = (isValidLength ? '✓' : '✗') + ' Minimal 8 karakter';
+                if (isValidLength) {
+                    lengthCheck.className = 'text-success';
+                    lengthCheck.innerHTML = '<i class="fas fa-check me-1"></i>Minimal 8 karakter';
+                } else {
+                    lengthCheck.className = 'text-danger';
+                    lengthCheck.innerHTML = '<i class="fas fa-times me-1"></i>Minimal 8 karakter';
+                }
             }
 
-            // Update button status
             updatePasswordButton();
-
             return isValidLength;
+        }
+
+        // Password match checker
+        function checkPasswordMatch() {
+            const password = document.getElementById('password').value;
+            const confirmation = document.getElementById('password_confirmation').value;
+            const matchCheck = document.getElementById('password-match-check');
+
+            if (confirmation.length > 0) {
+                if (password === confirmation) {
+                    matchCheck.className = 'text-success';
+                    matchCheck.innerHTML = '<i class="fas fa-check me-1"></i>Password sesuai';
+                    matchCheck.classList.remove('d-none');
+                } else {
+                    matchCheck.className = 'text-danger';
+                    matchCheck.innerHTML = '<i class="fas fa-times me-1"></i>Password tidak sesuai';
+                    matchCheck.classList.remove('d-none');
+                }
+            } else {
+                matchCheck.classList.add('d-none');
+            }
+
+            updatePasswordButton();
         }
 
         // Update password button status
@@ -165,90 +245,189 @@
             const isMatch = password === confirmation && confirmation.length > 0;
 
             submitBtn.disabled = !(isValidLength && isMatch);
-            submitBtn.style.opacity = submitBtn.disabled ? '0.5' : '1';
-
-            console.log('Button status updated:', {
-                password_length: password.length,
-                is_valid_length: isValidLength,
-                is_match: isMatch,
-                button_disabled: submitBtn.disabled
-            });
-        }        // Password match checker
-        function checkPasswordMatch() {
-            const password = document.getElementById('password').value;
-            const confirmation = document.getElementById('password_confirmation').value;
-            const matchCheck = document.getElementById('password-match-check');
-
-            if (confirmation.length > 0) {
-                if (password === confirmation) {
-                    matchCheck.style.color = 'green';
-                    matchCheck.innerHTML = '✓ Password sesuai';
-                    matchCheck.style.display = 'block';
-                } else {
-                    matchCheck.style.color = 'red';
-                    matchCheck.innerHTML = '✗ Password tidak sesuai';
-                    matchCheck.style.display = 'block';
-                }
-            } else {
-                matchCheck.style.display = 'none';
-            }
-
-            // Update button status
-            updatePasswordButton();
+            submitBtn.style.opacity = submitBtn.disabled ? '0.6' : '1';
         }
         </script>
 
-        <form id="profile-form" enctype="multipart/form-data">
-            @csrf
+            <!-- Personal Information Form -->
+            <div class="card card-stats border-0 shadow-sm mb-4">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h5 class="card-title mb-0 text-high-contrast fw-semibold">
+                        <i class="fas fa-user text-primary me-2"></i>Informasi Pribadi
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="profile-form" enctype="multipart/form-data">
+                        @csrf
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label fw-medium text-high-contrast">
+                                        Nama Lengkap <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                           id="name"
+                                           name="name"
+                                           class="form-control"
+                                           placeholder="Masukkan nama lengkap"
+                                           value="{{ old('name', auth()->user()->name ?? '') }}"
+                                           required>
+                                </div>
+                            </div>
 
-            <h2>Informasi Pribadi</h2>
-            <div class="form-group">
-                <label for="name">Nama Lengkap</label>
-                <input type="text" id="name" name="name" class="form-control" placeholder="Masukkan nama lengkap" value="{{ old('name', auth()->user()->name ?? '') }}" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Alamat Email</label>
-                <input type="email" id="email" name="email" class="form-control" placeholder="Masukkan alamat email" value="{{ old('email', auth()->user()->email ?? '') }}" required>
-            </div>
-            <div class="form-group">
-                @if(auth()->user()->role === 'siswa')
-                    <label for="nomor_induk">NISN</label>
-                @elseif(in_array(auth()->user()->role, ['guru', 'kepala_sekolah']))
-                    <label for="nomor_induk">NIP</label>
-                @endif
-                <input type="text" id="nomor_induk" name="nomor_induk" class="form-control" placeholder="Masukkan nomor induk" value="{{ old('nomor_induk', auth()->user()->nomor_induk ?? '') }}">
-            </div>
-            <div class="form-group">
-                @if(auth()->user()->role === 'siswa')
-                    <label for="nomor_telepon">Nomor Telepon Orang Tua</label>
-                @elseif(in_array(auth()->user()->role, ['guru', 'kepala_sekolah']))
-                    <label for="nomor_telepon">Nomor Telepon</label>
-                @endif
-                <input type="text" id="nomor_telepon" name="nomor_telepon" class="form-control" placeholder="Masukkan nomor telepon" value="{{ old('nomor_telepon', auth()->user()->nomor_telepon ?? '') }}">
-            </div>
-            <button type="submit" class="btn btn-primary">Simpan data</button>
-        </form>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label fw-medium text-high-contrast">
+                                        Alamat Email <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope text-muted"></i>
+                                        </span>
+                                        <input type="email"
+                                               id="email"
+                                               name="email"
+                                               class="form-control"
+                                               placeholder="Masukkan alamat email"
+                                               value="{{ old('email', auth()->user()->email ?? '') }}"
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
 
-        <form id="password-form" style="margin-top: 30px;">
-            @csrf
-            <h2>Pengaturan Akun</h2>
-            <div class="form-group">
-                <label for="password">Kata Sandi Baru</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan kata sandi baru" onkeyup="checkPasswordStrength(this.value)">
-                <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                    <span id="length-check" style="color: red;">✗ Minimal 8 karakter</span>
-                </small>
-            </div>
-            <div class="form-group">
-                <label for="password_confirmation">Konfirmasi Kata Sandi</label>
-                <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Konfirmasi kata sandi baru" onkeyup="checkPasswordMatch()">
-                <small id="password-match-check" style="color: red; font-size: 12px; margin-top: 5px; display: none;">
-                    Password tidak sesuai
-                </small>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nomor_induk" class="form-label fw-medium text-high-contrast">
+                                        @if(auth()->user()->role === 'siswa')
+                                            NISN
+                                        @elseif(in_array(auth()->user()->role, ['guru', 'kepala_sekolah']))
+                                            NIP
+                                        @endif
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-id-card text-muted"></i>
+                                        </span>
+                                        <input type="text"
+                                               id="nomor_induk"
+                                               name="nomor_induk"
+                                               class="form-control"
+                                               placeholder="Masukkan nomor induk"
+                                               value="{{ old('nomor_induk', auth()->user()->nomor_induk ?? '') }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="mb-4">
+                                    <label for="nomor_telepon" class="form-label fw-medium text-high-contrast">
+                                        @if(auth()->user()->role === 'siswa')
+                                            Nomor Telepon Orang Tua
+                                        @elseif(in_array(auth()->user()->role, ['guru', 'kepala_sekolah']))
+                                            Nomor Telepon
+                                        @endif
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone text-muted"></i>
+                                        </span>
+                                        <input type="text"
+                                               id="nomor_telepon"
+                                               name="nomor_telepon"
+                                               class="form-control"
+                                               placeholder="Masukkan nomor telepon"
+                                               value="{{ old('nomor_telepon', auth()->user()->nomor_telepon ?? '') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="save-password-btn">Simpan Password</button>
-        </form>
+            <!-- Password Settings Form -->
+            <div class="card card-stats border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h5 class="card-title mb-0 text-high-contrast fw-semibold">
+                        <i class="fas fa-lock text-primary me-2"></i>Pengaturan Keamanan
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="password-form">
+                        @csrf
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label fw-medium text-high-contrast">
+                                        Kata Sandi Baru <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-key text-muted"></i>
+                                        </span>
+                                        <input type="password"
+                                               id="password"
+                                               name="password"
+                                               class="form-control"
+                                               placeholder="Masukkan kata sandi baru"
+                                               onkeyup="checkPasswordStrength(this.value)">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                            <i class="fas fa-eye" id="password-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">
+                                            <span id="length-check" class="text-danger">
+                                                <i class="fas fa-times me-1"></i>Minimal 8 karakter
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="password_confirmation" class="form-label fw-medium text-high-contrast">
+                                        Konfirmasi Kata Sandi <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-key text-muted"></i>
+                                        </span>
+                                        <input type="password"
+                                               id="password_confirmation"
+                                               name="password_confirmation"
+                                               class="form-control"
+                                               placeholder="Konfirmasi kata sandi baru"
+                                               onkeyup="checkPasswordMatch()">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password_confirmation')">
+                                            <i class="fas fa-eye" id="password_confirmation-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small id="password-match-check" class="text-danger d-none">
+                                            <i class="fas fa-times me-1"></i>Password tidak sesuai
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg" id="save-password-btn" disabled>
+                                <i class="fas fa-shield-alt me-2"></i>Perbarui Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <script>
@@ -256,13 +435,21 @@
     document.getElementById('profile-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        console.log('Profile form submission started');
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan...';
+        submitBtn.disabled = true;
 
         const formData = new FormData(this);
-
-        // Get CSRF token
         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
                      document.querySelector('#profile-form input[name="_token"]')?.value;
+
+        // Debug: Log form data
+        console.log('Profile form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+        console.log('CSRF Token:', token ? 'Found' : 'Not found');
 
         fetch('{{ route("profile.update") }}', {
             method: 'POST',
@@ -274,48 +461,58 @@
         })
         .then(async response => {
             console.log('Profile update response status:', response.status);
+            console.log('Profile update response headers:', Object.fromEntries(response.headers));
 
-            // Get response text first
             const responseText = await response.text();
             console.log('Profile update response text:', responseText);
 
-            // Try to parse as JSON
             let data;
             try {
                 data = JSON.parse(responseText);
             } catch (e) {
-                console.error('Failed to parse JSON:', e);
+                console.error('Failed to parse JSON response:', e);
                 throw new Error(`Server returned non-JSON response: ${responseText}`);
             }
 
-            if (!response.ok) {
+            console.log('Profile update parsed data:', data);
+
+            // Handle validation errors (422) differently from other errors
+            if (response.status === 422) {
+                console.log('Validation error detected (422)');
+                if (data.errors) {
+                    console.log('Validation errors:', data.errors);
+                    let errorMessages = [];
+                    for (let field in data.errors) {
+                        errorMessages.push(...data.errors[field]);
+                    }
+                    showAlert('Error validasi: ' + errorMessages.join(', '), 'danger');
+                    return null; // Don't throw, just return null to skip the success handler
+                } else {
+                    throw new Error(data.message || 'Validasi gagal');
+                }
+            } else if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${data.message || 'Unknown error'}`);
             }
 
             return data;
         })
         .then(data => {
-            console.log('Profile update response data:', data);
-            if(data.success) {
-                alert('Profil berhasil diperbarui!');
-                location.reload();
-            } else {
-                // Handle validation errors
-                if(data.errors) {
-                    let errorMessages = [];
-                    for(let field in data.errors) {
-                        errorMessages.push(...data.errors[field]);
-                    }
-                    alert('Error validasi:\n' + errorMessages.join('\n'));
-                } else {
-                    alert('Terjadi kesalahan: ' + data.message);
-                }
-                console.error('Profile update error:', data);
+            // Only process success if data is not null (validation didn't fail)
+            if (data && data.success) {
+                showAlert('Profil berhasil diperbarui!', 'success');
+                setTimeout(() => location.reload(), 2000);
+            } else if (data) {
+                // Handle other error cases
+                showAlert('Terjadi kesalahan: ' + (data.message || 'Unknown error'), 'danger');
             }
         })
         .catch(error => {
             console.error('Profile update error:', error);
-            alert('Terjadi kesalahan saat menyimpan data: ' + error.message);
+            showAlert('Terjadi kesalahan saat menyimpan data: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
         });
     });
 
@@ -323,44 +520,39 @@
     document.getElementById('password-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memperbarui...';
+        submitBtn.disabled = true;
+
         const password = document.getElementById('password').value;
         const passwordConfirmation = document.getElementById('password_confirmation').value;
 
-        console.log('Password form submission started');
-        console.log('Password length:', password.length);
-        console.log('Confirmation length:', passwordConfirmation.length);
-
         // Client-side validation
         if(!password || !passwordConfirmation) {
-            alert('Harap isi kedua field password');
+            showAlert('Harap isi kedua field password', 'warning');
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
             return;
         }
 
         if(password.length < 8) {
-            alert('Password minimal 8 karakter');
+            showAlert('Password minimal 8 karakter', 'warning');
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
             return;
         }
 
         if(password !== passwordConfirmation) {
-            alert('Konfirmasi password tidak cocok');
+            showAlert('Konfirmasi password tidak cocok', 'warning');
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
             return;
         }
 
-        console.log('Client validation passed');
-
         const formData = new FormData(this);
-
-        // Log FormData contents
-        console.log('FormData contents:');
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value instanceof File ? `File: ${value.name}` : value);
-        }
-
-        // Get CSRF token
         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
                      document.querySelector('#password-form input[name="_token"]')?.value;
-
-        console.log('CSRF Token:', token ? 'Found' : 'Not found');
 
         fetch('{{ route("profile.update-password") }}', {
             method: 'POST',
@@ -371,52 +563,52 @@
             }
         })
         .then(async response => {
-            console.log('Password update response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers));
-
-            // Get response text first
             const responseText = await response.text();
-            console.log('Password update response text:', responseText);
-
-            // Try to parse as JSON
             let data;
             try {
                 data = JSON.parse(responseText);
             } catch (e) {
-                console.error('Failed to parse JSON:', e);
                 throw new Error(`Server returned non-JSON response: ${responseText}`);
             }
 
-            if (!response.ok) {
+            // Handle validation errors (422) differently from other errors
+            if (response.status === 422) {
+                if (data.errors) {
+                    let errorMessages = [];
+                    for (let field in data.errors) {
+                        errorMessages.push(...data.errors[field]);
+                    }
+                    showAlert('Error validasi: ' + errorMessages.join(', '), 'danger');
+                    return null; // Don't throw, just return null to skip the success handler
+                } else {
+                    throw new Error(data.message || 'Validasi gagal');
+                }
+            } else if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${data.message || 'Unknown error'}`);
             }
 
             return data;
         })
         .then(data => {
-            console.log('Password update response data:', data);
-            if(data.success) {
-                alert('Password berhasil diperbarui!');
+            // Only process success if data is not null (validation didn't fail)
+            if (data && data.success) {
+                showAlert('Password berhasil diperbarui!', 'success');
                 // Clear password fields
                 document.getElementById('password').value = '';
                 document.getElementById('password_confirmation').value = '';
-            } else {
-                // Handle validation errors
-                if(data.errors) {
-                    let errorMessages = [];
-                    for(let field in data.errors) {
-                        errorMessages.push(...data.errors[field]);
-                    }
-                    alert('Error validasi:\n' + errorMessages.join('\n'));
-                } else {
-                    alert('Terjadi kesalahan: ' + data.message);
-                }
-                console.error('Password update error:', data);
+                document.getElementById('password-match-check').classList.add('d-none');
+                updatePasswordButton();
+            } else if (data) {
+                // Handle other error cases
+                showAlert('Terjadi kesalahan: ' + (data.message || 'Unknown error'), 'danger');
             }
         })
         .catch(error => {
             console.error('Password update error:', error);
-            alert('Terjadi kesalahan saat menyimpan password: ' + error.message);
+            showAlert('Terjadi kesalahan saat menyimpan password: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalHtml;
         });
     });
 </script>

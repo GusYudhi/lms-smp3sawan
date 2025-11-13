@@ -20,7 +20,7 @@
     <div class="row g-4 mb-4">
         <!-- Total Guru -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-primary fs-1 mb-3">
                         <i class="fas fa-chalkboard-teacher"></i>
@@ -34,7 +34,7 @@
 
         <!-- Total Siswa -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-success fs-1 mb-3">
                         <i class="fas fa-user-graduate"></i>
@@ -48,7 +48,7 @@
 
         <!-- Siswa Hadir Hari Ini -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-info fs-1 mb-3">
                         <i class="fas fa-user-check"></i>
@@ -62,7 +62,7 @@
 
         <!-- Siswa Tidak Hadir Hari Ini -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-warning fs-1 mb-3">
                         <i class="fas fa-user-times"></i>
@@ -76,7 +76,7 @@
 
         <!-- Total Kelas -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-secondary fs-1 mb-3">
                         <i class="fas fa-door-open"></i>
@@ -90,7 +90,7 @@
 
         <!-- Persentase Kehadiran -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-stats h-100">
                 <div class="card-body text-center">
                     <div class="text-dark fs-1 mb-3">
                         <i class="fas fa-chart-pie"></i>
@@ -111,7 +111,7 @@
     <!-- Ringkasan Kehadiran Mingguan -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card card-stats">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-calendar-week me-2"></i>Ringkasan Kehadiran 7 Hari Terakhir
@@ -151,7 +151,7 @@
     <!-- Quick Actions -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+            <div class="card card-stats h-100 border-start">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="text-danger fs-2 me-3">
@@ -168,7 +168,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+            <div class="card card-stats h-100 border-start">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="text-info fs-2 me-3">
@@ -185,7 +185,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+            <div class="card card-stats h-100 border-start">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="text-success fs-2 me-3">
@@ -206,7 +206,7 @@
     <div class="row g-4 mb-4">
         <div class="col-lg-3 col-md-6">
             <a href="{{ route('admin.guru.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
                         <div class="text-primary fs-1 mb-3">
                             <i class="fas fa-chalkboard-teacher"></i>
@@ -220,7 +220,7 @@
 
         <div class="col-lg-3 col-md-6">
             <a href="{{ route('admin.siswa.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
                         <div class="text-primary fs-1 mb-3">
                             <i class="fas fa-user-graduate"></i>
@@ -234,7 +234,7 @@
 
         <div class="col-lg-3 col-md-6">
             <a href="{{ route('school.profile') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
                         <div class="text-primary fs-1 mb-3">
                             <i class="fas fa-school"></i>
@@ -247,7 +247,7 @@
         </div>
 
         <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 hover-card">
+            <div class="card card-stats h-100 hover-card">
                 <div class="card-body text-center">
                     <div class="text-primary fs-1 mb-3">
                         <i class="fas fa-chart-bar"></i>
