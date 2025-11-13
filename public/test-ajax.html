@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AJAX Siswa</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Test AJAX Search Siswa</h1>
+    <input type="text" id="search" placeholder="Cari siswa...">
+    <div id="result"></div>
+
+    <script>
+        $('#search').on('input', function() {
+            const searchValue = $(this).val();
+            
+            $.ajax({
+                url: 'http://127.0.0.1:8000/admin/siswa/search',
+                type: 'GET',
+                data: {
+                    search: searchValue
+                },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    console.log('Success:', response);
+                    $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', xhr.responseText);
+                    $('#result').html('<pre>Error: ' + xhr.responseText + '</pre>');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
