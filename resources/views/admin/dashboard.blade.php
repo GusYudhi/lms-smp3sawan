@@ -1,205 +1,292 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard Administrator')
+
 @section('content')
-<div class="admin-dashboard">
-    <div class="page-header">
-        <h1>Dashboard Administrator</h1>
-        <div class="welcome-message">
-            <h3>Selamat datang di panel administrasi SMPN 3 SAWAN</h3>
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <h1 class="h3 mb-2 text-primary">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrator
+                </h1>
+                <p class="text-muted mb-0">Selamat datang di panel administrasi SMPN 3 SAWAN</p>
+            </div>
         </div>
     </div>
 
     <!-- Statistik Utama -->
-    <div class="stats-overview">
-        <div class="stats-grid">
-            <!-- Total Guru -->
-            <div class="stat-card guru-card">
-                <div class="stat-icon">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Total Guru</h3>
-                    <div class="stat-number">{{ \App\Models\User::where('role', 'guru')->count() }}</div>
-                    <p class="stat-description">Guru Aktif</p>
-                </div>
-            </div>
-
-            <!-- Total Siswa -->
-            <div class="stat-card siswa-card">
-                <div class="stat-icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Total Siswa</h3>
-                    <div class="stat-number">{{ \App\Models\User::where('role', 'siswa')->count() }}</div>
-                    <p class="stat-description">Siswa Terdaftar</p>
-                </div>
-            </div>
-
-            <!-- Siswa Hadir Hari Ini -->
-            <div class="stat-card hadir-card">
-                <div class="stat-icon">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Siswa Hadir</h3>
-                    <div class="stat-number">
-                        {{-- Simulasi data hadir hari ini --}}
-                        {{ rand(150, 180) }}
+    <div class="row g-4 mb-4">
+        <!-- Total Guru -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary fs-1 mb-3">
+                        <i class="fas fa-chalkboard-teacher"></i>
                     </div>
-                    <p class="stat-description">Hari Ini</p>
+                    <h5 class="card-title text-muted">Total Guru</h5>
+                    <h2 class="text-primary mb-2">{{ \App\Models\User::where('role', 'guru')->count() }}</h2>
+                    <p class="text-muted small mb-0">Guru Aktif</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Siswa Tidak Hadir Hari Ini -->
-            <div class="stat-card absen-card">
-                <div class="stat-icon">
-                    <i class="fas fa-user-times"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Siswa Absen</h3>
-                    <div class="stat-number">
-                        {{-- Simulasi data absen hari ini --}}
-                        {{ rand(5, 25) }}
+        <!-- Total Siswa -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-success fs-1 mb-3">
+                        <i class="fas fa-user-graduate"></i>
                     </div>
-                    <p class="stat-description">Hari Ini</p>
+                    <h5 class="card-title text-muted">Total Siswa</h5>
+                    <h2 class="text-success mb-2">{{ \App\Models\User::where('role', 'siswa')->count() }}</h2>
+                    <p class="text-muted small mb-0">Siswa Terdaftar</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Total Kelas -->
-            <div class="stat-card kelas-card">
-                <div class="stat-icon">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Total Kelas</h3>
-                    <div class="stat-number">18</div>
-                    <p class="stat-description">Kelas Aktif</p>
-                </div>
-            </div>
-
-            <!-- Persentase Kehadiran -->
-            <div class="stat-card kehadiran-card">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Tingkat Kehadiran</h3>
-                    <div class="stat-number">
-                        @php
-                            $totalSiswa = \App\Models\User::where('role', 'siswa')->count();
-                            $siswaHadir = rand(150, 180);
-                            $persentaseKehadiran = $totalSiswa > 0 ? round(($siswaHadir / $totalSiswa) * 100, 1) : 0;
-                        @endphp
-                        {{ $persentaseKehadiran }}%
+        <!-- Siswa Hadir Hari Ini -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-info fs-1 mb-3">
+                        <i class="fas fa-user-check"></i>
                     </div>
-                    <p class="stat-description">Hari Ini</p>
+                    <h5 class="card-title text-muted">Siswa Hadir</h5>
+                    <h2 class="text-info mb-2">{{ rand(150, 180) }}</h2>
+                    <p class="text-muted small mb-0">Hari Ini</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Siswa Tidak Hadir Hari Ini -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-warning fs-1 mb-3">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Siswa Absen</h5>
+                    <h2 class="text-warning mb-2">{{ rand(5, 25) }}</h2>
+                    <p class="text-muted small mb-0">Hari Ini</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Kelas -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-secondary fs-1 mb-3">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Total Kelas</h5>
+                    <h2 class="text-secondary mb-2">18</h2>
+                    <p class="text-muted small mb-0">Kelas Aktif</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Persentase Kehadiran -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-dark fs-1 mb-3">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Tingkat Kehadiran</h5>
+                    @php
+                        $totalSiswa = \App\Models\User::where('role', 'siswa')->count();
+                        $siswaHadir = rand(150, 180);
+                        $persentaseKehadiran = $totalSiswa > 0 ? round(($siswaHadir / $totalSiswa) * 100, 1) : 0;
+                    @endphp
+                    <h2 class="text-dark mb-2">{{ $persentaseKehadiran }}%</h2>
+                    <p class="text-muted small mb-0">Hari Ini</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Ringkasan Kehadiran Mingguan -->
-    <div class="attendance-summary">
-        <div class="summary-header">
-            <h2>Ringkasan Kehadiran 7 Hari Terakhir</h2>
-            <p class="text-light">Persentase kehadiran siswa dalam seminggu terakhir</p>
-        </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-week me-2"></i>Ringkasan Kehadiran 7 Hari Terakhir
+                    </h5>
+                    <small class="text-muted">Persentase kehadiran siswa dalam seminggu terakhir</small>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        @php
+                            $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            $attendancePercentages = [92, 88, 95, 90, 87, 85];
+                        @endphp
 
-        <div class="weekly-attendance-grid">
-            @php
-                $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                $attendancePercentages = [92, 88, 95, 90, 87, 85]; // Minggu libur
-            @endphp
-
-            @foreach($days as $index => $day)
-            <div class="attendance-day-card {{ $attendancePercentages[$index] == 0 ? 'holiday' : '' }}">
-                <div class="day-name">{{ $day }}</div>
-                <div class="attendance-bar">
-                    <div class="attendance-fill"
-                         style="width: {{ $attendancePercentages[$index] }}%;
-                                background: {{ $attendancePercentages[$index] >= 90 ? '#4caf50' : ($attendancePercentages[$index] >= 80 ? '#ff9800' : '#f44336') }};">
+                        @foreach($days as $index => $day)
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h6 class="mb-2">{{ $day }}</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar
+                                        @if($attendancePercentages[$index] >= 90) bg-success
+                                        @elseif($attendancePercentages[$index] >= 80) bg-warning
+                                        @else bg-danger @endif"
+                                         role="progressbar"
+                                         style="width: {{ $attendancePercentages[$index] }}%;">
+                                        {{ $attendancePercentages[$index] }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
-                <div class="attendance-percentage">
-                    {{ $attendancePercentages[$index] == 0 ? 'Libur' : $attendancePercentages[$index] . '%' }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="text-danger fs-2 me-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1">Siswa Sering Absen</h6>
+                            <p class="card-text text-muted">{{ rand(3, 8) }} siswa memerlukan perhatian khusus</p>
+                            <a href="#" class="btn btn-outline-danger btn-sm">Lihat Detail</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Statistik Quick Actions -->
-    <div class="quick-actions-grid">
-        <div class="action-card urgent">
-            <div class="action-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="action-content">
-                <h3>Siswa Sering Absen</h3>
-                <p>{{ rand(3, 8) }} siswa memerlukan perhatian khusus</p>
-                <a href="#" class="action-link">Lihat Detail</a>
-            </div>
         </div>
 
-        <div class="action-card info">
-            <div class="action-icon">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="action-content">
-                <h3>Kehadiran Bulanan</h3>
-                <p>Rata-rata kehadiran bulan ini: 89.5%</p>
-                <a href="#" class="action-link">Lihat Laporan</a>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="text-info fs-2 me-3">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1">Kehadiran Bulanan</h6>
+                            <p class="card-text text-muted">Rata-rata kehadiran bulan ini: 89.5%</p>
+                            <a href="#" class="btn btn-outline-info btn-sm">Lihat Laporan</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="action-card success">
-            <div class="action-icon">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="action-content">
-                <h3>Kelas Terbaik</h3>
-                <p>Kelas 9A dengan tingkat kehadiran 97%</p>
-                <a href="#" class="action-link">Lihat Ranking</a>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="text-success fs-2 me-3">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1">Kelas Terbaik</h6>
+                            <p class="card-text text-muted">Kelas 9A dengan tingkat kehadiran 97%</p>
+                            <a href="#" class="btn btn-outline-success btn-sm">Lihat Ranking</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="portal-grid">
-        <a href="{{ route('admin.guru.index') }}" class="portal-card">
-            <i class="fas fa-chalkboard-teacher icon-primary fa-3x"></i>
-            <h3>Manajemen Guru</h3>
-            <p>Kelola data guru dan staf pengajar</p>
-        </a>
 
-        <a href="{{ route('admin.siswa.index') }}" class="portal-card">
-            <i class="fas fa-user-graduate icon-primary fa-3x"></i>
-            <h3>Manajemen Siswa</h3>
-            <p>Kelola data siswa dan kelas</p>
-        </a>
-
-        <a href="{{ route('school.profile') }}" class="portal-card">
-            <i class="fas fa-school icon-primary fa-3x"></i>
-            <h3>Data Sekolah</h3>
-            <p>Informasi dan profil sekolah</p>
-        </a>
-
-        <div class="portal-card">
-            <i class="fas fa-chart-bar icon-primary fa-3x"></i>
-            <h3>Laporan System</h3>
-            <p>Analisis dan laporan kinerja sekolah</p>
+    <!-- Portal Grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ route('admin.guru.index') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h5 class="card-title">Manajemen Guru</h5>
+                        <p class="card-text text-muted">Kelola data guru dan staf pengajar</p>
+                    </div>
+                </div>
+            </a>
         </div>
 
-        <div class="portal-card">
-            <i class="fas fa-cogs icon-primary fa-3x"></i>
-            <h3>Pengaturan</h3>
-            <p>Konfigurasi sistem dan preferensi</p>
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ route('admin.siswa.index') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h5 class="card-title">Manajemen Siswa</h5>
+                        <p class="card-text text-muted">Kelola data siswa dan kelas</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ route('school.profile') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-card">
+                    <div class="card-body text-center">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <h5 class="card-title">Data Sekolah</h5>
+                        <p class="card-text text-muted">Informasi dan profil sekolah</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center">
+                    <div class="text-primary fs-1 mb-3">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="card-title">Laporan System</h5>
+                    <p class="card-text text-muted">Analisis dan laporan kinerja sekolah</p>
+                </div>
+            </div>
         </div>
     </div>
 
-
-    <div class="recent-activities">
-        <h2>Aktivitas Terbaru</h2>
-        <p>Kelola sistem dan monitor aktivitas sekolah</p>
+    <!-- Recent Activities -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Aktivitas Terbaru
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Kelola sistem dan monitor aktivitas sekolah</p>
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line text-muted fs-1 mb-3"></i>
+                        <p class="text-muted">Fitur aktivitas terbaru akan segera tersedia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
 @endsection

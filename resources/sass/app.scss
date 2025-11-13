@@ -1,8 +1,110 @@
 // Fonts
-@import url('https://fonts.bunny.net/css?family=Nunito');
+@import url("https://fonts.bunny.net/css?family=Nunito");
 
 // Variables
-@import 'variables';
+@import "variables";
 
 // Bootstrap
-@import 'bootstrap/scss/bootstrap';
+@import "bootstrap/scss/bootstrap";
+
+// Custom Styles
+.sidebar {
+    background: #0d47a1 !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+
+        &:hover,
+        &.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+    }
+}
+
+.main-content {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.sidebar-brand {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+}
+
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+}
+
+// Form Controls
+.form-control:focus {
+    border-color: #0d47a1;
+    box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+}
+
+.form-select:focus {
+    border-color: #0d47a1;
+    box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+}
+
+// Buttons
+.btn-primary {
+    background-color: #0d47a1;
+    border-color: #0d47a1;
+
+    &:hover {
+        background-color: #0a3d8a;
+        border-color: #0a3d8a;
+    }
+}
+
+// Tables
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 71, 161, 0.05);
+}
+
+// Cards
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+// Alerts
+.alert {
+    border: none;
+    border-radius: 0.375rem;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1050;
+
+        &.show {
+            transform: translateX(0);
+        }
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}

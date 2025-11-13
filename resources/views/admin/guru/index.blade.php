@@ -1,203 +1,263 @@
 @extends('layouts.app')
 
+@section('title', 'Data Guru')
+
 @section('content')
-<div class="guru-management">
+<div class="container-fluid">
     <!-- Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-chalkboard-teacher"></i> Data Guru</h1>
-            <p class="page-subtitle">Kelola informasi data guru dan tenaga pendidik</p>
-        </div>
-        <div class="header-actions">
-            <a href="{{ route('admin.guru.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Tambah Guru Baru
-            </a>
-            <a href="{{ route('admin.guru.export') }}" class="btn btn-secondary">
-                <i class="fas fa-download"></i> Download Data
-            </a>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-white rounded-3 shadow-sm p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="h3 mb-2 text-primary">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Data Guru
+                        </h1>
+                        <p class="text-muted mb-0">Kelola informasi data guru dan tenaga pendidik</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ route('admin.guru.create') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus me-1"></i> Tambah Guru
+                        </a>
+                        <a href="{{ route('admin.guru.export') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-download me-1"></i> Export
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Statistik Guru -->
-    <div class="teacher-stats-overview">
-        <div class="teacher-stats-grid">
-            <!-- Total Guru -->
-            <div class="teacher-stat-card total-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Total Guru</h3>
-                    <div class="stat-number">{{ \App\Models\User::where('role', 'guru')->count() }}</div>
-                    <p class="stat-description">Semua Guru</p>
-                </div>
-            </div>
-
-            <!-- Guru PNS -->
-            <div class="teacher-stat-card pns-card">
-                <div class="stat-icon">
-                    <i class="fas fa-id-badge"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Guru PNS</h3>
-                    <div class="stat-number">{{ rand(15, 25) }}</div>
-                    <p class="stat-description">Pegawai Negeri Sipil</p>
+    <div class="row g-4 mb-4">
+        <!-- Total Guru -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-primary fs-1 mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Total Guru</h5>
+                    <h3 class="text-primary">{{ \App\Models\User::where('role', 'guru')->count() }}</h3>
+                    <small class="text-muted">Semua Guru</small>
                 </div>
             </div>
+        </div>
 
-            <!-- Guru PPPK -->
-            <div class="teacher-stat-card pppk-card">
-                <div class="stat-icon">
-                    <i class="fas fa-certificate"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Guru PPPK</h3>
-                    <div class="stat-number">{{ rand(8, 15) }}</div>
-                    <p class="stat-description">P3K Non PNS</p>
+        <!-- Guru PNS -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-success fs-1 mb-3">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Guru PNS</h5>
+                    <h3 class="text-success">{{ rand(15, 25) }}</h3>
+                    <small class="text-muted">Pegawai Negeri</small>
                 </div>
             </div>
+        </div>
 
-            <!-- Guru Honorer -->
-            <div class="teacher-stat-card honor-card">
-                <div class="stat-icon">
-                    <i class="fas fa-handshake"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Guru Honorer</h3>
-                    <div class="stat-number">{{ rand(5, 12) }}</div>
-                    <p class="stat-description">Guru Kontrak</p>
+        <!-- Guru PPPK -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-info fs-1 mb-3">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Guru PPPK</h5>
+                    <h3 class="text-info">{{ rand(8, 15) }}</h3>
+                    <small class="text-muted">P3K Non PNS</small>
                 </div>
             </div>
+        </div>
 
-            <!-- Wali Kelas -->
-            <div class="teacher-stat-card wali-card">
-                <div class="stat-icon">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Wali Kelas</h3>
-                    <div class="stat-number">18</div>
-                    <p class="stat-description">Total Kelas</p>
+        <!-- Guru Honorer -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-warning fs-1 mb-3">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Guru Honorer</h5>
+                    <h3 class="text-warning">{{ rand(5, 12) }}</h3>
+                    <small class="text-muted">Guru Kontrak</small>
                 </div>
             </div>
+        </div>
 
-            <!-- Guru Aktif -->
-            <div class="teacher-stat-card active-card">
-                <div class="stat-icon">
-                    <i class="fas fa-user-check"></i>
+        <!-- Wali Kelas -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-secondary fs-1 mb-3">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Wali Kelas</h5>
+                    <h3 class="text-secondary">18</h3>
+                    <small class="text-muted">Total Kelas</small>
                 </div>
-                <div class="stat-content">
-                    <h3>Status Aktif</h3>
-                    <div class="stat-number">{{ \App\Models\User::where('role', 'guru')->count() }}</div>
-                    <p class="stat-description">Guru Mengajar</p>
+            </div>
+        </div>
+
+        <!-- Guru Aktif -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="text-dark fs-1 mb-3">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Status Aktif</h5>
+                    <h3 class="text-dark">{{ \App\Models\User::where('role', 'guru')->count() }}</h3>
+                    <small class="text-muted">Guru Mengajar</small>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filter dan Pencarian -->
-    <div class="data-controls">
-        <div class="search-filter-container">
-            <form method="GET" action="{{ route('admin.guru.index') }}" id="filterForm">
-                <div class="search-section">
-                    <div class="search-input-group">
-                        <input type="text"
-                               name="search"
-                               id="teacherSearch"
-                               placeholder="Cari berdasarkan nama guru, email, atau NIP..."
-                               class="search-input"
-                               value="{{ request('search') }}">
-                        <i class="fas fa-search"></i>
-                    </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('admin.guru.index') }}" id="filterForm">
+                        <div class="row g-3 align-items-end">
+                            <!-- Search Input -->
+                            <div class="col-md-4">
+                                <label for="teacherSearch" class="form-label">Pencarian</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text"
+                                           name="search"
+                                           id="teacherSearch"
+                                           class="form-control"
+                                           placeholder="Cari nama, email, atau NIP..."
+                                           value="{{ request('search') }}">
+                                </div>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div class="col-md-2">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select name="status" id="statusFilter" class="form-select">
+                                    <option value="">Semua Status</option>
+                                    <option value="PNS" {{ request('status') === 'PNS' ? 'selected' : '' }}>PNS</option>
+                                    <option value="PPPK" {{ request('status') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
+                                    <option value="Honorer" {{ request('status') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
+                                </select>
+                            </div>
+
+                            <!-- Gender Filter -->
+                            <div class="col-md-2">
+                                <label for="genderFilter" class="form-label">Jenis Kelamin</label>
+                                <select name="gender" id="genderFilter" class="form-select">
+                                    <option value="">Semua</option>
+                                    <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
+                                </select>
+                            </div>
+
+                            <!-- Wali Kelas Filter -->
+                            <div class="col-md-2">
+                                <label for="waliFilter" class="form-label">Wali Kelas</label>
+                                <select id="waliFilter" class="form-select" disabled>
+                                    <option value="">Semua</option>
+                                    <option value="Ya">Wali Kelas</option>
+                                    <option value="Tidak">Bukan Wali</option>
+                                </select>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="col-md-2">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-1"></i> Cari
+                                    </button>
+                                    <a href="{{ route('admin.guru.index') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-redo me-1"></i> Reset
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="filter-section">
-                    <select name="status" id="statusFilter" class="filter-select">
-                        <option value="">Semua Status</option>
-                        <option value="PNS" {{ request('status') === 'PNS' ? 'selected' : '' }}>PNS</option>
-                        <option value="PPPK" {{ request('status') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                        <option value="Honorer" {{ request('status') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
-                    </select>
-
-                    <select name="gender" id="genderFilter" class="filter-select">
-                        <option value="">Semua Jenis Kelamin</option>
-                        <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-
-                    <select id="waliFilter" class="filter-select" disabled style="opacity: 0.5;">
-                        <option value="">Filter Wali Kelas</option>
-                        <option value="Ya">Wali Kelas</option>
-                        <option value="Tidak">Bukan Wali</option>
-                    </select>
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Cari
-                    </button>
-
-                    <a href="{{ route('admin.guru.index') }}" class="btn btn-secondary reset-filter">
-                        <i class="fas fa-redo"></i> Reset
-                    </a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <!-- Tabel Data Guru -->
-    <div class="teacher-data-table-card">
-        <div class="table-header">
-            <h2><i class="fas fa-table"></i> Daftar Guru</h2>
-            <div class="table-actions">
-                <span class="data-count" id="table-info">
-                    @include('admin.guru.partials.table-info')
-                </span>
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-table me-2"></i>Daftar Guru
+                            </h5>
+                        </div>
+                        <div class="col-auto">
+                            <span class="badge bg-light text-dark" id="table-info">
+                                @include('admin.guru.partials.table-info')
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="table-container">
+                        @include('admin.guru.partials.table')
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top">
+                    <div id="pagination-container">
+                        @include('admin.guru.partials.pagination')
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div id="table-container">
-            @include('admin.guru.partials.table')
-        </div>
-
-        <!-- Pagination -->
-        <div id="pagination-container">
-            @include('admin.guru.partials.pagination')
         </div>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-exclamation-triangle"></i> Konfirmasi Hapus Data</h3>
-            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p>Apakah Anda yakin ingin menghapus data guru:</p>
-            <p><strong id="teacherNameToDelete"></strong></p>
-            <p class="warning-text">
-                <i class="fas fa-warning"></i>
-                Data yang dihapus tidak dapat dikembalikan!
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeDeleteModal()">
-                <i class="fas fa-times"></i> Batal
-            </button>
-            <button class="btn btn-danger" id="confirmDeleteBtn">
-                <i class="fas fa-trash"></i> Ya, Hapus Data
-            </button>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Konfirmasi Hapus Data
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus data guru:</p>
+                <p class="fw-bold" id="teacherNameToDelete"></p>
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>Data yang dihapus tidak dapat dikembalikan!</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Batal
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Ya, Hapus Data
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Form Hidden untuk Delete -->
+<!-- Hidden Delete Form -->
 <form id="deleteForm" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
+@endsection
 
-<!-- Script untuk Pencarian dan Filter -->
+@push('scripts')
 <script>
 // Global variables
 let searchTimeout;
@@ -219,35 +279,29 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            currentPage = 1; // Reset to page 1 on new search
+            currentPage = 1;
             performAjaxSearch();
         }, 500);
     });
 
     // Immediate filter on select change (AJAX)
     statusFilter.addEventListener('change', function() {
-        currentPage = 1; // Reset to page 1 on filter change
+        currentPage = 1;
         performAjaxSearch();
     });
 
     genderFilter.addEventListener('change', function() {
-        currentPage = 1; // Reset to page 1 on filter change
+        currentPage = 1;
         performAjaxSearch();
     });
 
-    // Enhanced success message auto-hide with animation
+    // Auto-hide alerts
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
-        alert.style.opacity = '1';
-        alert.style.transition = 'opacity 0.3s ease';
-
         setTimeout(() => {
+            alert.style.transition = 'opacity 0.3s ease';
             alert.style.opacity = '0';
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.parentNode.removeChild(alert);
-                }
-            }, 300);
+            setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
 });
@@ -255,8 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // AJAX search function
 function performAjaxSearch() {
     if (isLoading) return;
-
-    console.log('Performing AJAX search...'); // Debug
 
     isLoading = true;
     showLoadingState();
@@ -278,7 +330,6 @@ function performAjaxSearch() {
     }
 
     const url = `{{ route('admin.guru.search') }}?${params.toString()}`;
-    console.log('AJAX URL:', url); // Debug
 
     fetch(url, {
         method: 'GET',
@@ -289,24 +340,14 @@ function performAjaxSearch() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => {
-        console.log('Response status:', response.status); // Debug
-        console.log('Response headers:', response.headers); // Debug
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Response data:', data); // Debug
-
         // Update table content
         document.getElementById('table-container').innerHTML = data.html;
-
-        // Update pagination
         document.getElementById('pagination-container').innerHTML = data.pagination;
-
-        // Update table info
         document.getElementById('table-info').innerHTML = data.info;
 
-        // Update URL without page reload
+        // Update URL
         const newUrl = new URL(window.location);
         if (searchValue) newUrl.searchParams.set('search', searchValue);
         else newUrl.searchParams.delete('search');
@@ -318,148 +359,64 @@ function performAjaxSearch() {
         else newUrl.searchParams.delete('page');
 
         window.history.pushState({}, '', newUrl);
-
-        // Reattach hover effects to new rows
-        attachRowHoverEffects();
-
         hideLoadingState();
         isLoading = false;
     })
     .catch(error => {
-        console.error('AJAX Error:', error); // Debug
-        showErrorMessage('Terjadi kesalahan saat mencari data');
+        console.error('AJAX Error:', error);
+        showToast('error', 'Terjadi kesalahan saat mencari data');
         hideLoadingState();
         isLoading = false;
     });
 }
 
-// Function to load specific page
 function loadPage(page) {
     currentPage = page;
     performAjaxSearch();
 }
 
-// Show loading state
 function showLoadingState() {
     const tableContainer = document.getElementById('table-container');
-    const overlay = document.createElement('div');
-    overlay.id = 'table-loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-content">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Memuat data...</p>
+    const spinner = document.createElement('div');
+    spinner.id = 'table-loading';
+    spinner.className = 'd-flex justify-content-center align-items-center p-5';
+    spinner.innerHTML = `
+        <div class="spinner-border text-primary me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    `;
-    overlay.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-        border-radius: 8px;
+        <span class="text-muted">Memuat data...</span>
     `;
 
-    // Make table container relative
     tableContainer.style.position = 'relative';
-    tableContainer.appendChild(overlay);
-
-    const content = overlay.querySelector('.loading-content');
-    content.style.cssText = `
-        text-align: center;
-        color: var(--primary-color);
-        font-size: 14px;
-    `;
+    tableContainer.style.opacity = '0.6';
+    tableContainer.appendChild(spinner);
 }
 
-// Hide loading state
 function hideLoadingState() {
-    const overlay = document.getElementById('table-loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
+    const spinner = document.getElementById('table-loading');
+    if (spinner) spinner.remove();
+
+    const tableContainer = document.getElementById('table-container');
+    tableContainer.style.opacity = '1';
 }
 
-// Show error message
-function showErrorMessage(message) {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-danger';
-    alert.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        max-width: 300px;
-        animation: slideIn 0.3s ease-out;
-    `;
-    alert.innerHTML = `
-        <i class="fas fa-exclamation-circle"></i>
-        ${message}
-        <button type="button" class="close" onclick="this.parentElement.remove()">
-            <span>&times;</span>
-        </button>
-    `;
-    document.body.appendChild(alert);
-
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.remove();
-        }
-    }, 5000);
-}
-
-// Attach hover effects to table rows
-function attachRowHoverEffects() {
-    const rows = document.querySelectorAll('.teacher-row');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-            this.style.transition = 'background-color 0.2s ease';
-        });
-
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-}
-
-// Enhanced Delete Confirmation Functions
 function confirmDelete(teacherId, teacherName) {
     document.getElementById('teacherNameToDelete').textContent = teacherName;
-    const modal = document.getElementById('deleteModal');
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-
-    const modalContent = modal.querySelector('.modal-content');
-    modalContent.style.animation = 'modalSlideIn 0.3s ease-out';
 
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     confirmBtn.onclick = function() {
         deleteTeacher(teacherId);
     };
-}
 
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    const modalContent = modal.querySelector('.modal-content');
-
-    modalContent.style.animation = 'modalSlideOut 0.2s ease-in';
-
-    setTimeout(() => {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-    }, 200);
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
 }
 
 function deleteTeacher(teacherId) {
     const deleteBtn = document.getElementById('confirmDeleteBtn');
     const originalText = deleteBtn.innerHTML;
 
-    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghapus...';
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
     deleteBtn.disabled = true;
 
     const form = document.getElementById('deleteForm');
@@ -467,117 +424,20 @@ function deleteTeacher(teacherId) {
     form.submit();
 }
 
-// Enhanced modal interactions
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('deleteModal');
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'} me-2"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
 
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeDeleteModal();
-        }
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.style.display === 'flex') {
-            closeDeleteModal();
-        }
-    });
-});
-
-// Enhanced export functionality with current filters
-function exportData() {
-    const exportBtn = document.querySelector('.btn-export, [href*="export"]');
-    if (!exportBtn) return;
-
-    const originalText = exportBtn.innerHTML;
-
-    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunduh...';
-    exportBtn.disabled = true;
-
-    // Get current filter values
-    const params = new URLSearchParams();
-    const search = document.getElementById('teacherSearch').value;
-    const status = document.getElementById('statusFilter').value;
-    const gender = document.getElementById('genderFilter').value;
-
-    if (search) params.append('search', search);
-    if (status) params.append('status', status);
-    if (gender) params.append('gender', gender);
-
-    const exportUrl = `{{ route('admin.guru.export') }}?${params.toString()}`;
-
-    const link = document.createElement('a');
-    link.href = exportUrl;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-        exportBtn.innerHTML = originalText;
-        exportBtn.disabled = false;
-    }, 2000);
+    setTimeout(() => toast.remove(), 5000);
 }
-
-// Initial call to attach hover effects
-document.addEventListener('DOMContentLoaded', function() {
-    attachRowHoverEffects();
-});
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: scale(0.8) translateY(-50px);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-    }
-
-    @keyframes modalSlideOut {
-        from {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-        to {
-            opacity: 0;
-            transform: scale(0.8) translateY(-50px);
-        }
-    }
-
-    .modal-content {
-        animation-fill-mode: forwards;
-    }
-
-    .alert .close {
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        color: inherit;
-        opacity: 0.7;
-        margin-left: 10px;
-    }
-
-    .alert .close:hover {
-        opacity: 1;
-    }
-`;
-document.head.appendChild(style);
 </script>
-@endsection
+@endpush
