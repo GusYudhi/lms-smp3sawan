@@ -3,41 +3,40 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
+use App\Models\User;
+use App\Services\UserManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class SiswaController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserManagementService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Student::orderBy('name');
+        $search = $request->input('search');
+        $filters = $request->only(['jenis_kelamin', 'kelas']);
 
-        if ($request->filled('search')) {
-            $q = $request->input('search');
-            $query->where(function($sub) use ($q) {
-            $sub->where('name', 'like', "%{$q}%")
-                ->orWhere('nisn', 'like', "%{$q}%")
-                ->orWhere('nis', 'like', "%{$q}%");
-            });
-        }
+        $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
-        if ($request->filled('jenis_kelamin')) {
-            $query->where('jenis_kelamin', $request->input('jenis_kelamin'));
-        }
-
-        if ($request->filled('kelas')) {
-            $query->where('kelas', $request->input('kelas'));
-        }
-
-        $students = $query->paginate(15)->withQueryString();
-
-        // Simple classes list (derive from existing students)
-        $classes = Student::distinct()->pluck('kelas')->filter()->values()->all();
+        // Get available classes for filter
+        $classes = User::whereHas('studentProfile')
+            ->with('studentProfile')
+            ->get()
+            ->pluck('studentProfile.kelas')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
         return view('admin.siswa.index', compact('students', 'classes'));
     }
@@ -47,27 +46,20 @@ class SiswaController extends Controller
      */
     public function search(Request $request)
     {
-        $query = Student::orderBy('name');
+        $search = $request->input('search');
+        $filters = $request->only(['jenis_kelamin', 'kelas']);
 
-        if ($request->filled('search')) {
-            $q = $request->input('search');
-            $query->where(function($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('nisn', 'like', "%{$q}%")
-                    ->orWhere('nis', 'like', "%{$q}%");
-            });
-        }
+        $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
-        if ($request->filled('jenis_kelamin')) {
-            $query->where('jenis_kelamin', $request->input('jenis_kelamin'));
-        }
-
-        if ($request->filled('kelas')) {
-            $query->where('kelas', $request->input('kelas'));
-        }
-
-        $students = $query->paginate(15)->withQueryString();
-        $classes = Student::distinct()->pluck('kelas')->filter()->values()->all();
+        // Get available classes for filter
+        $classes = User::whereHas('studentProfile')
+            ->with('studentProfile')
+            ->get()
+            ->pluck('studentProfile.kelas')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
         if ($request->ajax()) {
             return response()->json([
@@ -96,29 +88,39 @@ class SiswaController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:students,email',
-            'nis' => 'nullable|string|max:50|unique:students,nis',
-            'nisn' => 'nullable|string|max:50',
-            'jenis_kelamin' => 'nullable|string|max:20',
-            'kelas' => 'nullable|string|max:50',
-            'tanggal_lahir' => 'nullable|date',
-            'nomor_telepon' => 'nullable|string|max:30',
-            'nomor_telepon_orangtua' => 'nullable|string|max:30',
-            'profile_photo' => 'nullable|image|max:2048',
+            'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'nomor_telepon' => 'nullable|string|max:30',
+            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'profile_photo' => 'nullable|image|max:2048',
+            // Student profile fields
+            'nis' => 'nullable|string|max:50|unique:student_profiles,nis',
+            'nisn' => 'nullable|string|max:50',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tanggal_lahir' => 'nullable|date',
+            'kelas' => 'nullable|string|max:50',
+            'nomor_telepon_orangtua' => 'nullable|string|max:30',
+            'alamat' => 'nullable|string',
+            'nama_orangtua_wali' => 'nullable|string|max:255',
+            'pekerjaan_orangtua' => 'nullable|string|max:255',
         ]);
 
+        $userData = $request->only(['name', 'email', 'password', 'nomor_telepon', 'jenis_kelamin']);
+
+        // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
             $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $data['profile_photo'] = $path;
+            $userData['profile_photo'] = $path;
         }
 
-        // Hash password
-        $data['password'] = Hash::make($data['password']);
+        $profileData = $request->only([
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua'
+        ]);
 
-        $student = Student::create($data);
+        $student = $this->userService->createStudent($userData, $profileData);
 
         return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil ditambahkan');
     }
@@ -128,7 +130,7 @@ class SiswaController extends Controller
      */
     public function show($id)
     {
-        $student = Student::findOrFail($id);
+        $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
         return view('admin.siswa.show', compact('student'));
     }
 
@@ -137,7 +139,7 @@ class SiswaController extends Controller
      */
     public function edit($id)
     {
-        $student = Student::findOrFail($id);
+        $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
         return view('admin.siswa.edit', compact('student'));
     }
 
@@ -146,37 +148,41 @@ class SiswaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
+        $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
 
-        $data = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:students,email,' . $student->id,
-            'nis' => 'nullable|string|max:50|unique:students,nis,' . $student->id,
-            'nisn' => 'nullable|string|max:50',
-            'jenis_kelamin' => 'nullable|string|max:20',
-            'kelas' => 'nullable|string|max:50',
-            'tanggal_lahir' => 'nullable|date',
-            'nomor_telepon' => 'nullable|string|max:30',
-            'nomor_telepon_orangtua' => 'nullable|string|max:30',
-            'profile_photo' => 'nullable|image|max:2048',
+            'email' => 'nullable|email|unique:users,email,' . $student->id,
             'password' => 'nullable|string|min:8|confirmed',
+            'nomor_telepon' => 'nullable|string|max:30',
+            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'profile_photo' => 'nullable|image|max:2048',
+            // Student profile fields
+            'nis' => 'nullable|string|max:50|unique:student_profiles,nis,' . ($student->studentProfile->id ?? 'NULL'),
+            'nisn' => 'nullable|string|max:50',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tanggal_lahir' => 'nullable|date',
+            'kelas' => 'nullable|string|max:50',
+            'nomor_telepon_orangtua' => 'nullable|string|max:30',
+            'alamat' => 'nullable|string',
+            'nama_orangtua_wali' => 'nullable|string|max:255',
+            'pekerjaan_orangtua' => 'nullable|string|max:255',
         ]);
 
+        $userData = $request->only(['name', 'email', 'password', 'nomor_telepon', 'jenis_kelamin']);
+
+        // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
-            if ($student->profile_photo) {
-                Storage::disk('public')->delete($student->profile_photo);
-            }
             $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $data['profile_photo'] = $path;
+            $userData['profile_photo'] = $path;
         }
 
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
-        }
+        $profileData = $request->only([
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua'
+        ]);
 
-        $student->update($data);
+        $student = $this->userService->updateStudent($student, $userData, $profileData);
 
         return redirect()->route('admin.siswa.show', $student->id)->with('success', 'Siswa berhasil diperbarui');
     }
@@ -186,13 +192,9 @@ class SiswaController extends Controller
      */
     public function destroy($id)
     {
-        $student = Student::findOrFail($id);
+        $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
 
-        if ($student->profile_photo) {
-            Storage::disk('public')->delete($student->profile_photo);
-        }
-
-        $student->delete();
+        $this->userService->deleteUser($student);
 
         return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil dihapus');
     }
@@ -202,26 +204,31 @@ class SiswaController extends Controller
      */
     public function export(Request $request)
     {
-        $query = Student::orderBy('name');
+        $search = $request->input('search');
+        $filters = $request->only(['jenis_kelamin', 'kelas']);
 
-        if ($request->filled('search')) {
-            $q = $request->input('search');
-            $query->where(function($sub) use ($q) {
-            $sub->where('name', 'like', "%{$q}%")
-                ->orWhere('nisn', 'like', "%{$q}%")
-                ->orWhere('nis', 'like', "%{$q}%");
-            });
-        }
-
-        if ($request->filled('jenis_kelamin')) {
-            $query->where('jenis_kelamin', $request->input('jenis_kelamin'));
-        }
-
-        if ($request->filled('kelas')) {
-            $query->where('kelas', $request->input('kelas'));
-        }
-
-        $students = $query->get();
+        $students = User::with('studentProfile')
+            ->where('role', 'siswa')
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('studentProfile', function ($sub) use ($search) {
+                          $sub->where('nis', 'like', "%{$search}%")
+                              ->orWhere('nisn', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->when(isset($filters['jenis_kelamin']), function ($query) use ($filters) {
+                return $query->where('jenis_kelamin', $filters['jenis_kelamin']);
+            })
+            ->when(isset($filters['kelas']), function ($query) use ($filters) {
+                return $query->whereHas('studentProfile', function ($q) use ($filters) {
+                    $q->where('kelas', $filters['kelas']);
+                });
+            })
+            ->orderBy('name')
+            ->get();
 
         $filename = 'students_export_' . now()->format('Ymd_His') . '.csv';
 
@@ -230,28 +237,29 @@ class SiswaController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $columns = ['Nama','NIS','NISN','Jenis Kelamin','Kelas','Nomor Telepon Orang Tua','Tanggal Lahir','Telepon','Email'];
+        $columns = ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Kelas', 'Nomor Telepon Orang Tua', 'Tanggal Lahir', 'Telepon', 'Email'];
 
         $callback = function() use ($students, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
-            foreach ($students as $s) {
+            foreach ($students as $student) {
+                $profile = $student->studentProfile;
                 fputcsv($file, [
-                    $s->name,
-                    $s->nis,
-                    $s->nisn,
-                    $s->jenis_kelamin,
-                    $s->kelas,
-                    $s->nomor_telepon_orangtua,
-                    $s->tanggal_lahir,
-                    $s->nomor_telepon,
-                    $s->email,
+                    $student->name,
+                    $profile->nis ?? '',
+                    $profile->nisn ?? '',
+                    $student->jenis_kelamin ?? '',
+                    $profile->kelas ?? '',
+                    $profile->nomor_telepon_orangtua ?? '',
+                    $profile->tanggal_lahir ?? '',
+                    $student->nomor_telepon ?? '',
+                    $student->email ?? '',
                 ]);
             }
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
-     }
- }
+    }
+}

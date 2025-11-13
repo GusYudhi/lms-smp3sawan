@@ -1,86 +1,128 @@
-<div class="table-wrapper">
-    <table class="teacher-data-table" id="teacherTable">
-        <thead>
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle mb-0" id="teacherTable">
+        <thead class="table-light">
             <tr>
-                <th>No</th>
-                <th>Foto</th>
-                <th>Nama Lengkap</th>
-                <th>NIP/NIK</th>
-                <th>Mata Pelajaran</th>
-                <th>Status Kepegawaian</th>
-                <th>Golongan</th>
-                <th>Jenis Kelamin</th>
-                <th>Wali Kelas</th>
-                <th>No. Telepon</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                <th scope="col" class="text-center fw-semibold">#</th>
+                <th scope="col" class="text-center fw-semibold">Foto</th>
+                <th scope="col" class="fw-semibold">Nama Lengkap</th>
+                <th scope="col" class="text-center fw-semibold">NIP/NIK</th>
+                <th scope="col" class="text-center fw-semibold">Mata Pelajaran</th>
+                <th scope="col" class="text-center fw-semibold">Status</th>
+                <th scope="col" class="text-center fw-semibold">Golongan</th>
+                <th scope="col" class="text-center fw-semibold">Gender</th>
+                <th scope="col" class="text-center fw-semibold">Wali Kelas</th>
+                <th scope="col" class="text-center fw-semibold">Telepon</th>
+                <th scope="col" class="text-center fw-semibold">Status</th>
+                <th scope="col" class="text-center fw-semibold">Aksi</th>
             </tr>
         </thead>
         <tbody>
             @forelse($teachers as $index => $teacher)
-            <tr class="teacher-row">
-                <td>{{ $loop->iteration + ($teachers->currentPage() - 1) * $teachers->perPage() }}</td>
-                <td>
-                    <div class="teacher-photo">
-                        <img src="{{ $teacher->profile_photo_path ? asset('storage/' . $teacher->profile_photo_path) : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTBFMEUwIi8+CjxwYXRoIGQ9Ik0yNSAxNUMxOS40NzcgMTUgMTUgMTkuNDc3IDE1IDI1QzE1IDMwLjUyMyAxOS40NzcgMzUgMjUgMzVDMzAuNTIzIDM1IDM1IDMwLjUyMyAzNSAyNUMzNSAxOS40NzcgMzAuNTIzIDE1IDI1IDE1WiIgZmlsbD0iIzk5OTk5OSIvPgo8L3N2Zz4K' }}"
-                             alt="{{ $teacher->name }}">
+            <tr>
+                <td class="text-center fw-bold">{{ $loop->iteration + ($teachers->currentPage() - 1) * $teachers->perPage() }}</td>
+                <td class="text-center">
+                    <div class="teacher-photo mx-auto rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
+                        @if($teacher->profile_photo_path)
+                            <img src="{{ asset('storage/' . $teacher->profile_photo_path) }}"
+                                 alt="{{ $teacher->name }}"
+                                 class="rounded-circle">
+                        @else
+                            <div class="default-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                        @endif
                     </div>
                 </td>
                 <td>
-                    <div class="teacher-name-info">
-                        <strong>{{ $teacher->name }}</strong>
-                        <small class="teacher-nip">NIP: {{ $teacher->nomor_induk }}</small>
+                    <div class="text-start">
+                        <div class="fw-semibold mb-1">{{ $teacher->name }}</div>
+                        <small class="text-muted fst-italic">NIP: {{ $teacher->nomor_induk }}</small>
                     </div>
                 </td>
-                <td>{{ $teacher->nomor_induk }}</td>
-                <td>
-                    <span class="subject-tag">{{ $teacher->mata_pelajaran }}</span>
+                <td class="text-center">
+                    <span class="badge bg-light text-dark border">{{ $teacher->nomor_induk }}</span>
                 </td>
-                <td>
-                    <span class="status-badge status-{{ strtolower($teacher->status_kepegawaian) }}">
-                        {{ $teacher->status_kepegawaian }}
-                    </span>
+                <td class="text-center">
+                    <span class="badge bg-primary-subtle text-primary border">{{ $teacher->mata_pelajaran }}</span>
                 </td>
-                <td>{{ $teacher->golongan ?: '-' }}</td>
-                <td>
-                    <span class="gender-badge gender-{{ strtolower($teacher->jenis_kelamin) }}">
-                        {{ $teacher->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}
-                    </span>
-                </td>
-                <td>
-                    @if($teacher->wali_kelas)
-                        <span class="wali-kelas-badge">{{ $teacher->wali_kelas }}</span>
+                <td class="text-center">
+                    @if(strtolower($teacher->status_kepegawaian) === 'pns')
+                        <span class="badge bg-success-subtle text-success border">{{ $teacher->status_kepegawaian }}</span>
+                    @elseif(strtolower($teacher->status_kepegawaian) === 'pppk')
+                        <span class="badge bg-info-subtle text-info border">{{ $teacher->status_kepegawaian }}</span>
                     @else
-                        <span class="no-wali">-</span>
+                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->status_kepegawaian }}</span>
                     @endif
                 </td>
-                <td>{{ $teacher->nomor_telepon ?: '-' }}</td>
-                <td>
-                    <span class="status-active">Aktif</span>
+                <td class="text-center">
+                    @if($teacher->golongan)
+                        <span class="badge bg-secondary">{{ $teacher->golongan }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
                 </td>
-                <td>
-                    <div class="action-buttons-vertical">
-                        <a href="{{ route('admin.guru.show', $teacher->id) }}" class="action-btn-vertical btn-view">
+                <td class="text-center">
+                    @if($teacher->jenis_kelamin == 'L')
+                        <span class="badge bg-primary-subtle text-primary border">
+                            <i class="fas fa-mars me-1"></i>Laki-laki
+                        </span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger border">
+                            <i class="fas fa-venus me-1"></i>Perempuan
+                        </span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($teacher->wali_kelas)
+                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->wali_kelas }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($teacher->nomor_telepon)
+                        <a href="tel:{{ $teacher->nomor_telepon }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-phone me-1"></i>{{ $teacher->nomor_telepon }}
+                        </a>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-success-subtle text-success border">
+                        <i class="fas fa-check-circle me-1"></i>Aktif
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group-vertical gap-1" role="group">
+                        <a href="{{ route('admin.guru.show', $teacher->id) }}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Lihat Detail">
                             <i class="fas fa-eye"></i>
-                            <span class="action-text">Lihat</span>
+                            <span class="d-none d-lg-inline ms-1">Lihat</span>
                         </a>
-                        <a href="{{ route('admin.guru.edit', $teacher->id) }}" class="action-btn-vertical btn-edit">
+                        <a href="{{ route('admin.guru.edit', $teacher->id) }}"
+                           class="btn btn-sm btn-outline-warning"
+                           title="Edit Data">
                             <i class="fas fa-edit"></i>
-                            <span class="action-text">Edit</span>
+                            <span class="d-none d-lg-inline ms-1">Edit</span>
                         </a>
-                        <button class="action-btn-vertical btn-delete" onclick="confirmDelete({{ $teacher->id }}, '{{ $teacher->name }}')">
+                        <button class="btn btn-sm btn-outline-danger"
+                                onclick="confirmDelete({{ $teacher->id }}, '{{ addslashes($teacher->name) }}')"
+                                title="Hapus Data">
                             <i class="fas fa-trash"></i>
-                            <span class="action-text">Hapus</span>
+                            <span class="d-none d-lg-inline ms-1">Hapus</span>
                         </button>
                     </div>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="12" class="text-center py-4">
-                    <div style="padding: 40px; color: #666;">
-                        <i class="fas fa-users" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
-                        <p style="margin: 0; font-size: 16px;">Tidak ada data guru yang ditemukan</p>
+                <td colspan="12" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-users fa-3x opacity-25 mb-3 d-block"></i>
+                        <h6 class="mb-2 fw-semibold">Tidak ada data guru</h6>
+                        <p class="mb-0">Belum ada data guru yang ditemukan</p>
                     </div>
                 </td>
             </tr>

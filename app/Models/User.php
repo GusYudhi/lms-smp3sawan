@@ -123,4 +123,48 @@ class User extends Authenticatable
         }
         return asset('assets/image/profile-default.svg');
     }
+
+    /**
+     * Get the student profile for the user.
+     */
+    public function studentProfile()
+    {
+        return $this->hasOne(StudentProfile::class);
+    }
+
+    /**
+     * Get the teacher profile for the user.
+     */
+    public function teacherProfile()
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
+
+    /**
+     * Check if user has student profile
+     */
+    public function hasStudentProfile()
+    {
+        return $this->studentProfile()->exists();
+    }
+
+    /**
+     * Check if user has teacher profile
+     */
+    public function hasTeacherProfile()
+    {
+        return $this->teacherProfile()->exists();
+    }
+
+    /**
+     * Get specific profile based on role
+     */
+    public function getProfile()
+    {
+        return match($this->role) {
+            'siswa' => $this->studentProfile,
+            'guru', 'kepala_sekolah' => $this->teacherProfile,
+            default => null
+        };
+    }
 }

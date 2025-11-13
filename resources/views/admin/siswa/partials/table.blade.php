@@ -1,104 +1,148 @@
-<table class="student-data-table" id="studentTable">
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Foto</th>
-            <th>Nama Lengkap</th>
-            <th>NIS</th>
-            <th>NISN</th>
-            <th>Jenis Kelamin</th>
-            <th>Kelas</th>
-            <th>Telp. Orang Tua</th>
-            <th>Tanggal Lahir</th>
-            <th>No. Telepon</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($students as $index => $student)
-        <tr class="student-row">
-            <td>{{ $loop->iteration + ($students->currentPage() - 1) * $students->perPage() }}</td>
-            <td>
-                <div class="student-photo">
-                    @if($student->profile_photo)
-                        <img src="{{ asset('storage/' . $student->profile_photo) }}"
-                             alt="Foto {{ $student->name }}"
-                             class="student-photo-img">
+<div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle mb-0" id="studentTable">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" class="text-center fw-semibold">#</th>
+                <th scope="col" class="text-center fw-semibold">Foto</th>
+                <th scope="col" class="fw-semibold">Nama Lengkap</th>
+                <th scope="col" class="text-center fw-semibold">NIS</th>
+                <th scope="col" class="text-center fw-semibold">NISN</th>
+                <th scope="col" class="text-center fw-semibold">Gender</th>
+                <th scope="col" class="text-center fw-semibold">Kelas</th>
+                <th scope="col" class="text-center fw-semibold">Telp. Ortu</th>
+                <th scope="col" class="text-center fw-semibold">Tanggal Lahir</th>
+                <th scope="col" class="text-center fw-semibold">Telepon</th>
+                <th scope="col" class="text-center fw-semibold">Email</th>
+                <th scope="col" class="text-center fw-semibold">Status</th>
+                <th scope="col" class="text-center fw-semibold">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($students as $index => $student)
+            <tr>
+                <td class="text-center fw-bold">{{ $loop->iteration + ($students->currentPage() - 1) * $students->perPage() }}</td>
+                <td class="text-center">
+                    <div class="student-photo mx-auto rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
+                        @if($student->profile_photo)
+                            <img src="{{ asset('storage/' . $student->profile_photo) }}"
+                                 alt="Foto {{ $student->name }}"
+                                 class="rounded-circle">
+                        @else
+                            <div class="default-avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                        @endif
+                    </div>
+                </td>
+                <td>
+                    <div class="text-start">
+                        <div class="fw-semibold mb-1">{{ $student->name }}</div>
+                        <small class="text-muted fst-italic">NIS: {{ $student->nis }}</small>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-light text-dark border">{{ $student->nis }}</span>
+                </td>
+                <td class="text-center">
+                    @if($student->nisn)
+                        <span class="badge bg-info-subtle text-info border">{{ $student->nisn }}</span>
                     @else
-                        <div class="default-avatar">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
+                        <span class="text-muted fst-italic">-</span>
                     @endif
-                </div>
-            </td>
-            <td>
-                <div class="student-name-info">
-                    <strong>{{ $student->name }}</strong>
-                    <small class="student-nis">NIS: {{ $student->nis }}</small>
-                </div>
-            </td>
-            <td>{{ $student->nis }}</td>
-            <td>{{ $student->nisn ?? '-' }}</td>
-            <td>
-                <span class="gender-badge gender-{{ strtolower($student->jenis_kelamin) }}">
-                    <i class="fas fa-{{ $student->jenis_kelamin === 'laki-laki' ? 'mars' : 'venus' }}"></i>
-                    {{ ucfirst($student->jenis_kelamin) }}
-                </span>
-            </td>
-            <td>
-                @if($student->kelas)
-                    <span class="class-badge">{{ $student->kelas }}</span>
-                @else
-                    <span class="no-class">-</span>
-                @endif
-            </td>
-            <td>{{ $student->nomor_telepon_orangtua ?? '-' }}</td>
-            <td>
-                @if($student->tanggal_lahir)
-                    {{ \Carbon\Carbon::parse($student->tanggal_lahir)->translatedFormat('d M Y') }}
-                @else
-                    -
-                @endif
-            </td>
-            <td>{{ $student->nomor_telepon ?? '-' }}</td>
-            <td>
-                @if($student->email)
-                    <a href="mailto:{{ $student->email }}" class="email-link">{{ $student->email }}</a>
-                @else
-                    -
-                @endif
-            </td>
-            <td>
-                <span class="status-active">Aktif</span>
-            </td>
-            <td>
-                <div class="action-buttons-vertical">
-                    <a href="{{ route('admin.siswa.show', $student->id) }}" class="action-btn-vertical btn-view">
-                        <i class="fas fa-eye"></i>
-                        <span class="btn-tooltip">Lihat</span>
-                    </a>
-                    <a href="{{ route('admin.siswa.edit', $student->id) }}" class="action-btn-vertical btn-edit">
-                        <i class="fas fa-edit"></i>
-                        <span class="btn-tooltip">Edit</span>
-                    </a>
-                    <button class="action-btn-vertical btn-delete" onclick="confirmDelete({{ $student->id }}, '{{ addslashes($student->name) }}')">
-                        <i class="fas fa-trash"></i>
-                        <span class="btn-tooltip">Hapus</span>
-                    </button>
-                </div>
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="13" class="text-center py-4">
-                <div style="padding: 40px; color: #666;">
-                    <i class="fas fa-users" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
-                    <p style="margin: 0; font-size: 16px;">Belum ada data siswa</p>
-                </div>
-            </td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+                </td>
+                <td class="text-center">
+                    @if($student->jenis_kelamin === 'laki-laki')
+                        <span class="badge bg-primary-subtle text-primary border">
+                            <i class="fas fa-mars me-1"></i>{{ ucfirst($student->jenis_kelamin) }}
+                        </span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger border">
+                            <i class="fas fa-venus me-1"></i>{{ ucfirst($student->jenis_kelamin) }}
+                        </span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($student->kelas)
+                        <span class="badge bg-primary-subtle text-primary border">{{ $student->kelas }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($student->nomor_telepon_orangtua)
+                        <a href="tel:{{ $student->nomor_telepon_orangtua }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-phone me-1"></i>{{ $student->nomor_telepon_orangtua }}
+                        </a>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($student->tanggal_lahir)
+                        <span class="badge bg-light text-dark border">
+                            {{ \Carbon\Carbon::parse($student->tanggal_lahir)->translatedFormat('d M Y') }}
+                        </span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($student->nomor_telepon)
+                        <a href="tel:{{ $student->nomor_telepon }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-mobile-alt me-1"></i>{{ $student->nomor_telepon }}
+                        </a>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($student->email)
+                        <a href="mailto:{{ $student->email }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-envelope me-1"></i>{{ $student->email }}
+                        </a>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-success-subtle text-success border">
+                        <i class="fas fa-check-circle me-1"></i>Aktif
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group-vertical gap-1" role="group">
+                        <a href="{{ route('admin.siswa.show', $student->id) }}"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Lihat Detail">
+                            <i class="fas fa-eye"></i>
+                            <span class="d-none d-lg-inline ms-1">Lihat</span>
+                        </a>
+                        <a href="{{ route('admin.siswa.edit', $student->id) }}"
+                           class="btn btn-sm btn-outline-warning"
+                           title="Edit Data">
+                            <i class="fas fa-edit"></i>
+                            <span class="d-none d-lg-inline ms-1">Edit</span>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger"
+                                onclick="confirmDelete({{ $student->id }}, '{{ addslashes($student->name) }}')"
+                                title="Hapus Data">
+                            <i class="fas fa-trash"></i>
+                            <span class="d-none d-lg-inline ms-1">Hapus</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="13" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-user-graduate fa-3x opacity-25 mb-3 d-block"></i>
+                        <h6 class="mb-2 fw-semibold">Belum ada data siswa</h6>
+                        <p class="mb-0">Belum ada data siswa yang tersedia</p>
+                    </div>
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
