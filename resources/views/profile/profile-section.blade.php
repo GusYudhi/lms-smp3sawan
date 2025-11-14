@@ -39,9 +39,10 @@
                             <i class="fas fa-camera"></i>
                         </button>
                     </div>
-                    <input type="file" id="profile-photo-input" accept="image/*" class="d-none" onchange="previewPhoto(this)">
-                    <p class="text-subtle small mb-0">Klik ikon kamera untuk mengubah foto profil</p>
-                    <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB)</small>
+                    <input type="file" id="profile-photo-input" accept="image/*" class="d-none" onchange="previewPhotoQuick(this)">
+                    <p class="text-subtle small mb-0">Klik ikon kamera untuk mengubah foto</p>
+                    <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB)<br>
+                    <strong>Catatan:</strong> Foto akan langsung tersimpan setelah dipilih</small>
                 </div>
             </div>
 
@@ -459,6 +460,25 @@
                                         </div>
                                     </div>
                                 @endif
+
+                                <!-- Foto Profil untuk Guru/Admin -->
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="profile_photo" class="form-label fw-medium text-high-contrast">
+                                            Ganti Foto Profil
+                                        </label>
+                                        <input type="file"
+                                               id="profile_photo"
+                                               name="profile_photo"
+                                               class="form-control"
+                                               accept="image/*"
+                                               onchange="previewPhotoInForm(this)">
+                                        <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB). Kosongkan jika tidak ingin mengubah foto.</small>
+                                        <div id="photo-preview-container" class="mt-2 d-none">
+                                            <img id="photo-preview" src="" alt="Preview" class="rounded" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
                         </div>
 
@@ -544,6 +564,19 @@
 </div>
 
 <script>
+        function previewPhotoQuick(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-photo-preview').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+
+                // Auto-upload the photo when selected
+                uploadProfilePhoto(input.files[0]);
+            }
+        }
+
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -554,6 +587,22 @@
 
                 // Auto-submit the photo when selected
                 uploadProfilePhoto(input.files[0]);
+            }
+        }
+
+        function previewPhotoInForm(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                const previewContainer = document.getElementById('photo-preview-container');
+                const previewImg = document.getElementById('photo-preview');
+
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                document.getElementById('photo-preview-container').classList.add('d-none');
             }
         }
 

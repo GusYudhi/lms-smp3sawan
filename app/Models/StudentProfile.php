@@ -58,13 +58,13 @@ class StudentProfile extends Model
      */
     public function getProfilePhotoUrl()
     {
-        if ($this->foto_profil && Storage::exists($this->foto_profil)) {
-            return Storage::url($this->foto_profil);
+        if ($this->foto_profil && Storage::exists('public/profile_photos/' . $this->foto_profil)) {
+            return Storage::url('profile_photos/' . $this->foto_profil);
         }
 
         // Fallback to user's photo if available
-        if ($this->user && $this->user->profile_photo && Storage::exists($this->user->profile_photo)) {
-            return Storage::url($this->user->profile_photo);
+        if ($this->user && $this->user->profile_photo && Storage::exists('public/profile_photos/' . $this->user->profile_photo)) {
+            return Storage::url('profile_photos/' . $this->user->profile_photo);
         }
 
         // Default avatar based on gender

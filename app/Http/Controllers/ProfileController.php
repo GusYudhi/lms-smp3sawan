@@ -39,7 +39,7 @@ class ProfileController extends Controller
             ]);
 
             if ($user->role === 'siswa') {
-                // Validation rules for students (simplified)
+                // Validation rules for students (simplified) - removed photo handling
                 $validated = $request->validate([
                     'name' => 'required|string|max:255',
                     'tempat_lahir' => 'nullable|string|max:100',
@@ -60,7 +60,7 @@ class ProfileController extends Controller
                 $user->name = $validated['name'];
                 $user->save();
 
-                // Update student profile (with new fields)
+                // Update student profile (without photo handling)
                 $profileData = [
                     'tempat_lahir' => $validated['tempat_lahir'],
                     'tanggal_lahir' => $validated['tanggal_lahir'],
@@ -87,6 +87,7 @@ class ProfileController extends Controller
                     'golongan' => 'nullable|string|max:20',
                     'mata_pelajaran' => 'nullable|string|max:100',
                     'wali_kelas' => 'nullable|string|max:10',
+                    'profile_photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
                 ], [
                     'name.required' => 'Nama lengkap wajib diisi',
                     'name.max' => 'Nama lengkap maksimal 255 karakter',
@@ -104,7 +105,33 @@ class ProfileController extends Controller
                     'golongan.max' => 'Golongan maksimal 20 karakter',
                     'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
                     'wali_kelas.max' => 'Wali kelas maksimal 10 karakter',
+                    'profile_photo.image' => 'File harus berupa gambar',
+                    'profile_photo.mimes' => 'Format foto harus JPG, PNG, atau WebP',
+                    'profile_photo.max' => 'Ukuran foto maksimal 2MB',
+                    'golongan.max' => 'Golongan maksimal 20 karakter',
+                    'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
+                    'wali_kelas.max' => 'Wali kelas maksimal 10 karakter',
                 ]);
+
+                // Handle profile photo upload for teachers/admin
+                if ($request->hasFile('profile_photo')) {
+                    $photo = $request->file('profile_photo');
+
+                    // Delete old photo if exists
+                    if ($user->profile_photo) {
+                        Storage::disk('public')->delete('profile_photos/' . $user->profile_photo);
+                    }
+
+                    // Generate unique filename
+                    $extension = $photo->getClientOriginalExtension();
+                    $photoName = time() . '_' . $user->id . '_' . uniqid() . '.' . $extension;
+
+                    // Store the file
+                    $photo->storeAs('profile_photos', $photoName, 'public');
+
+                    // Add photo name to validated data
+                    $validated['profile_photo'] = $photoName;
+                }
 
                 // Update user data
                 $user->fill($validated);

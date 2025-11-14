@@ -127,8 +127,8 @@ class User extends Authenticatable
         }
 
         // For other roles or as fallback, use user's own photo
-        if ($this->profile_photo && Storage::exists($this->profile_photo)) {
-            return Storage::url($this->profile_photo);
+        if ($this->profile_photo && Storage::exists('public/profile_photos/' . $this->profile_photo)) {
+            return Storage::url('profile_photos/' . $this->profile_photo);
         }
 
         // Default avatar based on gender
