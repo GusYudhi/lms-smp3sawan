@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -52,6 +53,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'tanggal_lahir' => 'date',
     ];
 
     /**
@@ -118,13 +121,28 @@ class User extends Authenticatable
      */
     public function getProfilePhotoUrl()
     {
-        if ($this->profile_photo) {
-            return asset('storage/profile_photos/' . $this->profile_photo);
+        // For students, try to get photo from student profile first
+        if ($this->role === 'siswa' && $this->studentProfile) {
+            return $this->studentProfile->getProfilePhotoUrl();
         }
-        return asset('assets/image/profile-default.svg');
-    }
 
-    /**
+        // For other roles or as fallback, use user's own photo
+        if ($this->profile_photo && Storage::exists($this->profile_photo)) {
+            return Storage::url($this->profile_photo);
+        }
+
+        // Default avatar based on gender
+        $defaultAvatar = $this->jenis_kelamin === 'P' ? 'avatars/female-default.png' : 'avatars/male-default.png';
+
+        // If default avatar exists, use it, otherwise use a generic one
+        if (Storage::exists('public/' . $defaultAvatar)) {
+            return Storage::url($defaultAvatar);
+        }
+
+        // Fallback to a simple placeholder
+        return "https://ui-avatars.com/api/?name=" . urlencode($this->name) .
+               "&background=e9ecef&color=495057&size=120";
+    }    /**
      * Get the student profile for the user.
      */
     public function studentProfile()

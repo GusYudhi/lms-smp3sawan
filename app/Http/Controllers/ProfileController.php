@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\StudentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,7 @@ class ProfileController extends Controller
      */
     public function show()
     {
+        /** @var User $user */
         $user = Auth::user();
         return view('profile.profile-section');
     }
@@ -27,42 +29,91 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         try {
-            $userAuth = Auth::user();
-            $user = User::find($userAuth->id);
+            /** @var User $user */
+            $user = Auth::user(); // Menggunakan Auth::user() langsung
 
             Log::info('Profile update started', [
                 'user_id' => $user->id,
-                'data' => $request->only(['name', 'email', 'nomor_induk', 'nomor_telepon'])
+                'role' => $user->role,
+                'data' => $request->except(['_token', 'password', 'password_confirmation'])
             ]);
 
-            // Validate the request
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-                'nomor_induk' => 'nullable|string|max:50|unique:users,nomor_induk,' . $user->id,
-                'nomor_telepon' => 'nullable|string|max:20',
-            ], [
-                'name.required' => 'Nama lengkap wajib diisi',
-                'name.max' => 'Nama lengkap maksimal 255 karakter',
-                'email.required' => 'Email wajib diisi',
-                'email.email' => 'Format email tidak valid',
-                'email.unique' => 'Email sudah digunakan oleh pengguna lain',
-                'nomor_induk.unique' => 'Nomor induk sudah digunakan oleh pengguna lain',
-                'nomor_induk.max' => 'Nomor induk maksimal 50 karakter',
-                'nomor_telepon.max' => 'Nomor telepon maksimal 20 karakter',
-            ]);
+            if ($user->role === 'siswa') {
+                // Validation rules for students (simplified)
+                $validated = $request->validate([
+                    'name' => 'required|string|max:255',
+                    'tempat_lahir' => 'nullable|string|max:100',
+                    'tanggal_lahir' => 'nullable|date|before:today',
+                    'nomor_telepon_orangtua' => 'nullable|string|max:20',
+                    'jenis_kelamin' => 'nullable|in:L,P',
+                ], [
+                    'name.required' => 'Nama lengkap wajib diisi',
+                    'name.max' => 'Nama lengkap maksimal 255 karakter',
+                    'tempat_lahir.max' => 'Tempat lahir maksimal 100 karakter',
+                    'tanggal_lahir.date' => 'Format tanggal lahir tidak valid',
+                    'tanggal_lahir.before' => 'Tanggal lahir harus sebelum hari ini',
+                    'nomor_telepon_orangtua.max' => 'Nomor telepon orang tua maksimal 20 karakter',
+                    'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki (L) atau Perempuan (P)',
+                ]);
 
-            Log::info('Profile validation passed');
+                // Update user data
+                $user->name = $validated['name'];
+                $user->save();
 
-            $user->name = $validated['name'];
-            $user->email = $validated['email'];
-            $user->nomor_induk = $validated['nomor_induk'];
-            $user->nomor_telepon = $validated['nomor_telepon'];
+                // Update student profile (with new fields)
+                $profileData = [
+                    'tempat_lahir' => $validated['tempat_lahir'],
+                    'tanggal_lahir' => $validated['tanggal_lahir'],
+                    'nomor_telepon_orangtua' => $validated['nomor_telepon_orangtua'],
+                    'jenis_kelamin' => $validated['jenis_kelamin'],
+                ];
 
-            $user->save();
+                $user->studentProfile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $profileData
+                );
+
+            } else {
+                // Validation rules for teachers, admin, etc.
+                $validated = $request->validate([
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+                    'nomor_induk' => 'nullable|string|max:50|unique:users,nomor_induk,' . $user->id,
+                    'nomor_telepon' => 'nullable|string|max:20',
+                    'jenis_kelamin' => 'nullable|in:L,P',
+                    'tempat_lahir' => 'nullable|string|max:100',
+                    'tanggal_lahir' => 'nullable|date|before:today',
+                    'status_kepegawaian' => 'nullable|string|in:PNS,Honor,Kontrak',
+                    'golongan' => 'nullable|string|max:20',
+                    'mata_pelajaran' => 'nullable|string|max:100',
+                    'wali_kelas' => 'nullable|string|max:10',
+                ], [
+                    'name.required' => 'Nama lengkap wajib diisi',
+                    'name.max' => 'Nama lengkap maksimal 255 karakter',
+                    'email.required' => 'Email wajib diisi',
+                    'email.email' => 'Format email tidak valid',
+                    'email.unique' => 'Email sudah digunakan oleh pengguna lain',
+                    'nomor_induk.unique' => 'Nomor induk sudah digunakan oleh pengguna lain',
+                    'nomor_induk.max' => 'Nomor induk maksimal 50 karakter',
+                    'nomor_telepon.max' => 'Nomor telepon maksimal 20 karakter',
+                    'jenis_kelamin.in' => 'Jenis kelamin harus L atau P',
+                    'tempat_lahir.max' => 'Tempat lahir maksimal 100 karakter',
+                    'tanggal_lahir.date' => 'Format tanggal lahir tidak valid',
+                    'tanggal_lahir.before' => 'Tanggal lahir harus sebelum hari ini',
+                    'status_kepegawaian.in' => 'Status kepegawaian harus PNS, Honor, atau Kontrak',
+                    'golongan.max' => 'Golongan maksimal 20 karakter',
+                    'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
+                    'wali_kelas.max' => 'Wali kelas maksimal 10 karakter',
+                ]);
+
+                // Update user data
+                $user->fill($validated);
+                $user->save();
+            }
 
             Log::info('Profile updated successfully', [
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'role' => $user->role
             ]);
 
             return response()->json([
@@ -130,6 +181,7 @@ class ProfileController extends Controller
                 'validated_password_length' => strlen($validated['password'])
             ]);
 
+            /** @var User $user */
             $user = Auth::user();
 
             Log::info('Before password update', [
@@ -138,9 +190,8 @@ class ProfileController extends Controller
             ]);
 
             // Update password
-            $result = $user->update([
-                'password' => Hash::make($validated['password'])
-            ]);
+            $user->password = Hash::make($validated['password']);
+            $result = $user->save();
 
             Log::info('Password updated successfully', [
                 'user_id' => $user->id,
@@ -207,6 +258,7 @@ class ProfileController extends Controller
 
             Log::info('Validation passed');
 
+            /** @var User $user */
             $user = Auth::user();
 
             // Handle profile photo upload
@@ -223,7 +275,12 @@ class ProfileController extends Controller
                 }
 
                 // Delete old photo if exists
-                if ($user->profile_photo) {
+                if ($user->role === 'siswa' && $user->studentProfile && $user->studentProfile->foto_profil) {
+                    // For students, delete from student profile
+                    Storage::disk('public')->delete('profile_photos/' . $user->studentProfile->foto_profil);
+                    Log::info('Old student photo deleted', ['old_photo' => $user->studentProfile->foto_profil]);
+                } elseif ($user->profile_photo) {
+                    // For other users, delete from user profile
                     Storage::disk('public')->delete('profile_photos/' . $user->profile_photo);
                     Log::info('Old photo deleted', ['old_photo' => $user->profile_photo]);
                 }
@@ -250,9 +307,18 @@ class ProfileController extends Controller
                     ], 500);
                 }
 
-                // Update user record
-                $user->profile_photo = $photoName;
-                $user->save();
+                // Update user or student profile record
+                if ($user->role === 'siswa') {
+                    // For students, save photo in student profile
+                    $user->studentProfile()->updateOrCreate(
+                        ['user_id' => $user->id],
+                        ['foto_profil' => $photoName]
+                    );
+                } else {
+                    // For other users, save in user profile
+                    $user->profile_photo = $photoName;
+                    $user->save();
+                }
 
                 Log::info('Photo stored successfully', [
                     'photo_name' => $photoName,
@@ -306,6 +372,7 @@ class ProfileController extends Controller
      */
     public function getUserData()
     {
+        /** @var User $user */
         $user = Auth::user();
 
         return response()->json([
