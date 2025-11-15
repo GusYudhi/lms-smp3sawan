@@ -7,10 +7,21 @@
         <div class="col-12">
             <div class="card card-modern border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h1 class="h3 text-high-contrast fw-bold mb-2">
-                        <i class="fas fa-user-cog text-primary me-2"></i>Profil Pengguna & Pengaturan Akun
-                    </h1>
-                    <p class="text-subtle mb-0">Kelola informasi pribadi dan pengaturan keamanan akun Anda</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 text-high-contrast fw-bold mb-2">
+                                <i class="fas fa-user-cog text-primary me-2"></i>Profil Pengguna & Pengaturan Akun
+                            </h1>
+                            <p class="text-subtle mb-0">Kelola informasi pribadi dan pengaturan keamanan akun Anda</p>
+                        </div>
+                        @if(auth()->user()->role === 'siswa')
+                        <div>
+                            <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#kartuIdentitasModal">
+                                <i class="fas fa-id-card me-2"></i>Download Kartu Identitas
+                            </button>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -563,7 +574,263 @@
     </div>
 </div>
 
+<!-- Modal Kartu Identitas -->
+@if(auth()->user()->role === 'siswa')
+<div class="modal fade" id="kartuIdentitasModal" tabindex="-1" aria-labelledby="kartuIdentitasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="kartuIdentitasModalLabel">
+                    <i class="fas fa-id-card me-2"></i>Kartu Identitas Siswa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <button type="button" class="btn btn-primary btn-lg shadow-lg" onclick="downloadKartuIdentitas()" style="background: linear-gradient(45deg, #007bff, #0056b3); border: none; padding: 12px 24px;">
+                        <i class="fas fa-download me-2"></i>Download Kartu Identitas (PNG)
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-muted">Resolusi: 1205 x 768 pixels | Format: PNG</small>
+                    </div>
+                </div>
+
+                <!-- Kartu Identitas Canvas -->
+                <div class="d-flex justify-content-center">
+                    <div id="kartu-identitas-container" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); width: 603px; height: 384px; position: relative; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <!-- Background Pattern -->
+                        <div style="position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,165,0,0.1) 100%); border-radius: 50%; transform: translate(50%, -50%);"></div>
+                        <div style="position: absolute; bottom: 0; left: 0; width: 200px; height: 200px; background: linear-gradient(225deg, rgba(255,255,255,0.05) 0%, rgba(255,165,0,0.05) 100%); border-radius: 50%; transform: translate(-50%, 50%);"></div>
+
+                        <!-- Header -->
+                        <div class="text-center pt-3 px-4" style="position: relative; z-index: 2;">
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                <!-- Logo Sekolah -->
+                                <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                                    <!-- Garuda/Emblem Indonesia style -->
+                                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMPN 3 Sawan" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                                </div>
+                                <div class="text-white">
+                                    <h6 class="mb-0 fw-bold" style="font-size: 14px; letter-spacing: 1px;">KARTU TANDA SISWA</h6>
+                                    <h5 class="mb-0 fw-bold" style="font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">SMP NEGERI 3 SAWAN</h5>
+                                    <p class="mb-0" style="font-size: 12px; opacity: 0.9; font-style: italic;">Student Identity Card</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="row g-0" style="position: relative; z-index: 2; padding: 20px 20px 0;">
+                            <!-- Photo -->
+                            <div class="col-3">
+                                <div class="text-center">
+                                    <div style="width: 120px; height: 150px; background: white; border-radius: 12px; overflow: hidden; margin: 0 auto; border: 4px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
+                                        <img id="kartu-foto"
+                                             src="{{ auth()->user()->getProfilePhotoUrl() }}"
+                                             alt="Foto Siswa"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data -->
+                            <div class="col-8">
+                                <div class="ps-3">
+                                    <div class="text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                                        <h4 class="fw-bold mb-3" style="font-size: 22px; text-transform: uppercase; letter-spacing: 0.5px;" id="kartu-nama">{{ auth()->user()->name }}</h4>
+                                        <!-- TTL (stacked) -->
+                                        <div class="mt-1">
+                                            <div style="background: rgba(255,255,255,0.0); padding: 5px 6px; border-radius: 8px; border-left: 2px solid #4ecdc4;">
+                                                <span style="font-size: 11px; opacity: 0.9; letter-spacing: 1px;">Tempat, Tanggal Lahir</span>
+                                                <div style="font-size: 15px; font-weight: 600; line-height: 1.3;" id="kartu-ttl">
+                                                    @php
+                                                        $profile = auth()->user()->getProfile();
+                                                        $ttl = '';
+                                                        if ($profile) {
+                                                            if ($profile->tempat_lahir) {
+                                                                $ttl .= $profile->tempat_lahir;
+                                                            }
+                                                            if ($profile->tanggal_lahir) {
+                                                                $ttl .= ($ttl ? ', ' : '') . $profile->tanggal_lahir->format('d/m/Y');
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    {{ $ttl ?: '-' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- NISN (stacked) -->
+                                        <div class="mt-1">
+                                            <div style="background: rgba(255,255,255,0.0); padding: 5px; border-radius: 8px; border-left: 2px solid #ffd93d;">
+                                                <span style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">NISN</span>
+                                                <div style="font-size: 15px; font-weight: 600;" id="kartu-nisn">{{ auth()->user()->getProfile()->nisn ?? '-' }}</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- NIS (stacked) -->
+                                        <div class="mt-1">
+                                            <div style="background: rgba(255,255,255,0.0); padding: 5px; border-radius: 8px; border-left: 2px solid #4ecdc4;">
+                                                <span style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">NIS</span>
+                                                <div style="font-size: 15px; font-weight: 600;" id="kartu-nis">{{ auth()->user()->getProfile()->nis ?? '-' }}</div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- QR Code -->
+                        <div style="position: absolute; bottom: 15px; right: 15px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            <div id="qrcode" style="width: 180px; height: 180px;"></div>
+                            <div style="text-align: center; font-size: 8px; color: #666; margin-top: 4px; font-weight: 500;">
+                                SCAN ME
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="position: absolute; bottom: 8px; left: 20px;">
+                            <div style="color: white; font-size: 8px; opacity: 0.7;">
+                                SMP Negeri 3 Sawan - Suwug, Kec. Sawan, Kabupaten Buleleng, Bali 81171
+                            </div>
+                            <div style="color: white; font-size: 8px; opacity: 0.7; margin-top: 2px;">
+                                Generated: {{ date('d/m/Y H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden canvas for image generation -->
+                <canvas id="kartu-canvas" width="1205" height="768" style="display: none;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <script>
+        // Generate QR Code when modal is shown
+        document.getElementById('kartuIdentitasModal')?.addEventListener('shown.bs.modal', function () {
+            generateQRCode();
+        });
+
+        function generateQRCode() {
+            const nisn = document.getElementById('kartu-nisn').textContent.trim();
+            const qrContainer = document.getElementById('qrcode');
+
+            // Clear previous QR code
+            qrContainer.innerHTML = '';
+
+            if (nisn && nisn !== '-' && nisn !== '') {
+                // Create a canvas element for QR code
+                const qrCanvas = document.createElement('canvas');
+                qrContainer.appendChild(qrCanvas);
+
+                // Generate QR Code with better error correction
+                QRCode.toCanvas(qrCanvas, nisn, {
+                    width: 80,
+                    height: 80,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    margin: 1,
+                    errorCorrectionLevel: 'M'
+                }, function (error) {
+                    if (error) {
+                        console.error('QR Code generation error:', error);
+                        // Show fallback text if QR generation fails
+                        qrContainer.innerHTML = `
+                            <div style="width: 80px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #666;">
+                                QR Error
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                // Show placeholder if no NISN
+                qrContainer.innerHTML = `
+                    <div style="width: 80px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #666;">
+                        No NISN<br>Available
+                    </div>
+                `;
+            }
+        }
+
+        async function downloadKartuIdentitas() {
+            try {
+                // Show loading
+                const downloadBtn = document.querySelector('button[onclick="downloadKartuIdentitas()"]');
+                const originalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Image...';
+                downloadBtn.disabled = true;
+
+                // Wait a bit for QR code to fully render
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Get kartu container
+                const kartuElement = document.getElementById('kartu-identitas-container');
+
+                // Create high resolution canvas with better quality settings
+                const canvas = await html2canvas(kartuElement, {
+                    scale: 2, // 2x resolution for crisp quality
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null,
+                    width: 603,
+                    height: 384,
+                    scrollX: 0,
+                    scrollY: 0,
+                    logging: false,
+                    imageTimeout: 0,
+                    removeContainer: false,
+                    foreignObjectRendering: false
+                });
+
+                // Create final canvas with exact target dimensions
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = 1205;
+                finalCanvas.height = 768;
+                const ctx = finalCanvas.getContext('2d');
+
+                // Set high quality image smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                // Draw the captured image to final canvas with exact dimensions
+                ctx.drawImage(canvas, 0, 0, 1205, 768);
+
+                // Get student name for filename
+                const studentName = document.getElementById('kartu-nama').textContent
+                    .replace(/\s+/g, '-')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\-]/g, '');
+
+                // Convert to blob and download with high quality
+                finalCanvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `kartu-identitas-${studentName}-${new Date().toISOString().slice(0,10)}.png`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+
+                    // Restore button
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
+
+                    showAlert('Kartu identitas berhasil didownload!', 'success');
+                }, 'image/png', 1.0); // Maximum quality
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showAlert('Terjadi kesalahan saat mendownload kartu identitas: ' + error.message, 'danger');
+
+                // Restore button
+                const downloadBtn = document.querySelector('button[onclick="downloadKartuIdentitas()"]');
+                downloadBtn.innerHTML = '<i class="fas fa-download me-2"></i>Download Kartu Identitas (PNG)';
+                downloadBtn.disabled = false;
+            }
+        }
+
         function previewPhotoQuick(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();

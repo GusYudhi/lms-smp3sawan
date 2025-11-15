@@ -17,6 +17,12 @@
     <!-- Bootstrap CSS -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <!-- html2canvas for image generation -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
     <style>
         .sidebar {
             min-height: 100vh;
