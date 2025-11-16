@@ -3,174 +3,297 @@
 @section('title', 'Detail Siswa')
 
 @section('content')
-<div class="siswa-management">
+<div class="container-fluid">
     <!-- Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-user-circle"></i> Detail Siswa</h1>
-            <p class="page-subtitle">Informasi lengkap data siswa</p>
-        </div>
-        <div class="header-actions">
-            <a href="{{ route('admin.siswa.edit', $student->id) }}" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Edit Data
-            </a>
-            <a href="{{ route('admin.siswa.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
-        </div>
-    </div>
-
-<!-- Student Profile Card -->
-<div class="student-profile-container">
-    <div class="profile-header">
-        <div class="profile-photo">
-            @if($student->profile_photo)
-                <img src="{{ asset('storage/' . $student->profile_photo) }}"
-                     alt="Foto {{ $student->name }}"
-                     class="student-photo-large">
-            @else
-                <div class="default-avatar-large">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-            @endif
-        </div>
-        <div class="profile-info">
-            <h2 class="student-name">{{ $student->name }}</h2>
-            <p class="student-id">{{ $student->nis }}</p>
-
-            <div class="quick-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Kelas</span>
-                    <span class="stat-value">{{ $student->kelas ?? '-' }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">NISN</span>
-                    <span class="stat-value">{{ $student->nisn ?? '-' }}</span>
-                </div>
-                @if($student->nomor_telepon_orangtua)
-                <div class="stat-item">
-                    <span class="stat-label">Telp. Orang Tua</span>
-                    <span class="stat-value">{{ $student->nomor_telepon_orangtua }}</span>
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <div class="profile-details">
-        <div class="details-grid">
-            <!-- Personal Information -->
-            <div class="detail-section">
-                <h3>
-                    <i class="fas fa-user"></i>
-                    Informasi Personal
-                </h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Nama Lengkap</span>
-                        <span class="detail-value">{{ $student->name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">NIS</span>
-                        <span class="detail-value">{{ $student->nis }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">NISN</span>
-                        <span class="detail-value">{{ $student->nisn ?? '-' }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value">
-                            <a href="mailto:{{ $student->email }}" class="email-link">
-                                {{ $student->email }}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body py-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                        <div class="mb-3 mb-md-0">
+                            <h1 class="h3 mb-2 text-primary">
+                                <i class="fas fa-user-circle me-2"></i>Detail Siswa
+                            </h1>
+                            <p class="text-muted mb-0">Informasi lengkap data siswa</p>
+                        </div>
+                        <div>
+                            <a href="{{ route('admin.siswa.edit', $student->id) }}" class="btn btn-primary me-2">
+                                <i class="fas fa-edit me-2"></i>Edit Data
                             </a>
-                        </span>
+                            <a href="{{ route('admin.siswa.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Kembali
+                            </a>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Nomor Telepon</span>
-                        <span class="detail-value">
-                            @if($student->nomor_telepon)
-                                <a href="tel:{{ $student->nomor_telepon }}" class="phone-link">
-                                    {{ $student->nomor_telepon }}
-                                </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Profile Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 text-center text-lg-start mb-4 mb-lg-0">
+                            @if($student->profile_photo)
+                                <img src="{{ asset('storage/' . $student->profile_photo) }}"
+                                     alt="Foto {{ $student->name }}"
+                                     class="rounded-circle border"
+                                     style="width: 150px; height: 150px; object-fit: cover;">
                             @else
-                                <span class="text-muted">-</span>
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light border text-muted"
+                                     style="width: 150px; height: 150px; font-size: 3rem;">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
                             @endif
-                        </span>
+                        </div>
+                        <div class="col-lg-9">
+                            <h2 class="mb-2 fw-bold">{{ $student->name }}</h2>
+                            <p class="text-muted mb-3">NIS: {{ $student->nis ?? '-' }}</p>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="d-flex flex-column">
+                                        <span class="small text-muted">Kelas</span>
+                                        <span class="fw-semibold">{{ $student->kelas ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex flex-column">
+                                        <span class="small text-muted">NISN</span>
+                                        <span class="fw-semibold">{{ $student->nisn ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                @if($student->nomor_telepon_orangtua)
+                                <div class="col-md-4">
+                                    <div class="d-flex flex-column">
+                                        <span class="small text-muted">Telp. Orang Tua</span>
+                                        <span class="fw-semibold">{{ $student->nomor_telepon_orangtua }}</span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Jenis Kelamin</span>
-                        <span class="detail-value">
-                            @if($student->jenis_kelamin)
-                                <span class="gender-badge {{ $student->jenis_kelamin }}">
-                                    <i class="fas fa-{{ $student->jenis_kelamin === 'laki-laki' ? 'mars' : 'venus' }}"></i>
-                                    {{ ucfirst($student->jenis_kelamin) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Detailed Information -->
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 fw-semibold text-primary">
+                        <i class="fas fa-user me-2"></i>Informasi Personal
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Nama Lengkap</span>
+                                <span class="fw-semibold">{{ $student->name }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">NIS</span>
+                                <span class="fw-semibold">{{ $student->nis ?? '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">NISN</span>
+                                <span class="fw-semibold">{{ $student->nisn ?? '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Email</span>
+                                @if($student->email)
+                                    <a href="mailto:{{ $student->email }}" class="text-primary text-decoration-none">
+                                        {{ $student->email }}
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Nomor Telepon</span>
+                                @if($student->nomor_telepon)
+                                    <a href="tel:{{ $student->nomor_telepon }}" class="text-primary text-decoration-none">
+                                        {{ $student->nomor_telepon }}
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Jenis Kelamin</span>
+                                @if($student->jenis_kelamin)
+                                    <span class="fw-semibold">
+                                        <i class="fas fa-{{ $student->jenis_kelamin === 'Laki-laki' ? 'mars text-info' : 'venus text-warning' }} me-1"></i>
+                                        {{ $student->jenis_kelamin }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Tempat Lahir</span>
+                                <span class="fw-semibold">{{ $student->tempat_lahir ?? '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Tanggal Lahir</span>
+                                @if($student->tanggal_lahir)
+                                    <span class="fw-semibold">
+                                        <i class="fas fa-calendar text-success me-1"></i>
+                                        {{ \Carbon\Carbon::parse($student->tanggal_lahir)->format('d F Y') }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic & Account Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 fw-semibold text-primary">
+                        <i class="fas fa-graduation-cap me-2"></i>Informasi Akademik & Akun
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Kelas</span>
+                                @if($student->kelas)
+                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $student->kelas }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Status Akun</span>
+                                <span class="badge bg-success-subtle text-success border mt-1 align-self-start">
+                                    <i class="fas fa-check-circle me-1"></i>Aktif
                                 </span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Tempat Lahir</span>
-                        <span class="detail-value">{{ $student->tempat_lahir ?? '-' }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Tanggal Lahir</span>
-                        <span class="detail-value">
-                            @if($student->tanggal_lahir)
-                                <i class="fas fa-calendar"></i>
-                                {{ \Carbon\Carbon::parse($student->tanggal_lahir)->format('d F Y') }}
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Academic Information -->
-            <div class="detail-section">
-                <h3>
-                    <i class="fas fa-graduation-cap"></i>
-                    Informasi Akademik
-                </h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Kelas</span>
-                        <span class="detail-value">
-                            @if($student->kelas)
-                                <span class="class-badge">{{ $student->kelas }}</span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Nomor Telepon Orang Tua</span>
-                        <span class="detail-value">
-                            @if($student->nomor_telepon_orangtua)
-                                <a href="tel:{{ $student->nomor_telepon_orangtua }}" class="phone-link">
-                                    {{ $student->nomor_telepon_orangtua }}
-                                </a>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Nomor Telepon Orang Tua</span>
+                                @if($student->nomor_telepon_orangtua)
+                                    <a href="tel:{{ $student->nomor_telepon_orangtua }}" class="text-primary text-decoration-none">
+                                        {{ $student->nomor_telepon_orangtua }}
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Tanggal Bergabung</span>
+                                <span class="fw-semibold">
+                                    <i class="fas fa-calendar-plus text-success me-1"></i>
+                                    {{ $student->created_at->format('d F Y') }}
+                                </span>
+                                <small class="text-muted">({{ $student->created_at->diffForHumans() }})</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Terakhir Diperbarui</span>
+                                <span class="fw-semibold">
+                                    <i class="fas fa-clock text-info me-1"></i>
+                                    {{ $student->updated_at->format('d F Y, H:i') }}
+                                </span>
+                                <small class="text-muted">({{ $student->updated_at->diffForHumans() }})</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Account Information -->
-            <div class="detail-section">
-                <h3>
-                    <i class="fas fa-cog"></i>
-                    Informasi Akun
-                </h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Tanggal Bergabung</span>
-                        <span class="detail-value">
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
+                        <a href="{{ route('admin.siswa.edit', $student->id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Data Siswa
+                        </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Hapus Siswa
+                        </button>
+                        <a href="{{ route('admin.siswa.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Konfirmasi Hapus Siswa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus data siswa <strong>{{ $student->name }}</strong>?</p>
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>Tindakan ini tidak dapat dibatalkan! Semua data terkait siswa ini akan dihapus secara permanen.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Batal
+                </button>
+                <form action="{{ route('admin.siswa.destroy', $student->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Ya, Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
                             <i class="fas fa-calendar-plus"></i>
                             {{ $student->created_at->format('d F Y') }}
                             <small class="text-muted">({{ $student->created_at->diffForHumans() }})</small>

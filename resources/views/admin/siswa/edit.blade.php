@@ -3,124 +3,255 @@
 @section('title', 'Edit Siswa')
 
 @section('content')
-<div class="siswa-management">
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-user-edit"></i> Edit Data Siswa</h1>
-            <p class="page-subtitle">Perbarui informasi siswa</p>
-        </div>
-        <div class="header-actions">
-            <a href="{{ route('admin.siswa.show', $student->id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body py-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                        <div class="mb-3 mb-md-0">
+                            <h1 class="h3 mb-2 text-primary">
+                                <i class="fas fa-user-edit me-2"></i>Edit Data Siswa
+                            </h1>
+                            <p class="text-muted mb-0">Perbarui informasi siswa</p>
+                        </div>
+                        <div>
+                            <a href="{{ route('admin.siswa.show', $student->id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Kembali
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="form-container-card">
-        <form action="{{ route('admin.siswa.update', $student->id) }}" method="POST" enctype="multipart/form-data" class="student-form">
-            @csrf
-            @method('PUT')
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form action="{{ route('admin.siswa.update', $student->id) }}" method="POST" enctype="multipart/form-data" id="studentForm">
+                        @csrf
+                        @method('PUT')
 
-            <div class="form-section">
-                <h3 class="section-title"><i class="fas fa-user"></i> Informasi Personal</h3>
+                        <!-- Personal Information Section -->
+                        <div class="mb-5">
+                            <h6 class="text-primary mb-3 fw-semibold">
+                                <i class="fas fa-user me-2"></i>Informasi Personal
+                            </h6>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $student->name) }}" required>
-                    </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label fw-medium">Nama Lengkap <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           class="form-control @error('name') is-invalid @enderror"
+                                           id="name"
+                                           name="name"
+                                           value="{{ old('name', $student->name) }}"
+                                           required>
+                                    @error('name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                    <div class="form-group">
-                        <label for="nis">NIS</label>
-                        <input type="text" class="form-control" id="nis" name="nis" value="{{ old('nis', $student->nis) }}">
-                    </div>
-                </div>
+                                <div class="col-md-6">
+                                    <label for="nis" class="form-label fw-medium">NIS</label>
+                                    <input type="text"
+                                           class="form-control @error('nis') is-invalid @enderror"
+                                           id="nis"
+                                           name="nis"
+                                           value="{{ old('nis', $student->nis) }}">
+                                    @error('nis')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nisn">NISN</label>
-                        <input type="text" class="form-control" id="nisn" name="nisn" value="{{ old('nisn', $student->nisn) }}">
-                    </div>
-                </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="nisn" class="form-label fw-medium">NISN</label>
+                                    <input type="text"
+                                           class="form-control @error('nisn') is-invalid @enderror"
+                                           id="nisn"
+                                           name="nisn"
+                                           value="{{ old('nisn', $student->nisn) }}">
+                                    @error('nisn')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $student->email) }}">
-                    </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label fw-medium">Email</label>
+                                    <input type="email"
+                                           class="form-control @error('email') is-invalid @enderror"
+                                           id="email"
+                                           name="email"
+                                           value="{{ old('email', $student->email) }}">
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="nomor_telepon">Nomor Telepon</label>
-                        <input type="tel" class="form-control" id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon', $student->nomor_telepon) }}">
-                    </div>
-                </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="nomor_telepon" class="form-label fw-medium">Nomor Telepon</label>
+                                    <input type="tel"
+                                           class="form-control @error('nomor_telepon') is-invalid @enderror"
+                                           id="nomor_telepon"
+                                           name="nomor_telepon"
+                                           value="{{ old('nomor_telepon', $student->nomor_telepon) }}">
+                                    @error('nomor_telepon')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="jenis_kelamin">Jenis Kelamin</label>
-                        <select class="form-control" id="jenis_kelamin" name="jenis_kelamin">
-                            <option value="">Pilih Jenis Kelamin</option>
-                            <option value="Laki-laki" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="Perempuan" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                    </div>
+                                <div class="col-md-6">
+                                    <label for="jenis_kelamin" class="form-label fw-medium">Jenis Kelamin</label>
+                                    <select class="form-select @error('jenis_kelamin') is-invalid @enderror"
+                                            id="jenis_kelamin"
+                                            name="jenis_kelamin">
+                                        <option value="">Pilih Jenis Kelamin</option>
+                                        <option value="Laki-laki" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                        <option value="Perempuan" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                    </select>
+                                    @error('jenis_kelamin')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="tempat_lahir">Tempat Lahir</label>
-                        <input type="text" class="form-control" id="tempat_lahir" name="tempat_lahir" value="{{ old('tempat_lahir', $student->tempat_lahir) }}">
-                    </div>
-                </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="tempat_lahir" class="form-label fw-medium">Tempat Lahir</label>
+                                    <input type="text"
+                                           class="form-control @error('tempat_lahir') is-invalid @enderror"
+                                           id="tempat_lahir"
+                                           name="tempat_lahir"
+                                           value="{{ old('tempat_lahir', $student->tempat_lahir) }}">
+                                    @error('tempat_lahir')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="tanggal_lahir">Tanggal Lahir</label>
-                        <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir', $student->tanggal_lahir) }}">
-                    </div>
+                                <div class="col-md-6">
+                                    <label for="tanggal_lahir" class="form-label fw-medium">Tanggal Lahir</label>
+                                    <input type="date"
+                                           class="form-control @error('tanggal_lahir') is-invalid @enderror"
+                                           id="tanggal_lahir"
+                                           name="tanggal_lahir"
+                                           value="{{ old('tanggal_lahir', $student->tanggal_lahir) }}">
+                                    @error('tanggal_lahir')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="profile_photo">Foto Profil</label>
-                        <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*" onchange="previewPhoto(this)">
-                        <small class="form-text">Biarkan kosong jika tidak ingin mengganti foto</small>
-                    </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="profile_photo" class="form-label fw-medium">Foto Profil</label>
+                                    <input type="file"
+                                           class="form-control @error('profile_photo') is-invalid @enderror"
+                                           id="profile_photo"
+                                           name="profile_photo"
+                                           accept="image/*"
+                                           onchange="previewPhoto(this)">
+                                    <div class="form-text">Biarkan kosong jika tidak ingin mengganti foto</div>
+                                    @error('profile_photo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- School Information Section -->
+                        <div class="mb-5">
+                            <h6 class="text-primary mb-3 fw-semibold">
+                                <i class="fas fa-school me-2"></i>Informasi Sekolah
+                            </h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="kelas" class="form-label fw-medium">Kelas</label>
+                                    <input type="text"
+                                           class="form-control @error('kelas') is-invalid @enderror"
+                                           id="kelas"
+                                           name="kelas"
+                                           value="{{ old('kelas', $student->kelas) }}">
+                                    @error('kelas')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="nomor_telepon_orangtua" class="form-label fw-medium">Nomor Telepon Orang Tua</label>
+                                    <input type="tel"
+                                           class="form-control @error('nomor_telepon_orangtua') is-invalid @enderror"
+                                           id="nomor_telepon_orangtua"
+                                           name="nomor_telepon_orangtua"
+                                           value="{{ old('nomor_telepon_orangtua', $student->nomor_telepon_orangtua) }}">
+                                    @error('nomor_telepon_orangtua')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password Section (Optional) -->
+                        <div class="mb-5">
+                            <h6 class="text-primary mb-3 fw-semibold">
+                                <i class="fas fa-key me-2"></i>Ubah Password (Opsional)
+                            </h6>
+                            <p class="text-muted small mb-3">Kosongkan jika tidak ingin mengubah password</p>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label fw-medium">Password Baru</label>
+                                    <input type="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           id="password"
+                                           name="password"
+                                           minlength="8">
+                                    <div class="form-text">Minimal 8 karakter</div>
+                                    @error('password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="password_confirmation" class="form-label fw-medium">Konfirmasi Password</label>
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password_confirmation"
+                                           name="password_confirmation"
+                                           minlength="8">
+                                    <div class="form-text">Ketik ulang password baru</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex flex-column flex-sm-row justify-content-end gap-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Simpan Perubahan
+                                    </button>
+                                    <a href="{{ route('admin.siswa.show', $student->id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Batal
+                                    </a>
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="fas fa-undo me-2"></i>Reset Form
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="form-section">
-                <h3 class="section-title"><i class="fas fa-briefcase"></i> Informasi Sekolah</h3>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="kelas">Kelas</label>
-                        <input type="text" class="form-control" id="kelas" name="kelas" value="{{ old('kelas', $student->kelas) }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nomor_telepon_orangtua">Nomor Telepon Orang Tua</label>
-                        <input type="tel" class="form-control" id="nomor_telepon_orangtua" name="nomor_telepon_orangtua" value="{{ old('nomor_telepon_orangtua', $student->nomor_telepon_orangtua) }}">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3 class="section-title"><i class="fas fa-key"></i> Ubah Password (Opsional)</h3>
-                <p class="text-muted">Kosongkan jika tidak ingin mengubah password</p>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="password">Password Baru</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password_confirmation">Konfirmasi Password</label>
-                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Perubahan</button>
-                <a href="{{ route('admin.siswa.show', $student->id) }}" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
-                <button type="reset" class="btn btn-outline-secondary"><i class="fas fa-undo"></i> Reset Form</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -137,7 +268,7 @@ function previewPhoto(input) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('.student-form');
+    const form = document.getElementById('studentForm');
     const password = document.getElementById('password');
     const passwordConfirm = document.getElementById('password_confirmation');
 

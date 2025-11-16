@@ -7,17 +7,19 @@
         <div class="col-12">
             <div class="card card-modern border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+                        <div class="flex-grow-1">
                             <h1 class="h3 text-high-contrast fw-bold mb-2">
                                 <i class="fas fa-user-cog text-primary me-2"></i>Profil Pengguna & Pengaturan Akun
                             </h1>
                             <p class="text-subtle mb-0">Kelola informasi pribadi dan pengaturan keamanan akun Anda</p>
                         </div>
                         @if(auth()->user()->role === 'siswa')
-                        <div>
-                            <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#kartuIdentitasModal">
-                                <i class="fas fa-id-card me-2"></i>Download Kartu Identitas
+                        <div class="text-lg-end">
+                            <button type="button" class="btn btn-success btn-lg w-100 w-lg-auto d-lg-inline-block" data-bs-toggle="modal" data-bs-target="#kartuIdentitasModal">
+                                <i class="fas fa-id-card me-2"></i>
+                                <span class="d-inline d-sm-none">Download Kartu</span>
+                                <span class="d-none d-sm-inline">Download Kartu Identitas</span>
                             </button>
                         </div>
                         @endif
