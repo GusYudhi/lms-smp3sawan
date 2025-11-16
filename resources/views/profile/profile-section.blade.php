@@ -581,7 +581,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="kartuIdentitasModalLabel">
-                    <i class="fas fa-id-card me-2"></i>Kartu Identitas Siswa
+                    <i class="fas fa-id-card me-2"></i>Kartu Identitas Murid
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -597,7 +597,10 @@
 
                 <!-- Kartu Identitas Canvas -->
                 <div class="d-flex justify-content-center">
-                    <canvas id="kartu-identitas-canvas" width="1205" height="768" style="width: 603px; height: 384px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></canvas>
+                    <div style="width:100%; max-width:1205px;">
+                        <!-- Keep canvas internal resolution for high-quality download but scale it responsively via CSS -->
+                        <canvas id="kartu-identitas-canvas" width="1205" height="768" style="width:100%; height:auto; display:block; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></canvas>
+                    </div>
                 </div>
 
                 <!-- Hidden elements for data retrieval -->
@@ -747,7 +750,7 @@
             ctx.fillStyle = 'white';
             ctx.font = 'bold 33px Arial, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('KARTU TANDA SISWA', ctx.canvas.width / 2, 55 + offsetY);
+            ctx.fillText('KARTU IDENTITAS MURID', ctx.canvas.width / 2, 55 + offsetY);
 
             ctx.font = 'bold 41px Arial, sans-serif';
             ctx.fillText('SMP NEGERI 3 SAWAN', ctx.canvas.width / 2, 95 + offsetY);
