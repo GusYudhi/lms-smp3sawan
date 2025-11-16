@@ -597,111 +597,29 @@
 
                 <!-- Kartu Identitas Canvas -->
                 <div class="d-flex justify-content-center">
-                    <div id="kartu-identitas-container" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); width: 603px; height: 384px; position: relative; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                        <!-- Background Pattern -->
-                        <div style="position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,165,0,0.1) 100%); border-radius: 50%; transform: translate(50%, -50%);"></div>
-                        <div style="position: absolute; bottom: 0; left: 0; width: 200px; height: 200px; background: linear-gradient(225deg, rgba(255,255,255,0.05) 0%, rgba(255,165,0,0.05) 100%); border-radius: 50%; transform: translate(-50%, 50%);"></div>
-
-                        <!-- Header -->
-                        <div class="text-center pt-3 px-4" style="position: relative; z-index: 2;">
-                            <div class="d-flex align-items-center justify-content-center mb-2">
-                                <!-- Logo Sekolah -->
-                                <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                                    <!-- Garuda/Emblem Indonesia style -->
-                                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMPN 3 Sawan" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
-                                </div>
-                                <div class="text-white">
-                                    <h6 class="mb-0 fw-bold" style="font-size: 14px; letter-spacing: 1px;">KARTU TANDA SISWA</h6>
-                                    <h5 class="mb-0 fw-bold" style="font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">SMP NEGERI 3 SAWAN</h5>
-                                    <p class="mb-0" style="font-size: 12px; opacity: 0.9; font-style: italic;">Student Identity Card</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Content -->
-                        <div class="row g-0" style="position: relative; z-index: 2; padding: 20px 20px 0;">
-                            <!-- Photo -->
-                            <div class="col-3">
-                                <div class="text-center">
-                                    <div style="width: 120px; height: 150px; background: white; border-radius: 12px; overflow: hidden; margin: 0 auto; border: 4px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
-                                        <img id="kartu-foto"
-                                             src="{{ auth()->user()->getProfilePhotoUrl() }}"
-                                             alt="Foto Siswa"
-                                             style="width: 100%; height: 100%; object-fit: cover;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Data -->
-                            <div class="col-8">
-                                <div class="ps-3">
-                                    <div class="text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
-                                        <h4 class="fw-bold mb-3" style="font-size: 22px; text-transform: uppercase; letter-spacing: 0.5px;" id="kartu-nama">{{ auth()->user()->name }}</h4>
-                                        <!-- TTL (stacked) -->
-                                        <div class="mt-1">
-                                            <div style="background: rgba(255,255,255,0.0); padding: 5px 6px; border-radius: 8px; border-left: 2px solid #4ecdc4;">
-                                                <span style="font-size: 11px; opacity: 0.9; letter-spacing: 1px;">Tempat, Tanggal Lahir</span>
-                                                <div style="font-size: 15px; font-weight: 600; line-height: 1.3;" id="kartu-ttl">
-                                                    @php
-                                                        $profile = auth()->user()->getProfile();
-                                                        $ttl = '';
-                                                        if ($profile) {
-                                                            if ($profile->tempat_lahir) {
-                                                                $ttl .= $profile->tempat_lahir;
-                                                            }
-                                                            if ($profile->tanggal_lahir) {
-                                                                $ttl .= ($ttl ? ', ' : '') . $profile->tanggal_lahir->format('d/m/Y');
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    {{ $ttl ?: '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- NISN (stacked) -->
-                                        <div class="mt-1">
-                                            <div style="background: rgba(255,255,255,0.0); padding: 5px; border-radius: 8px; border-left: 2px solid #ffd93d;">
-                                                <span style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">NISN</span>
-                                                <div style="font-size: 15px; font-weight: 600;" id="kartu-nisn">{{ auth()->user()->getProfile()->nisn ?? '-' }}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- NIS (stacked) -->
-                                        <div class="mt-1">
-                                            <div style="background: rgba(255,255,255,0.0); padding: 5px; border-radius: 8px; border-left: 2px solid #4ecdc4;">
-                                                <span style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">NIS</span>
-                                                <div style="font-size: 15px; font-weight: 600;" id="kartu-nis">{{ auth()->user()->getProfile()->nis ?? '-' }}</div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- QR Code -->
-                        <div style="position: absolute; bottom: 15px; right: 15px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                            <div id="qrcode" style="width: 180px; height: 180px;"></div>
-                            <div style="text-align: center; font-size: 8px; color: #666; margin-top: 4px; font-weight: 500;">
-                                SCAN ME
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div style="position: absolute; bottom: 8px; left: 20px;">
-                            <div style="color: white; font-size: 8px; opacity: 0.7;">
-                                SMP Negeri 3 Sawan - Suwug, Kec. Sawan, Kabupaten Buleleng, Bali 81171
-                            </div>
-                            <div style="color: white; font-size: 8px; opacity: 0.7; margin-top: 2px;">
-                                Generated: {{ date('d/m/Y H:i') }}
-                            </div>
-                        </div>
-                    </div>
+                    <canvas id="kartu-identitas-canvas" width="1205" height="768" style="width: 603px; height: 384px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></canvas>
                 </div>
 
-                <!-- Hidden canvas for image generation -->
-                <canvas id="kartu-canvas" width="1205" height="768" style="display: none;"></canvas>
+                <!-- Hidden elements for data retrieval -->
+                <div style="display: none;">
+                    @php
+                        $profile = auth()->user()->getProfile();
+                        $ttl = '';
+                        if ($profile) {
+                            $tempat = $profile->tempat_lahir ?? '-';
+                            $tanggal = $profile->tanggal_lahir ? $profile->tanggal_lahir->format('d/m/Y') : '-';
+                            $ttl = $tempat . ', ' . $tanggal;
+                        } else {
+                            $ttl = '-, -';
+                        }
+                    @endphp
+                    <span id="kartu-nama">{{ auth()->user()->name }}</span>
+                    <span id="kartu-ttl">{{ $ttl }}</span>
+                    <span id="kartu-nisn">{{ $profile->nisn ?? '-' }}</span>
+                    <span id="kartu-nis">{{ $profile->nis ?? '-' }}</span>
+                    <span id="kartu-foto-url">{{ auth()->user()->getProfilePhotoUrl() }}</span>
+                    <span id="kartu-logo-url">{{ asset('assets/image/LogoSMP3SAWAN.webp') }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -711,44 +629,359 @@
 <script>
         // Generate QR Code when modal is shown
         document.getElementById('kartuIdentitasModal')?.addEventListener('shown.bs.modal', function () {
-            generateQRCode();
+            // Draw the card immediately when modal is shown
+            drawKartuIdentitas();
         });
+
+        function drawKartuIdentitas() {
+            const canvas = document.getElementById('kartu-identitas-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Get data from hidden elements
+            const nama = document.getElementById('kartu-nama').textContent.trim();
+            const ttl = document.getElementById('kartu-ttl').textContent.trim();
+            const nisn = document.getElementById('kartu-nisn').textContent.trim();
+            const nis = document.getElementById('kartu-nis').textContent.trim();
+            const fotoUrl = document.getElementById('kartu-foto-url').textContent.trim();
+            const logoUrl = document.getElementById('kartu-logo-url').textContent.trim();
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Create background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1e3c72');
+            gradient.addColorStop(1, '#2a5298');
+
+            // Fill background
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add background patterns (decorative circles)
+            drawBackgroundPattern(ctx, canvas.width, canvas.height);
+
+            // Draw header section
+            drawHeader(ctx, logoUrl);
+
+            // Draw content section
+            drawContent(ctx, nama, ttl, nisn, nis, fotoUrl);
+
+            // Draw QR code
+            drawQRCode(ctx, nisn);
+
+            // Draw footer
+            drawFooter(ctx);
+        }
+
+        function drawBackgroundPattern(ctx, width, height) {
+            // Save current state
+            ctx.save();
+
+            // Circle 1 (top-right)
+            const gradient1 = ctx.createRadialGradient(width * 0.85, height * 0.15, 0, width * 0.85, height * 0.15, 300);
+            gradient1.addColorStop(0, 'rgba(255,255,255,0.1)');
+            gradient1.addColorStop(0.5, 'rgba(255,165,0,0.1)');
+            gradient1.addColorStop(1, 'rgba(255,255,255,0)');
+
+            ctx.fillStyle = gradient1;
+            ctx.beginPath();
+            ctx.arc(width * 0.85, height * 0.15, 300, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Circle 2 (bottom-left)
+            const gradient2 = ctx.createRadialGradient(width * 0.15, height * 0.85, 0, width * 0.15, height * 0.85, 200);
+            gradient2.addColorStop(0, 'rgba(255,255,255,0.08)');
+            gradient2.addColorStop(0.5, 'rgba(255,165,0,0.08)');
+            gradient2.addColorStop(1, 'rgba(255,255,255,0)');
+
+            ctx.fillStyle = gradient2;
+            ctx.beginPath();
+            ctx.arc(width * 0.15, height * 0.85, 200, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Restore state
+            ctx.restore();
+        }
+
+        function drawHeader(ctx, logoUrl) {
+            // Load and draw logo
+            const logo = new Image();
+            logo.crossOrigin = 'anonymous';
+            logo.onload = function() {
+                // Draw logo circle background (centered)
+                const centerX = ctx.canvas.width / 2 - 350;
+                const centerY = 90
+                const r = 60;
+
+                // White circle background
+                ctx.save();
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Shadow + clip to circle then draw logo centered inside the arc
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+
+                // Draw logo centered and slightly inset so it fits nicely
+                const imgSize = r * 2 - 6; // small padding inside circle
+                ctx.drawImage(logo, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+
+                ctx.restore();
+            };
+            logo.src = logoUrl;
+
+            const offsetY = 20;
+
+            // Draw header text (centered)
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 33px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('KARTU TANDA SISWA', ctx.canvas.width / 2, 55 + offsetY);
+
+            ctx.font = 'bold 41px Arial, sans-serif';
+            ctx.fillText('SMP NEGERI 3 SAWAN', ctx.canvas.width / 2, 95 + offsetY);
+
+            ctx.font = 'italic 27px Arial, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('Student Identity Card', ctx.canvas.width / 2, 125 + offsetY);
+            ctx.textAlign = 'left';
+        }
+
+        function drawContent(ctx, nama, ttl, nisn, nis, fotoUrl) {
+            // Load and draw student photo
+            const foto = new Image();
+            foto.crossOrigin = 'anonymous';
+            foto.onload = function() {
+                // Draw photo background with rounded corners and blue border
+                ctx.save();
+
+                // White inner background
+                ctx.fillStyle = 'white';
+                roundRect(ctx, 66, 198, 228, 340, 20);
+                ctx.fill();
+
+                // Add shadow
+                ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 4;
+
+                // Draw photo with rounded corners
+                roundRect(ctx, 75, 210, 210, 315, 15);
+                ctx.clip();
+                ctx.drawImage(foto, 75, 210, 210, 315);
+                ctx.restore();
+            };
+            foto.src = fotoUrl;
+
+            // Draw student data
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0,0,0,0.7)';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Student name (larger text)
+            ctx.font = 'bold 51px Arial, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(nama.toUpperCase().trim().substring(0, 24), 360, 238);
+
+            // Data fields with larger text
+            const dataY = 300;
+            const lineHeight = 90;
+
+            // TTL
+            drawDataField(ctx, 'Tempat, Tanggal Lahir', ttl, 360, dataY, '#4ecdc4');
+
+            // NISN
+            drawDataField(ctx, 'NISN', nisn, 360, dataY + lineHeight, '#ffd93d');
+
+            // NIS
+            drawDataField(ctx, 'NIS', nis, 360, dataY + (lineHeight * 2), '#4ecdc4');
+        }
+
+        function drawDataField(ctx, label, value, x, y, borderColor) {
+            // Draw border line
+            ctx.fillStyle = borderColor;
+            ctx.fillRect(x, y - 25, 6, 50);
+
+            // Draw label (larger text)
+            ctx.font = '23px Arial, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillText(label, x + 20, y - 5);
+
+            // Draw value (larger text)
+            ctx.font = 'bold 31px Arial, sans-serif';
+            ctx.fillStyle = 'white';
+            ctx.fillText(value, x + 20, y + 30);
+        }
+
+        function drawQRCode(ctx, nisn) {
+            if (typeof QRCode === 'undefined') {
+                // Draw placeholder if QRCode library not available
+                ctx.fillStyle = 'white';
+                roundRect(ctx, 750, 280, 300, 320, 24);
+                ctx.fill();
+
+                ctx.fillStyle = '#666';
+                ctx.font = '25px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Code', 900, 430);
+                ctx.fillText('Loading...', 900, 460);
+                return;
+            }
+
+            // Create QR code canvas
+            const qrCanvas = document.createElement('canvas');
+            QRCode.toCanvas(qrCanvas, nisn, {
+                width: 250,
+                height: 250,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'M'
+            })
+            .then(() => {
+                // Draw QR code background (larger)
+                ctx.fillStyle = 'white';
+                roundRect(ctx, 750, 280, 372, 400, 24);
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                // Draw QR code (much larger size)
+                ctx.drawImage(qrCanvas, 775, 305, 320, 320);
+
+                // Draw "SCAN ME" text
+                ctx.fillStyle = '#666';
+                ctx.font = 'bold 21px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('SCAN ME', 950, 655);
+            })
+            .catch((error) => {
+                console.error('QR Code generation failed:', error);
+                // Draw error placeholder
+                ctx.fillStyle = 'white';
+                roundRect(ctx, 750, 280, 300, 320, 24);
+                ctx.fill();
+
+                ctx.fillStyle = '#c62828';
+                ctx.font = '21px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Error', 900, 430);
+                ctx.fillText(error.message, 900, 460);
+            });
+        }
+
+        function drawFooter(ctx) {
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '17px Arial, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('SMP Negeri 3 Sawan - Suwug, Kec. Sawan, Kabupaten Buleleng, Bali 81171', 40, 720);
+
+            const currentDate = new Date().toLocaleString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            ctx.fillText('Generated: ' + currentDate, 40, 745);
+        }
+
+        // Helper function to draw rounded rectangles
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
 
         function generateQRCode() {
             const nisn = document.getElementById('kartu-nisn').textContent.trim();
             const qrContainer = document.getElementById('qrcode');
 
+            console.log('generateQRCode called with NISN:', nisn);
+
             // Clear previous QR code
-            qrContainer.innerHTML = '';
+            qrContainer.innerHTML = `
+                <div style="width: 180px; height: 180px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 14px; text-align: center; color: #666;">
+                    Generating<br>QR...
+                </div>
+            `;
 
             if (nisn && nisn !== '-' && nisn !== '') {
-                // Create a canvas element for QR code
-                const qrCanvas = document.createElement('canvas');
-                qrContainer.appendChild(qrCanvas);
+                // Check if QRCode library is available
+                if (typeof QRCode === 'undefined') {
+                    console.error('QRCode.js library not loaded');
+                    qrContainer.innerHTML = `
+                        <div style="width: 180px; height: 180px; background: #ffebee; display: flex; align-items: center; justify-content: center; font-size: 14px; text-align: center; color: #c62828;">
+                            QR Library<br>Not Loaded
+                        </div>
+                    `;
+                    return;
+                }
 
-                // Generate QR Code with better error correction
-                QRCode.toCanvas(qrCanvas, nisn, {
-                    width: 80,
-                    height: 80,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    margin: 1,
-                    errorCorrectionLevel: 'M'
-                }, function (error) {
-                    if (error) {
-                        console.error('QR Code generation error:', error);
-                        // Show fallback text if QR generation fails
-                        qrContainer.innerHTML = `
-                            <div style="width: 80px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #666;">
-                                QR Error
-                            </div>
-                        `;
-                    }
+                // Create canvas for QR code
+                const canvas = document.createElement('canvas');
+
+                // Generate QR code using qrcode.js with proper options
+                QRCode.toCanvas(canvas, nisn, {
+                    width: 180,
+                    height: 180,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',    // Black modules
+                        light: '#FFFFFF'   // White background
+                    },
+                    errorCorrectionLevel: 'M',  // Medium error correction
+                    type: 'image/png',
+                    quality: 0.92,
+                    scale: 4
+                })
+                .then(() => {
+                    console.log('QR Code generated successfully for NISN:', nisn);
+                    // Clear container and add the canvas
+                    qrContainer.innerHTML = '';
+                    canvas.style.width = '180px';
+                    canvas.style.height = '180px';
+                    canvas.style.display = 'block';
+                    qrContainer.appendChild(canvas);
+                })
+                .catch((error) => {
+                    console.error('QR Code generation failed:', error);
+                    qrContainer.innerHTML = `
+                        <div style="width: 180px; height: 180px; background: #ffebee; display: flex; align-items: center; justify-content: center; font-size: 14px; text-align: center; color: #c62828;">
+                            QR Generation<br>Failed
+                        </div>
+                    `;
                 });
             } else {
-                // Show placeholder if no NISN
+                console.log('No NISN available for QR code generation');
                 qrContainer.innerHTML = `
-                    <div style="width: 80px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #666;">
+                    <div style="width: 180px; height: 180px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 14px; text-align: center; color: #757575;">
                         No NISN<br>Available
                     </div>
                 `;
@@ -763,40 +996,11 @@
                 downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Image...';
                 downloadBtn.disabled = true;
 
-                // Wait a bit for QR code to fully render
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Wait a moment for canvas to be fully drawn
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
-                // Get kartu container
-                const kartuElement = document.getElementById('kartu-identitas-container');
-
-                // Create high resolution canvas with better quality settings
-                const canvas = await html2canvas(kartuElement, {
-                    scale: 2, // 2x resolution for crisp quality
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: null,
-                    width: 603,
-                    height: 384,
-                    scrollX: 0,
-                    scrollY: 0,
-                    logging: false,
-                    imageTimeout: 0,
-                    removeContainer: false,
-                    foreignObjectRendering: false
-                });
-
-                // Create final canvas with exact target dimensions
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = 1205;
-                finalCanvas.height = 768;
-                const ctx = finalCanvas.getContext('2d');
-
-                // Set high quality image smoothing
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                // Draw the captured image to final canvas with exact dimensions
-                ctx.drawImage(canvas, 0, 0, 1205, 768);
+                // Get the canvas element
+                const canvas = document.getElementById('kartu-identitas-canvas');
 
                 // Get student name for filename
                 const studentName = document.getElementById('kartu-nama').textContent
@@ -804,8 +1008,8 @@
                     .toLowerCase()
                     .replace(/[^a-z0-9\-]/g, '');
 
-                // Convert to blob and download with high quality
-                finalCanvas.toBlob(function(blob) {
+                // Convert canvas to blob and download
+                canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.download = `kartu-identitas-${studentName}-${new Date().toISOString().slice(0,10)}.png`;
