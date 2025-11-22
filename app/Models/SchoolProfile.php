@@ -22,7 +22,8 @@ class SchoolProfile extends Model
         'kepala_sekolah',
         'tahun_berdiri',
         'akreditasi',
-        'npsn'
+        'npsn',
+        'id_kepala_sekolah'
     ];
 
     protected $casts = [
@@ -31,4 +32,20 @@ class SchoolProfile extends Model
         'maps_longitude' => 'float',
         'tahun_berdiri' => 'integer'
     ];
+
+    /**
+     * Get the kepala sekolah guru profile
+     */
+    public function kepalaSekolahProfile()
+    {
+        return $this->belongsTo(GuruProfile::class, 'id_kepala_sekolah');
+    }
+
+    /**
+     * Get kepala sekolah name
+     */
+    public function getKepalaSekolahNameAttribute()
+    {
+        return $this->kepalaSekolahProfile?->nama ?? $this->kepala_sekolah;
+    }
 }

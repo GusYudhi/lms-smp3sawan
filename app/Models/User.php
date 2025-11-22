@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -23,17 +22,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'nomor_induk',
-        'nomor_telepon',
-        'profile_photo',
-        'profile_photo_path',
-        'jenis_kelamin',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'status_kepegawaian',
-        'golongan',
-        'mata_pelajaran',
-        'wali_kelas',
     ];
 
     /**
@@ -54,7 +42,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'tanggal_lahir' => 'date',
     ];
 
     /**
@@ -126,17 +113,9 @@ class User extends Authenticatable
             return $this->studentProfile->getProfilePhotoUrl();
         }
 
-        // For other roles or as fallback, use user's own photo
-        if ($this->profile_photo && Storage::exists('public/profile_photos/' . $this->profile_photo)) {
-            return Storage::url('profile_photos/' . $this->profile_photo);
-        }
-
-        // Default avatar based on gender
-        $defaultAvatar = $this->jenis_kelamin === 'P' ? 'avatars/female-default.png' : 'avatars/male-default.png';
-
-        // If default avatar exists, use it, otherwise use a generic one
-        if (Storage::exists('public/' . $defaultAvatar)) {
-            return Storage::url($defaultAvatar);
+        // For guru/kepala sekolah, get photo from guru profile
+        if (in_array($this->role, ['guru', 'kepala_sekolah']) && $this->guruProfile) {
+            return $this->guruProfile->getProfilePhotoUrl();
         }
 
         // Fallback to a simple placeholder
@@ -153,9 +132,33 @@ class User extends Authenticatable
     /**
      * Get the teacher profile for the user.
      */
+    public function guruProfile()
+    {
+        return $this->hasOne(GuruProfile::class);
+    }
+
+    /**
+     * Get the teacher profile for the user (alias for backward compatibility).
+     */
     public function teacherProfile()
     {
-        return $this->hasOne(TeacherProfile::class);
+        return $this->guruProfile();
+    }
+
+    /**
+     * Check if user has teacher profile
+     */
+    public function hasTeacherProfile()
+    {
+        return $this->guruProfile()->exists();
+    }
+
+    /**
+     * Check if user has guru profile
+     */
+    public function hasGuruProfile()
+    {
+        return $this->guruProfile()->exists();
     }
 
     /**
@@ -167,21 +170,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has teacher profile
-     */
-    public function hasTeacherProfile()
-    {
-        return $this->teacherProfile()->exists();
-    }
-
-    /**
      * Get specific profile based on role
      */
     public function getProfile()
     {
         return match($this->role) {
             'siswa' => $this->studentProfile,
-            'guru', 'kepala_sekolah' => $this->teacherProfile,
+            'guru', 'kepala_sekolah' => $this->guruProfile,
             default => null
         };
     }

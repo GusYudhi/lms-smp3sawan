@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\SchoolProfile;
+use App\Models\GuruProfile;
 
 class SchoolProfileSeeder extends Seeder
 {
@@ -32,11 +33,26 @@ class SchoolProfileSeeder extends Seeder
                 'website' => 'smpn3sawan.sch.id',
                 'maps_latitude' => -8.1542,
                 'maps_longitude' => 115.0956,
-                'kepala_sekolah' => 'Drs. I Made Sutrisna, M.Pd.',
+                'kepala_sekolah' => 'Dr. Budi Santoso, M.Pd.',
                 'tahun_berdiri' => 1985,
                 'akreditasi' => 'A',
                 'npsn' => '50100123'
             ]
         );
+
+        // Set kepala sekolah after seeding is done
+        $schoolProfile = SchoolProfile::first();
+        if ($schoolProfile) {
+            // Find kepala sekolah guru profile
+            $kepalaSekolahProfile = GuruProfile::whereHas('user', function($query) {
+                $query->where('role', 'kepala_sekolah');
+            })->first();
+
+            if ($kepalaSekolahProfile) {
+                $schoolProfile->update([
+                    'id_kepala_sekolah' => $kepalaSekolahProfile->id
+                ]);
+            }
+        }
     }
 }
