@@ -56,6 +56,38 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/siswa/{id}/edit', [App\Http\Controllers\Admin\SiswaController::class, 'edit'])->name('admin.siswa.edit');
         Route::put('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'update'])->name('admin.siswa.update');
         Route::delete('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'destroy'])->name('admin.siswa.destroy');
+
+        // Jadwal Pelajaran routes
+        Route::get('jadwal-mapel/get-by-kelas/{kelasId}', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'getByKelas'])->name('admin.jadwal.get-by-kelas');
+        Route::resource('jadwal-mapel', App\Http\Controllers\Admin\JadwalPelajaranController::class)->names([
+            'index' => 'admin.jadwal.index',
+            'store' => 'admin.jadwal.store',
+            'update' => 'admin.jadwal.update',
+            'destroy' => 'admin.jadwal.destroy',
+        ])->except(['create', 'edit', 'show']);
+
+        // Mata Pelajaran routes
+        Route::resource('mata-pelajaran', App\Http\Controllers\Admin\MataPelajaranController::class)->names([
+            'index' => 'admin.mapel.index',
+            'store' => 'admin.mapel.store',
+            'update' => 'admin.mapel.update',
+            'destroy' => 'admin.mapel.destroy',
+        ])->except(['create', 'edit', 'show']);
+
+        // Jam Pelajaran routes
+        Route::resource('jam-pelajaran', App\Http\Controllers\Admin\JamPelajaranController::class)->names([
+            'index' => 'admin.jam-pelajaran.index',
+            'store' => 'admin.jam-pelajaran.store',
+            'update' => 'admin.jam-pelajaran.update',
+            'destroy' => 'admin.jam-pelajaran.destroy',
+        ])->except(['create', 'edit', 'show']);
+
+        // Fixed Schedule routes
+        Route::resource('fixed-schedule', App\Http\Controllers\Admin\FixedScheduleController::class)->names([
+            'index' => 'admin.fixed-schedule.index',
+            'store' => 'admin.fixed-schedule.store',
+            'destroy' => 'admin.fixed-schedule.destroy',
+        ])->except(['create', 'edit', 'show', 'update']);
     });
 
     // Kepala Sekolah routes

@@ -153,6 +153,26 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.mapel') ? 'active' : '' }}" href="{{ route('admin.mapel.index') }}">
+                                    <i class="fas fa-book me-2"></i> Mata Pelajaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jadwal') ? 'active' : '' }}" href="{{ route('admin.jadwal.index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Pelajaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jam-pelajaran') ? 'active' : '' }}" href="{{ route('admin.jam-pelajaran.index') }}">
+                                    <i class="fas fa-clock me-2"></i> Jam Pelajaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.fixed-schedule') ? 'active' : '' }}" href="{{ route('admin.fixed-schedule.index') }}">
+                                    <i class="fas fa-thumbtack me-2"></i> Jadwal Tetap
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
                                     <i class="fas fa-school me-2"></i> Data Sekolah
                                 </a>
@@ -305,6 +325,7 @@
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Pass Laravel route to JavaScript
         window.currentRoute = '{{ Route::currentRouteName() }}';
