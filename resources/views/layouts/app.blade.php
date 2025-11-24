@@ -28,7 +28,46 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
         }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                width: 280px;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 25%;
+            }
+            .sidebar {
+                width: 25%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                margin-left: 16.66667%;
+            }
+            .sidebar {
+                width: 16.66667%;
+            }
+        }
+
         .sidebar .nav-link {
             color: rgba(255,255,255,0.9);
             padding: 0.75rem 1rem;
@@ -44,6 +83,7 @@
         .main-content {
             background-color: #f8f9fa;
             min-height: 100vh;
+            transition: margin-left 0.3s ease-in-out;
         }
         .sidebar-brand {
             padding: 1.5rem;
@@ -60,13 +100,35 @@
         .navbar-brand {
             font-weight: 600;
         }
+
+        /* Mobile overlay */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile backdrop -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop d-md-none" onclick="closeSidebar()"></div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-brand text-center">
                     <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
                     <span class="text-white fw-bold">SMPN 3 SAWAN</span>
@@ -158,8 +220,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-user-check me-2"></i> Absensi Kelas
+                                <a class="nav-link {{ Route::currentRouteName() == 'guru.absensi.siswa' ? 'active' : '' }}" href="{{ route('guru.absensi.siswa') }}">
+                                    <i class="fas fa-user-check me-2"></i> Absensi Siswa
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -222,7 +284,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <!-- Top Navigation -->
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler d-md-none btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h1 class="h2 navbar-brand">@yield('title', 'Dashboard')</h1>
@@ -246,6 +308,118 @@
     <script>
         // Pass Laravel route to JavaScript
         window.currentRoute = '{{ Route::currentRouteName() }}';
+
+        // Bootstrap collapse functionality for mobile sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
+            const toggleButton = document.querySelector('[data-bs-toggle="collapse"]');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const mainContent = document.querySelector('.main-content');
+
+            if (toggleButton && sidebar) {
+                // Handle toggle button click
+                toggleButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Check if we're on mobile
+                    if (window.innerWidth < 768) {
+                        const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+
+                        if (isExpanded) {
+                            closeSidebar();
+                        } else {
+                            openSidebar();
+                        }
+                    }
+                });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            if (backdrop) {
+                backdrop.addEventListener('click', closeSidebar);
+            }
+
+            // Close sidebar when clicking on main content area on mobile
+            if (mainContent) {
+                mainContent.addEventListener('click', function(e) {
+                    if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+                        // Don't close if clicking on the toggle button
+                        if (!toggleButton.contains(e.target)) {
+                            closeSidebar();
+                        }
+                    }
+                });
+            }
+
+            // Close sidebar when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && window.innerWidth < 768 && sidebar.classList.contains('show')) {
+                    closeSidebar();
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    closeSidebar();
+                }
+            });
+
+            // Prevent scrolling on body when sidebar is open on mobile
+            function toggleBodyScroll(disable) {
+                if (window.innerWidth < 768) {
+                    if (disable) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
+                    }
+                }
+            }
+
+            // Update the open and close functions to handle body scroll
+            window.openSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                const toggleButton = document.querySelector('[data-bs-toggle="collapse"]');
+
+                if (sidebar) {
+                    sidebar.classList.add('show');
+                    toggleBodyScroll(true);
+                }
+                if (backdrop) {
+                    backdrop.classList.add('show');
+                }
+                if (toggleButton) {
+                    toggleButton.setAttribute('aria-expanded', 'true');
+                }
+            };
+
+            window.closeSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                const toggleButton = document.querySelector('[data-bs-toggle="collapse"]');
+
+                if (sidebar) {
+                    sidebar.classList.remove('show');
+                    toggleBodyScroll(false);
+                }
+                if (backdrop) {
+                    backdrop.classList.remove('show');
+                }
+                if (toggleButton) {
+                    toggleButton.setAttribute('aria-expanded', 'false');
+                }
+            };
+        });
+
+        function openSidebar() {
+            window.openSidebar();
+        }
+
+        function closeSidebar() {
+            window.closeSidebar();
+        }
     </script>
     @stack('scripts')
 </body>

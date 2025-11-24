@@ -66,6 +66,12 @@ Route::middleware(['auth'])->group(function () {
     // Guru routes
     Route::prefix('guru')->middleware('role:guru')->group(function () {
         Route::get('/guru/dashboard', [App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('guru.dashboard');
+
+        // Attendance routes
+        Route::get('/absensi/siswa', [App\Http\Controllers\Guru\AbsensiController::class, 'absensiSiswa'])->name('guru.absensi.siswa');
+        Route::get('/absensi/today', [App\Http\Controllers\Guru\AbsensiController::class, 'getTodayAttendance'])->name('guru.absensi.today');
+        Route::post('/absensi/process', [App\Http\Controllers\Guru\AbsensiController::class, 'processAttendance'])->name('guru.absensi.process');
+        Route::get('/absensi/qr/{nisn}', [App\Http\Controllers\Guru\AbsensiController::class, 'generateQRCode'])->name('guru.absensi.qr');
     });
 
     // Siswa routes

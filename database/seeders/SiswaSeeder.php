@@ -22,11 +22,6 @@ class SiswaSeeder extends Seeder
                 'email' => fake()->unique()->safeEmail(),
                 'password' => Hash::make('password'),
                 'role' => 'siswa',
-                'nomor_induk' => '2024' . str_pad($i, 4, '0', STR_PAD_LEFT),
-                'nomor_telepon' => fake()->phoneNumber(),
-                'jenis_kelamin' => fake()->randomElement(['L', 'P']),
-                'tempat_lahir' => fake()->city(),
-                'tanggal_lahir' => fake()->date('Y-m-d', '2010-01-01'),
             ]);
 
             // Create student profile
@@ -36,8 +31,8 @@ class SiswaSeeder extends Seeder
                 'user_id' => $user->id,
                 'nis' => '2024' . str_pad($i, 4, '0', STR_PAD_LEFT),
                 'nisn' => '0' . fake()->unique()->numberBetween(100000000, 999999999),
-                'tempat_lahir' => $user->tempat_lahir,
-                'tanggal_lahir' => $user->tanggal_lahir,
+                'tempat_lahir' => fake()->city(),
+                'tanggal_lahir' => fake()->date('Y-m-d', '2010-01-01'),
                 'kelas' => fake()->randomElement(['7A', '7B', '8A', '8B', '9A', '9B']),
                 'nomor_telepon_orangtua' => fake()->phoneNumber(),
                 'jenis_kelamin' => $jenisKelamin,
