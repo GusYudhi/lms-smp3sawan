@@ -9,9 +9,7 @@
                 <th scope="col" class="text-center fw-semibold">NISN</th>
                 <th scope="col" class="text-center fw-semibold">Gender</th>
                 <th scope="col" class="text-center fw-semibold">Kelas</th>
-                <th scope="col" class="text-center fw-semibold">Telp. Ortu</th>
                 <th scope="col" class="text-center fw-semibold">Tanggal Lahir</th>
-                <th scope="col" class="text-center fw-semibold">Telepon</th>
                 <th scope="col" class="text-center fw-semibold">Email</th>
                 <th scope="col" class="text-center fw-semibold">Status</th>
                 <th scope="col" class="text-center fw-semibold">Aksi</th>
@@ -23,8 +21,8 @@
                 <td class="text-center fw-bold">{{ $loop->iteration + ($students->currentPage() - 1) * $students->perPage() }}</td>
                 <td class="text-center">
                     <div class="student-photo mx-auto rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
-                        @if($student->profile_photo)
-                            <img src="{{ asset('storage/' . $student->profile_photo) }}"
+                        @if($student->studentProfile && $student->studentProfile->foto_profil)
+                            <img src="{{ asset('storage/' . $student->studentProfile->foto_profil) }}"
                                  alt="Foto {{ $student->name }}"
                                  class="rounded-circle">
                         @else
@@ -37,60 +35,45 @@
                 <td>
                     <div class="text-start">
                         <div class="fw-semibold mb-1">{{ $student->name }}</div>
-                        <small class="text-muted fst-italic">NIS: {{ $student->nis }}</small>
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-light text-dark border">{{ $student->nis }}</span>
+                    <span class="badge bg-light text-dark border">{{ $student->studentProfile->nis ?? '-' }}</span>
                 </td>
                 <td class="text-center">
-                    @if($student->nisn)
-                        <span class="badge bg-info-subtle text-info border">{{ $student->nisn }}</span>
+                    @if($student->studentProfile && $student->studentProfile->nisn)
+                        <span class="badge bg-light text-dark border">{{ $student->studentProfile->nisn }}</span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($student->jenis_kelamin === 'laki-laki')
-                        <span class="badge bg-primary-subtle text-primary border">
-                            <i class="fas fa-mars me-1"></i>{{ ucfirst($student->jenis_kelamin) }}
-                        </span>
-                    @else
-                        <span class="badge bg-danger-subtle text-danger border">
-                            <i class="fas fa-venus me-1"></i>{{ ucfirst($student->jenis_kelamin) }}
-                        </span>
-                    @endif
-                </td>
-                <td class="text-center">
-                    @if($student->kelas)
-                        <span class="badge bg-primary-subtle text-primary border">{{ $student->kelas }}</span>
+                    @if($student->studentProfile && $student->studentProfile->jenis_kelamin)
+                        @if($student->studentProfile->jenis_kelamin === 'L')
+                            <span class="badge bg-light text-primary border">
+                                <i class="fas fa-mars me-1"></i>Laki-laki
+                            </span>
+                        @else
+                            <span class="badge bg-light text-danger border">
+                                <i class="fas fa-venus me-1"></i>Perempuan
+                            </span>
+                        @endif
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($student->nomor_telepon_orangtua)
-                        <a href="tel:{{ $student->nomor_telepon_orangtua }}" class="text-decoration-none text-primary">
-                            <i class="fas fa-phone me-1"></i>{{ $student->nomor_telepon_orangtua }}
-                        </a>
+                    @if($student->studentProfile && $student->studentProfile->kelas)
+                        <span class="badge bg-primary-subtle text-primary border">{{ $student->studentProfile->kelas }}</span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($student->tanggal_lahir)
+                    @if($student->studentProfile && $student->studentProfile->tanggal_lahir)
                         <span class="badge bg-light text-dark border">
-                            {{ \Carbon\Carbon::parse($student->tanggal_lahir)->translatedFormat('d M Y') }}
+                            {{ \Carbon\Carbon::parse($student->studentProfile->tanggal_lahir)->translatedFormat('d M Y') }}
                         </span>
-                    @else
-                        <span class="text-muted fst-italic">-</span>
-                    @endif
-                </td>
-                <td class="text-center">
-                    @if($student->nomor_telepon)
-                        <a href="tel:{{ $student->nomor_telepon }}" class="text-decoration-none text-primary">
-                            <i class="fas fa-mobile-alt me-1"></i>{{ $student->nomor_telepon }}
-                        </a>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
@@ -134,7 +117,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="13" class="text-center py-5">
+                <td colspan="11" class="text-center py-5">
                     <div class="text-muted">
                         <i class="fas fa-user-graduate fa-3x opacity-25 mb-3 d-block"></i>
                         <h6 class="mb-2 fw-semibold">Belum ada data siswa</h6>

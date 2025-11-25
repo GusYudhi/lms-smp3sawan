@@ -40,6 +40,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/guru/create', [App\Http\Controllers\Admin\AdminController::class, 'createGuru'])->name('admin.guru.create');
         Route::get('/guru/search', [App\Http\Controllers\Admin\AdminController::class, 'searchGuru'])->name('admin.guru.search');
         Route::get('/guru/export', [App\Http\Controllers\Admin\AdminController::class, 'exportGuru'])->name('admin.guru.export');
+        Route::get('/guru/template', [App\Http\Controllers\Admin\AdminController::class, 'downloadTemplateGuru'])->name('admin.guru.template');
+        Route::post('/guru/import', [App\Http\Controllers\Admin\AdminController::class, 'importGuru'])->name('admin.guru.import');
         Route::post('/guru/store', [App\Http\Controllers\Admin\AdminController::class, 'storeGuru'])->name('admin.guru.store');
         Route::get('/guru/{id}', [App\Http\Controllers\Admin\AdminController::class, 'showGuru'])->name('admin.guru.show');
         Route::get('/guru/{id}/edit', [App\Http\Controllers\Admin\AdminController::class, 'editGuru'])->name('admin.guru.edit');
@@ -51,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/siswa/create', [App\Http\Controllers\Admin\SiswaController::class, 'create'])->name('admin.siswa.create');
         Route::get('/siswa/search', [App\Http\Controllers\Admin\SiswaController::class, 'search'])->name('admin.siswa.search');
         Route::get('/siswa/export', [App\Http\Controllers\Admin\SiswaController::class, 'export'])->name('admin.siswa.export');
+        Route::get('/siswa/template', [App\Http\Controllers\Admin\SiswaController::class, 'downloadTemplate'])->name('admin.siswa.template');
+        Route::post('/siswa/import', [App\Http\Controllers\Admin\SiswaController::class, 'import'])->name('admin.siswa.import');
         Route::post('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'store'])->name('admin.siswa.store');
         Route::get('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'show'])->name('admin.siswa.show');
         Route::get('/siswa/{id}/edit', [App\Http\Controllers\Admin\SiswaController::class, 'edit'])->name('admin.siswa.edit');

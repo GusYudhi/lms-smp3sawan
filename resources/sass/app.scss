@@ -191,16 +191,14 @@
 
     // Hide less important columns on mobile
     .table-responsive table {
-        th:nth-child(4),  // NIP/NIS duplicate
+        th:nth-child(4),  // NIS duplicate
         th:nth-child(5),  // NISN
-        th:nth-child(7),  // Golongan
+        th:nth-child(8),  // Telp. Ortu
         th:nth-child(9),  // Tanggal Lahir
-        th:nth-child(10), // Telepon
         td:nth-child(4),
         td:nth-child(5),
-        td:nth-child(7),
-        td:nth-child(9),
-        td:nth-child(10) {
+        td:nth-child(8),
+        td:nth-child(9) {
             display: none;
         }
     }
@@ -219,10 +217,10 @@
 
     // Hide even more columns on very small screens
     .table-responsive table {
-        th:nth-child(8),  // Wali Kelas/Telp Ortu
-        th:nth-child(11), // Email
-        td:nth-child(8),
-        td:nth-child(11) {
+        th:nth-child(7),  // Kelas
+        th:nth-child(10), // Email
+        td:nth-child(7),
+        td:nth-child(10) {
             display: none;
         }
     }

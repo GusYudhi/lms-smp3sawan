@@ -2,8 +2,42 @@
 
 @section('title', 'Data Siswa')
 
+@push('styles')
+<link href="{{ asset('css/admin/siswa.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container-fluid">
+    <!-- Alert Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('import_errors'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-list me-2"></i><strong>Detail Error Import:</strong>
+            <pre class="mt-2 mb-0" style="white-space: pre-wrap; font-size: 0.9em;">{{ session('import_errors') }}</pre>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -17,12 +51,20 @@
                             <p class="text-subtle mb-0 fw-medium">Kelola data siswa: tambahkan, edit, lihat, atau ekspor data</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary me-2 shadow-sm">
-                                <i class="fas fa-plus me-1"></i> Tambah Siswa
-                            </a>
-                            <button class="btn btn-outline-secondary shadow-sm" onclick="exportData()">
-                                <i class="fas fa-file-export me-1"></i> Ekspor
-                            </button>
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="fas fa-file-import me-1"></i>
+                                    <span class="d-none d-sm-inline">Import Data</span>
+                                </button>
+                                <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>
+                                    <span class="d-none d-sm-inline">Tambah Siswa</span>
+                                </a>
+                                <button class="btn btn-outline-secondary" onclick="exportData()">
+                                    <i class="fas fa-file-export me-1"></i>
+                                    <span class="d-none d-sm-inline">Ekspor</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -39,7 +81,7 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Total Siswa</h6>
-                    <h2 class="text-primary fw-bold mb-1">{{ $students->total() }}</h2>
+                    <h2 class="text-primary fw-bold mb-1">{{ $totalSiswa ?? 0 }}</h2>
                     <small class="text-subtle fw-medium">Siswa Terdaftar</small>
                 </div>
             </div>
@@ -52,7 +94,7 @@
                         <i class="fas fa-user-check"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Siswa Aktif</h6>
-                    <h2 class="text-success fw-bold mb-1">{{ $students->total() }}</h2>
+                    <h2 class="text-success fw-bold mb-1">{{ $siswaAktif ?? 0 }}</h2>
                     <small class="text-subtle fw-medium">Status Aktif</small>
                 </div>
             </div>
@@ -65,7 +107,7 @@
                         <i class="fas fa-male"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Laki-laki</h6>
-                    <h2 class="text-info fw-bold mb-1">{{ rand(90, 120) }}</h2>
+                    <h2 class="text-info fw-bold mb-1">{{ $siswaLakiLaki ?? 0 }}</h2>
                     <small class="text-subtle fw-medium">Siswa Putra</small>
                 </div>
             </div>
@@ -78,7 +120,7 @@
                         <i class="fas fa-female"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Perempuan</h6>
-                    <h2 class="text-warning fw-bold mb-1">{{ rand(80, 110) }}</h2>
+                    <h2 class="text-warning fw-bold mb-1">{{ $siswaPerempuan ?? 0 }}</h2>
                     <small class="text-subtle fw-medium">Siswa Putri</small>
                 </div>
             </div>
@@ -116,9 +158,9 @@
                                 <label for="classFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
                                 <select name="kelas" id="classFilter" class="form-select">
                                     <option value="">Semua Kelas</option>
-                                    <option value="7" {{ request('kelas') === '7' ? 'selected' : '' }}>Kelas 7</option>
-                                    <option value="8" {{ request('kelas') === '8' ? 'selected' : '' }}>Kelas 8</option>
-                                    <option value="9" {{ request('kelas') === '9' ? 'selected' : '' }}>Kelas 9</option>
+                                    @foreach($classes as $kelas)
+                                        <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -188,6 +230,57 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Data Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.siswa.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">1. Download Template</label>
+                        <p class="text-muted small mb-2">Silakan download format template Excel di bawah ini sebelum mengupload data.</p>
+                        <a href="{{ route('admin.siswa.template') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-1"></i> Download Template Excel (.xlsx)
+                        </a>
+                        <div class="p-3 mb-2 bg-info bg-opacity-10 border border-info rounded mt-2">
+                            <small>
+                                <strong>Tips:</strong>
+                                <ul class="mb-0 mt-1">
+                                    <li>Kolom NIS dan NISN akan otomatis diformat sebagai teks</li>
+                                    <li>Jenis kelamin: gunakan <code>L</code> atau <code>P</code></li>
+                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code> atau <code>DD-MM-YYYY</code></li>
+                                    <li>Email akan digenerate otomatis (format: nama.tengah@student.id)</li>
+                                    <li>Password default: <code>12345678</code></li>
+                                </ul>
+                            </small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label for="file" class="form-label fw-bold">2. Upload File Excel</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls,.xlsm,.xlsb,.xlam,.xltx,.xltm,.csv" required>
+                        <small class="text-muted">Format yang didukung: .xlsx, .xls, .xlsm, .xlsb, .xlam, .xltx, .xltm, .csv (Max: 5MB)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="importBtn">
+                        <span id="importBtnText">Import</span>
+                        <span id="importBtnLoading" class="d-none">
+                            <i class="fas fa-spinner fa-spin me-1"></i>Mengimpor...
+                        </span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -268,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto-hide alerts
-    const alerts = document.querySelectorAll('.alert');
+    const alerts = document.querySelectorAll('.alert.alert-dismissible');
     alerts.forEach(alert => {
         setTimeout(() => {
             alert.style.transition = 'opacity 0.3s ease';
@@ -442,5 +535,21 @@ function showToast(type, message) {
 
     setTimeout(() => toast.remove(), 5000);
 }
+
+// Handle import form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const importForm = document.querySelector('#importModal form');
+    const importBtn = document.getElementById('importBtn');
+    const importBtnText = document.getElementById('importBtnText');
+    const importBtnLoading = document.getElementById('importBtnLoading');
+
+    if (importForm) {
+        importForm.addEventListener('submit', function() {
+            importBtn.disabled = true;
+            importBtnText.classList.add('d-none');
+            importBtnLoading.classList.remove('d-none');
+        });
+    }
+});
 </script>
 @endpush

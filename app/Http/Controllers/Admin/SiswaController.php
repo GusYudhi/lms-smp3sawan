@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\UserManagementService;
+use App\Imports\StudentsImport;
+use App\Exports\StudentsTemplateExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaController extends Controller
 {
@@ -29,16 +32,30 @@ class SiswaController extends Controller
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
         // Get available classes for filter
-        $classes = User::whereHas('studentProfile')
-            ->with('studentProfile')
-            ->get()
-            ->pluck('studentProfile.kelas')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        $classes = \App\Models\StudentProfile::select('kelas')
+            ->whereNotNull('kelas')
+            ->where('kelas', '!=', '')
+            ->distinct()
+            ->orderBy('kelas')
+            ->pluck('kelas')
+            ->toArray();
 
-        return view('admin.siswa.index', compact('students', 'classes'));
+        // Calculate statistics
+        $totalSiswa = User::where('role', 'siswa')->count();
+        $siswaAktif = User::where('role', 'siswa')
+            ->whereHas('studentProfile', function($q) {
+                $q->where('is_active', true);
+            })->count();
+        $siswaLakiLaki = User::where('role', 'siswa')
+            ->whereHas('studentProfile', function($q) {
+                $q->where('jenis_kelamin', 'L');
+            })->count();
+        $siswaPerempuan = User::where('role', 'siswa')
+            ->whereHas('studentProfile', function($q) {
+                $q->where('jenis_kelamin', 'P');
+            })->count();
+
+        return view('admin.siswa.index', compact('students', 'classes', 'totalSiswa', 'siswaAktif', 'siswaLakiLaki', 'siswaPerempuan'));
     }
 
     /**
@@ -52,14 +69,13 @@ class SiswaController extends Controller
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
         // Get available classes for filter
-        $classes = User::whereHas('studentProfile')
-            ->with('studentProfile')
-            ->get()
-            ->pluck('studentProfile.kelas')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        $classes = \App\Models\StudentProfile::select('kelas')
+            ->whereNotNull('kelas')
+            ->where('kelas', '!=', '')
+            ->distinct()
+            ->orderBy('kelas')
+            ->pluck('kelas')
+            ->toArray();
 
         if ($request->ajax()) {
             return response()->json([
@@ -72,7 +88,16 @@ class SiswaController extends Controller
             ]);
         }
 
-        return view('admin.siswa.index', compact('students', 'classes'));
+        // Calculate statistics for non-ajax requests
+        $totalSiswa = User::where('role', 'siswa')->count();
+        $siswaAktif = User::where('role', 'siswa')
+            ->whereHas('studentProfile', function($q) {
+                $q->where('is_active', true);
+            })->count();
+        $siswaLakiLaki = User::where('role', 'siswa')->where('jenis_kelamin', 'Laki-laki')->count();
+        $siswaPerempuan = User::where('role', 'siswa')->where('jenis_kelamin', 'Perempuan')->count();
+
+        return view('admin.siswa.index', compact('students', 'classes', 'totalSiswa', 'siswaAktif', 'siswaLakiLaki', 'siswaPerempuan'));
     }
 
     /**
@@ -92,8 +117,7 @@ class SiswaController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'nomor_telepon' => 'nullable|string|max:30',
-            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'jenis_kelamin' => 'nullable|in:L,P',
             'profile_photo' => 'nullable|image|max:2048',
             // Student profile fields
             'nis' => 'nullable|string|max:50|unique:student_profiles,nis',
@@ -107,18 +131,18 @@ class SiswaController extends Controller
             'pekerjaan_orangtua' => 'nullable|string|max:255',
         ]);
 
-        $userData = $request->only(['name', 'email', 'password', 'nomor_telepon', 'jenis_kelamin']);
+        $userData = $request->only(['name', 'email', 'password']);
+
+        $profileData = $request->only([
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
+        ]);
 
         // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
             $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $userData['profile_photo'] = $path;
+            $profileData['foto_profil'] = $path;
         }
-
-        $profileData = $request->only([
-            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
-            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua'
-        ]);
 
         $student = $this->userService->createStudent($userData, $profileData);
 
@@ -154,8 +178,7 @@ class SiswaController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $student->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'nomor_telepon' => 'nullable|string|max:30',
-            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
+            'jenis_kelamin' => 'nullable|in:L,P',
             'profile_photo' => 'nullable|image|max:2048',
             // Student profile fields
             'nis' => 'nullable|string|max:50|unique:student_profiles,nis,' . ($student->studentProfile->id ?? 'NULL'),
@@ -169,18 +192,18 @@ class SiswaController extends Controller
             'pekerjaan_orangtua' => 'nullable|string|max:255',
         ]);
 
-        $userData = $request->only(['name', 'email', 'password', 'nomor_telepon', 'jenis_kelamin']);
+        $userData = $request->only(['name', 'email', 'password']);
+
+        $profileData = $request->only([
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
+        ]);
 
         // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
             $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $userData['profile_photo'] = $path;
+            $profileData['foto_profil'] = $path;
         }
-
-        $profileData = $request->only([
-            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
-            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua'
-        ]);
 
         $student = $this->userService->updateStudent($student, $userData, $profileData);
 
@@ -237,7 +260,7 @@ class SiswaController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $columns = ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Kelas', 'Nomor Telepon Orang Tua', 'Tanggal Lahir', 'Telepon', 'Email'];
+        $columns = ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Kelas', 'Nomor Telepon Orang Tua', 'Tanggal Lahir', 'Email'];
 
         $callback = function() use ($students, $columns) {
             $file = fopen('php://output', 'w');
@@ -245,15 +268,16 @@ class SiswaController extends Controller
 
             foreach ($students as $student) {
                 $profile = $student->studentProfile;
+                $gender = $profile->jenis_kelamin === 'L' ? 'Laki-laki' : ($profile->jenis_kelamin === 'P' ? 'Perempuan' : '');
+
                 fputcsv($file, [
                     $student->name,
                     $profile->nis ?? '',
                     $profile->nisn ?? '',
-                    $student->jenis_kelamin ?? '',
+                    $gender,
                     $profile->kelas ?? '',
                     $profile->nomor_telepon_orangtua ?? '',
                     $profile->tanggal_lahir ?? '',
-                    $student->nomor_telepon ?? '',
                     $student->email ?? '',
                 ]);
             }
@@ -261,5 +285,48 @@ class SiswaController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Download template for student import
+     */
+    public function downloadTemplate()
+    {
+        return Excel::download(new StudentsTemplateExport, 'template_import_siswa.xlsx');
+    }
+
+    /**
+     * Import students from Excel file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,xlsm,xlsb,xlam,xltx,xltm,csv|max:5120', // 5MB max
+        ]);
+
+        try {
+            $import = new StudentsImport();
+            Excel::import($import, $request->file('file'));
+
+            $message = "Import selesai! ";
+            $message .= "Berhasil: {$import->successCount} data, ";
+            $message .= "Gagal: {$import->failureCount} data";
+
+            if (!empty($import->errors)) {
+                $errorMessage = implode("\n", array_slice($import->errors, 0, 10)); // Show first 10 errors
+                if (count($import->errors) > 10) {
+                    $errorMessage .= "\n... dan " . (count($import->errors) - 10) . " error lainnya";
+                }
+
+                return redirect()->back()
+                    ->with('warning', $message)
+                    ->with('import_errors', $errorMessage);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error saat import: ' . $e->getMessage());
+        }
     }
 }

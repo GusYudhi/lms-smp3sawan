@@ -62,7 +62,7 @@
                                            class="form-control @error('nis') is-invalid @enderror"
                                            id="nis"
                                            name="nis"
-                                           value="{{ old('nis', $student->nis) }}">
+                                           value="{{ old('nis', $student->studentProfile->nis ?? '') }}">
                                     @error('nis')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -76,7 +76,7 @@
                                            class="form-control @error('nisn') is-invalid @enderror"
                                            id="nisn"
                                            name="nisn"
-                                           value="{{ old('nisn', $student->nisn) }}">
+                                           value="{{ old('nisn', $student->studentProfile->nisn ?? '') }}">
                                     @error('nisn')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -97,25 +97,13 @@
 
                             <div class="row g-3 mt-2">
                                 <div class="col-md-6">
-                                    <label for="nomor_telepon" class="form-label fw-medium">Nomor Telepon</label>
-                                    <input type="tel"
-                                           class="form-control @error('nomor_telepon') is-invalid @enderror"
-                                           id="nomor_telepon"
-                                           name="nomor_telepon"
-                                           value="{{ old('nomor_telepon', $student->nomor_telepon) }}">
-                                    @error('nomor_telepon')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
                                     <label for="jenis_kelamin" class="form-label fw-medium">Jenis Kelamin</label>
                                     <select class="form-select @error('jenis_kelamin') is-invalid @enderror"
                                             id="jenis_kelamin"
                                             name="jenis_kelamin">
                                         <option value="">Pilih Jenis Kelamin</option>
-                                        <option value="Laki-laki" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                        <option value="Perempuan" {{ old('jenis_kelamin', $student->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                        <option value="L" {{ old('jenis_kelamin', $student->studentProfile->jenis_kelamin ?? '') == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                        <option value="P" {{ old('jenis_kelamin', $student->studentProfile->jenis_kelamin ?? '') == 'P' ? 'selected' : '' }}>Perempuan</option>
                                     </select>
                                     @error('jenis_kelamin')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -130,7 +118,7 @@
                                            class="form-control @error('tempat_lahir') is-invalid @enderror"
                                            id="tempat_lahir"
                                            name="tempat_lahir"
-                                           value="{{ old('tempat_lahir', $student->tempat_lahir) }}">
+                                           value="{{ old('tempat_lahir', $student->studentProfile->tempat_lahir ?? '') }}">
                                     @error('tempat_lahir')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -142,7 +130,7 @@
                                            class="form-control @error('tanggal_lahir') is-invalid @enderror"
                                            id="tanggal_lahir"
                                            name="tanggal_lahir"
-                                           value="{{ old('tanggal_lahir', $student->tanggal_lahir) }}">
+                                           value="{{ old('tanggal_lahir', optional($student->studentProfile->tanggal_lahir ?? null)->format('Y-m-d')) }}">
                                     @error('tanggal_lahir')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -179,7 +167,7 @@
                                            class="form-control @error('kelas') is-invalid @enderror"
                                            id="kelas"
                                            name="kelas"
-                                           value="{{ old('kelas', $student->kelas) }}">
+                                           value="{{ old('kelas', $student->studentProfile->kelas ?? '') }}">
                                     @error('kelas')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -191,7 +179,7 @@
                                            class="form-control @error('nomor_telepon_orangtua') is-invalid @enderror"
                                            id="nomor_telepon_orangtua"
                                            name="nomor_telepon_orangtua"
-                                           value="{{ old('nomor_telepon_orangtua', $student->nomor_telepon_orangtua) }}">
+                                           value="{{ old('nomor_telepon_orangtua', $student->studentProfile->nomor_telepon_orangtua ?? '') }}">
                                     @error('nomor_telepon_orangtua')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

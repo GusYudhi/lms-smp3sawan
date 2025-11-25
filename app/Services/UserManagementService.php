@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\StudentProfile;
-use App\Models\TeacherProfile;
+use App\Models\GuruProfile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -23,9 +23,6 @@ class UserManagementService
                 'email' => $userData['email'] ?? null,
                 'password' => Hash::make($userData['password']),
                 'role' => 'siswa',
-                'nomor_telepon' => $userData['nomor_telepon'] ?? null,
-                'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
-                'profile_photo' => $userData['profile_photo'] ?? null,
             ]);
 
             // Create student profile
@@ -36,10 +33,8 @@ class UserManagementService
                 'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
                 'kelas' => $profileData['kelas'] ?? null,
                 'nomor_telepon_orangtua' => $profileData['nomor_telepon_orangtua'] ?? null,
-                'alamat' => $profileData['alamat'] ?? null,
-                'nama_orangtua_wali' => $profileData['nama_orangtua_wali'] ?? null,
-                'pekerjaan_orangtua' => $profileData['pekerjaan_orangtua'] ?? null,
-                'tahun_masuk' => $profileData['tahun_masuk'] ?? now()->year,
+                'foto_profil' => $profileData['foto_profil'] ?? null,
+                'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
                 'is_active' => true,
             ]);
 
@@ -93,8 +88,6 @@ class UserManagementService
             // Update user data
             $userUpdate = [
                 'name' => $userData['name'],
-                'nomor_telepon' => $userData['nomor_telepon'] ?? null,
-                'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
             ];
 
             if (isset($userData['email'])) {
@@ -105,15 +98,15 @@ class UserManagementService
                 $userUpdate['password'] = Hash::make($userData['password']);
             }
 
-            if (isset($userData['profile_photo'])) {
-                // Delete old photo if exists
-                if ($user->profile_photo) {
-                    Storage::disk('public')->delete($user->profile_photo);
-                }
-                $userUpdate['profile_photo'] = $userData['profile_photo'];
-            }
-
             $user->update($userUpdate);
+
+            // Handle photo replacement if new photo is provided
+            if (isset($profileData['foto_profil'])) {
+                // Delete old photo if exists in profile
+                if ($user->studentProfile && $user->studentProfile->foto_profil) {
+                    Storage::disk('public')->delete($user->studentProfile->foto_profil);
+                }
+            }
 
             // Update or create student profile
             $user->studentProfile()->updateOrCreate(
@@ -129,6 +122,8 @@ class UserManagementService
                     'nama_orangtua_wali' => $profileData['nama_orangtua_wali'] ?? null,
                     'pekerjaan_orangtua' => $profileData['pekerjaan_orangtua'] ?? null,
                     'tahun_masuk' => $profileData['tahun_masuk'] ?? null,
+                    'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
+                    'foto_profil' => $profileData['foto_profil'] ?? ($user->studentProfile->foto_profil ?? null),
                 ]
             );
 
@@ -227,7 +222,9 @@ class UserManagementService
         }
 
         if (isset($filters['jenis_kelamin'])) {
-            $query->where('jenis_kelamin', $filters['jenis_kelamin']);
+            $query->whereHas('studentProfile', function ($q) use ($filters) {
+                $q->where('jenis_kelamin', $filters['jenis_kelamin']);
+            });
         }
 
         if (isset($filters['kelas'])) {

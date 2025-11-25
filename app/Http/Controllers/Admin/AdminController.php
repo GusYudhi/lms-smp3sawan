@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\TeachersImport;
+use App\Exports\TeachersTemplateExport;
 
 class AdminController extends Controller
 {
@@ -211,9 +213,9 @@ class AdminController extends Controller
                         $teacher->nomor_induk ?? '-',
                         $teacher->email ?? '-',
                         $teacher->nomor_telepon ?? '-',
-                        $teacher->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan',
+                        $teacher->jenis_kelamin ?? '-',
                         $teacher->tempat_lahir ?? '-',
-                        $teacher->tanggal_lahir ? date('d/m/Y', strtotime($teacher->tanggal_lahir)) : '-',
+                        $teacher->tanggal_lahir ?? '-',
                         $teacher->status_kepegawaian ?? '-',
                         $teacher->golongan ?? '-',
                         $teacher->mata_pelajaran ?? '-',
@@ -225,13 +227,54 @@ class AdminController extends Controller
                 fclose($file);
             };
 
-            Log::info('Data guru exported', ['total_teachers' => $teachers->count()]);
-
             return response()->stream($callback, 200, $headers);
 
         } catch (\Exception $e) {
-            Log::error('Error exporting teacher data', ['error' => $e->getMessage()]);
-            return back()->with('error', 'Terjadi kesalahan saat mengunduh data guru.');
+            Log::error('Error exporting teachers', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Terjadi kesalahan saat mengekspor data guru.');
+        }
+    }
+
+    /**
+     * Download template for teacher import
+     */
+    public function downloadTemplateGuru()
+    {
+        return Excel::download(new TeachersTemplateExport, 'template_import_guru.xlsx');
+    }
+
+    /**
+     * Import teachers from Excel file
+     */
+    public function importGuru(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,xlsm,xlsb,xlam,xltx,xltm,csv|max:5120', // 5MB max
+        ]);
+
+        try {
+            $import = new TeachersImport();
+            Excel::import($import, $request->file('file'));
+
+            $message = "Import selesai! ";
+            $message .= "Berhasil: {$import->successCount} data, ";
+            $message .= "Gagal: {$import->failureCount} data";
+
+            if (!empty($import->errors)) {
+                $errorMessage = implode("\n", array_slice($import->errors, 0, 10)); // Show first 10 errors
+                if (count($import->errors) > 10) {
+                    $errorMessage .= "\n... dan " . (count($import->errors) - 10) . " error lainnya";
+                }
+
+                return redirect()->back()
+                    ->with('warning', $message)
+                    ->with('import_errors', $errorMessage);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error saat import: ' . $e->getMessage());
         }
     }
 

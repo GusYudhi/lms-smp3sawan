@@ -1,0 +1,137 @@
+/* Custom styles for student management */
+
+/* Student photo styling */
+.student-photo {
+    width: 40px;
+    height: 40px;
+}
+
+.student-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.default-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+/* Card stats styling */
+.card-stats {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.15s ease-in-out;
+}
+
+.hover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Modern card styling */
+.card-modern {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Text color utilities */
+.text-high-contrast {
+    color: #212529;
+}
+
+.text-medium-contrast {
+    color: #495057;
+}
+
+.text-subtle {
+    color: #6c757d;
+}
+
+/* Responsive button adjustments */
+@media (max-width: 576px) {
+    .btn-group-vertical .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.5rem;
+    }
+
+    .card-stats h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Import modal improvements */
+#importModal .alert {
+    margin-bottom: 1rem;
+}
+
+#importModal .alert ul {
+    padding-left: 1rem;
+    margin-bottom: 0;
+}
+
+/* Table responsive improvements */
+.table-responsive {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Loading state for buttons */
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Action buttons group */
+.btn-group-vertical .btn + .btn {
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Custom spacing utilities */
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+/* Alert improvements */
+.alert {
+    border: none;
+    border-left: 4px solid;
+    border-radius: 0.5rem;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Pre formatting in alerts */
+.alert pre {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    max-height: 300px;
+    overflow-y: auto;
+}
