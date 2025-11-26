@@ -16,7 +16,7 @@ class StudentProfile extends Model
         'nisn',
         'tempat_lahir',
         'tanggal_lahir',
-        'kelas',
+        'kelas_id',
         'nomor_telepon_orangtua',
         'foto_profil',
         'jenis_kelamin',
@@ -29,12 +29,31 @@ class StudentProfile extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = ['kelas_name'];
+
     /**
      * Get the user that owns the student profile.
      */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the class that this student belongs to.
+     */
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
+    }
+
+    /**
+     * Get full class name (accessor for views)
+     * Menggunakan getFullName() dari model Kelas
+     */
+    public function getKelasNameAttribute()
+    {
+        return $this->kelas ? $this->kelas->full_name : null;
     }
 
     /**
@@ -50,7 +69,23 @@ class StudentProfile extends Model
      */
     public function scopeByClass($query, $class)
     {
-        return $query->where('kelas', $class);
+        if (is_numeric($class)) {
+            // If it's a kelas_id
+            return $query->where('kelas_id', $class);
+        } else {
+            // If it's a full name like "7A", find the kelas first
+            return $query->whereHas('kelas', function($q) use ($class) {
+                if (strlen($class) == 1) {
+                    // Only tingkat provided (e.g., "7")
+                    $q->where('tingkat', $class);
+                } else {
+                    // Full class name (e.g., "7A")
+                    $tingkat = substr($class, 0, 1);
+                    $namaKelas = substr($class, 1);
+                    $q->where('tingkat', $tingkat)->where('nama_kelas', $namaKelas);
+                }
+            });
+        }
     }
 
     /**

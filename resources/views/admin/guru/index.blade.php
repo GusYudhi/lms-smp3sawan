@@ -92,7 +92,7 @@
                         <i class="fas fa-id-badge"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Guru PNS</h6>
-                    <h2 class="text-success fw-bold mb-1">{{ rand(15, 25) }}</h2>
+                    <h2 class="text-success fw-bold mb-1">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PNS')->count() }}</h2>
                     <small class="text-subtle fw-medium">Pegawai Negeri</small>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                         <i class="fas fa-certificate"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Guru PPPK</h6>
-                    <h2 class="text-info fw-bold mb-1">{{ rand(8, 15) }}</h2>
+                    <h2 class="text-info fw-bold mb-1">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PPPK')->count() }}</h2>
                     <small class="text-subtle fw-medium">P3K Non PNS</small>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                         <i class="fas fa-handshake"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Guru Honorer</h6>
-                    <h2 class="text-warning fw-bold mb-1">{{ rand(5, 12) }}</h2>
+                    <h2 class="text-warning fw-bold mb-1">{{ \App\Models\GuruProfile::whereIn('status_kepegawaian', ['GTT', 'GTY', 'GTK'])->count() }}</h2>
                     <small class="text-subtle fw-medium">Guru Kontrak</small>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Wali Kelas</h6>
-                    <h2 class="text-secondary fw-bold mb-1">18</h2>
+                    <h2 class="text-secondary fw-bold mb-1">{{ \App\Models\GuruProfile::whereNotNull('wali_kelas')->where('wali_kelas', '!=', '')->count() }}</h2>
                     <small class="text-subtle fw-medium">Total Kelas</small>
                 </div>
             </div>
@@ -148,7 +148,7 @@
                         <i class="fas fa-user-check"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Status Aktif</h6>
-                    <h2 class="text-dark fw-bold mb-1">{{ \App\Models\User::where('role', 'guru')->count() }}</h2>
+                    <h2 class="text-dark fw-bold mb-1">{{ \App\Models\GuruProfile::where('is_active', true)->count() }}</h2>
                     <small class="text-subtle fw-medium">Guru Mengajar</small>
                 </div>
             </div>
@@ -322,7 +322,8 @@
                                 <ul class="mb-0 mt-1">
                                     <li>Kolom NIP/NIK akan otomatis diformat sebagai teks</li>
                                     <li>Jenis kelamin: gunakan <code>L</code> atau <code>P</code></li>
-                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code> atau <code>DD-MM-YYYY</code></li>
+                                    <li>Status Kepegawaian: <code>PNS</code>, <code>PPPK</code>, <code>GTT</code>, <code>GTY</code>, <code>GTK</code></li>
+                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code>, <code>DD-MM-YYYY</code>, <code>DD/MM/YYYY</code></li>
                                     <li>Email akan digenerate otomatis (format: nama.tengah@guru.id)</li>
                                     <li>Password default: <code>12345678</code></li>
                                     <li>Mata pelajaran: Isi dengan satu mata pelajaran utama</li>

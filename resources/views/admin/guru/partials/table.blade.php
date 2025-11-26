@@ -22,67 +22,65 @@
                 <td class="text-center fw-bold">{{ $loop->iteration + ($teachers->currentPage() - 1) * $teachers->perPage() }}</td>
                 <td class="text-center">
                     <div class="teacher-photo mx-auto rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
-                        @if($teacher->profile_photo_path)
-                            <img src="{{ asset('storage/' . $teacher->profile_photo_path) }}"
-                                 alt="{{ $teacher->name }}"
-                                 class="rounded-circle">
-                        @else
-                            <div class="default-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                        @endif
+                        <img src="{{ $teacher->getProfilePhotoUrl() }}"
+                             alt="{{ $teacher->name }}"
+                             class="rounded-circle"
+                             style="width: 40px; height: 40px; object-fit: cover;">
                     </div>
                 </td>
                 <td>
                     <div class="text-start">
                         <div class="fw-semibold mb-1">{{ $teacher->name }}</div>
-                        <small class="text-muted fst-italic">NIP: {{ $teacher->nomor_induk }}</small>
+                        <small class="text-muted fst-italic">NIP: {{ $teacher->guruProfile->nip ?? '-' }}</small>
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-light text-dark border">{{ $teacher->nomor_induk }}</span>
+                    <span class="badge bg-light text-dark border">{{ $teacher->guruProfile->nip ?? '-' }}</span>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-primary-subtle text-primary border">{{ $teacher->mata_pelajaran }}</span>
+                    <span class="badge bg-primary-subtle text-primary border">{{ $teacher->guruProfile->subjects_string ?? '-' }}</span>
                 </td>
                 <td class="text-center">
-                    @if(strtolower($teacher->status_kepegawaian) === 'pns')
-                        <span class="badge bg-success-subtle text-success border">{{ $teacher->status_kepegawaian }}</span>
-                    @elseif(strtolower($teacher->status_kepegawaian) === 'pppk')
-                        <span class="badge bg-info-subtle text-info border">{{ $teacher->status_kepegawaian }}</span>
+                    @php $status = $teacher->guruProfile->status_kepegawaian ?? '-'; @endphp
+                    @if(strtolower($status) === 'pns')
+                        <span class="badge bg-success-subtle text-success border">{{ $status }}</span>
+                    @elseif(strtolower($status) === 'pppk')
+                        <span class="badge bg-info-subtle text-info border">{{ $status }}</span>
                     @else
-                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->status_kepegawaian }}</span>
+                        <span class="badge bg-warning-subtle text-warning border">{{ $status }}</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($teacher->golongan)
-                        <span class="badge bg-secondary">{{ $teacher->golongan }}</span>
+                    @if($teacher->guruProfile && $teacher->guruProfile->golongan)
+                        <span class="badge bg-secondary">{{ $teacher->guruProfile->golongan }}</span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($teacher->jenis_kelamin == 'L')
+                    @if(($teacher->guruProfile->jenis_kelamin ?? '') == 'L')
                         <span class="badge bg-primary-subtle text-primary border">
                             <i class="fas fa-mars me-1"></i>Laki-laki
                         </span>
-                    @else
+                    @elseif(($teacher->guruProfile->jenis_kelamin ?? '') == 'P')
                         <span class="badge bg-danger-subtle text-danger border">
                             <i class="fas fa-venus me-1"></i>Perempuan
                         </span>
-                    @endif
-                </td>
-                <td class="text-center">
-                    @if($teacher->wali_kelas)
-                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->wali_kelas }}</span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($teacher->nomor_telepon)
-                        <a href="tel:{{ $teacher->nomor_telepon }}" class="text-decoration-none text-primary">
-                            <i class="fas fa-phone me-1"></i>{{ $teacher->nomor_telepon }}
+                    @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
+                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->guruProfile->wali_kelas }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($teacher->guruProfile && $teacher->guruProfile->nomor_telepon)
+                        <a href="tel:{{ $teacher->guruProfile->nomor_telepon }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-phone me-1"></i>{{ $teacher->guruProfile->nomor_telepon }}
                         </a>
                     @else
                         <span class="text-muted fst-italic">-</span>

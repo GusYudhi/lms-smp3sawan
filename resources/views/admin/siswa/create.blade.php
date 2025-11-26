@@ -119,9 +119,28 @@
                             </h6>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="kelas" class="form-label fw-medium">Kelas</label>
-                                    <input type="text" class="form-control @error('kelas') is-invalid @enderror" id="kelas" name="kelas" value="{{ old('kelas') }}">
+                                <div class="col-md-3">
+                                    <label for="tingkat" class="form-label fw-medium">Tingkat <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('tingkat') is-invalid @enderror" id="tingkat" name="tingkat" required>
+                                        <option value="">Pilih Tingkat</option>
+                                        <option value="7" {{ old('tingkat') == '7' ? 'selected' : '' }}>Kelas 7</option>
+                                        <option value="8" {{ old('tingkat') == '8' ? 'selected' : '' }}>Kelas 8</option>
+                                        <option value="9" {{ old('tingkat') == '9' ? 'selected' : '' }}>Kelas 9</option>
+                                    </select>
+                                    @error('tingkat')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label for="kelas" class="form-label fw-medium">Nama Kelas <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           class="form-control @error('kelas') is-invalid @enderror"
+                                           id="kelas"
+                                           name="kelas"
+                                           value="{{ old('kelas') }}"
+                                           placeholder="A, B, C, dst"
+                                           maxlength="10"
+                                           required>
+                                    <div class="form-text">Contoh: Tingkat 7 + Kelas A = 7A</div>
                                     @error('kelas')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 

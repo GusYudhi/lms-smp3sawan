@@ -42,8 +42,8 @@
                                 <i class="fas fa-image me-2"></i>Foto Profil Saat Ini
                             </h6>
                             <div class="text-center">
-                                @if($teacher->profile_photo)
-                                    <img src="{{ asset('storage/' . $teacher->profile_photo) }}"
+                                @if($teacher->guruProfile && $teacher->guruProfile->foto_profil)
+                                    <img src="{{ asset('storage/' . $teacher->guruProfile->foto_profil) }}"
                                          alt="Foto {{ $teacher->name }}"
                                          class="rounded-circle border"
                                          id="currentPhoto"
@@ -85,7 +85,7 @@
                                            class="form-control @error('nomor_induk') is-invalid @enderror"
                                            id="nomor_induk"
                                            name="nomor_induk"
-                                           value="{{ old('nomor_induk', $teacher->nomor_induk) }}"
+                                           value="{{ old('nomor_induk', $teacher->guruProfile->nip ?? '') }}"
                                            required>
                                     @error('nomor_induk')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -113,7 +113,7 @@
                                            class="form-control @error('nomor_telepon') is-invalid @enderror"
                                            id="nomor_telepon"
                                            name="nomor_telepon"
-                                           value="{{ old('nomor_telepon', $teacher->nomor_telepon) }}"
+                                           value="{{ old('nomor_telepon', $teacher->guruProfile->nomor_telepon ?? '') }}"
                                            placeholder="Contoh: 08123456789">
                                     @error('nomor_telepon')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -129,10 +129,10 @@
                                             name="jenis_kelamin"
                                             required>
                                         <option value="">Pilih Jenis Kelamin</option>
-                                        <option value="laki-laki" {{ old('jenis_kelamin', $teacher->jenis_kelamin) === 'laki-laki' ? 'selected' : '' }}>
+                                        <option value="L" {{ old('jenis_kelamin', $teacher->guruProfile->jenis_kelamin ?? '') === 'L' ? 'selected' : '' }}>
                                             Laki-laki
                                         </option>
-                                        <option value="perempuan" {{ old('jenis_kelamin', $teacher->jenis_kelamin) === 'perempuan' ? 'selected' : '' }}>
+                                        <option value="P" {{ old('jenis_kelamin', $teacher->guruProfile->jenis_kelamin ?? '') === 'P' ? 'selected' : '' }}>
                                             Perempuan
                                         </option>
                                     </select>
@@ -178,9 +178,10 @@
                                             'PKN', 'Pendidikan Jasmani', 'Seni Budaya', 'Prakarya',
                                             'Bahasa Daerah', 'Teknologi Informasi', 'Bimbingan Konseling'
                                         ];
+                                        $currentMapel = old('mata_pelajaran', $teacher->guruProfile->mata_pelajaran[0] ?? '');
                                         @endphp
                                         @foreach($mataPelajaran as $mapel)
-                                        <option value="{{ $mapel }}" {{ old('mata_pelajaran', $teacher->mata_pelajaran) === $mapel ? 'selected' : '' }}>
+                                        <option value="{{ $mapel }}" {{ $currentMapel === $mapel ? 'selected' : '' }}>
                                             {{ $mapel }}
                                         </option>
                                         @endforeach
@@ -197,17 +198,20 @@
                                             name="status_kepegawaian"
                                             required>
                                         <option value="">Pilih Status Kepegawaian</option>
-                                        <option value="pns" {{ old('status_kepegawaian', $teacher->status_kepegawaian) === 'pns' ? 'selected' : '' }}>
-                                            PNS (Pegawai Negeri Sipil)
+                                        <option value="PNS" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'PNS' ? 'selected' : '' }}>
+                                            PNS
                                         </option>
-                                        <option value="honorer" {{ old('status_kepegawaian', $teacher->status_kepegawaian) === 'honorer' ? 'selected' : '' }}>
-                                            Honorer
+                                        <option value="PPPK" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'PPPK' ? 'selected' : '' }}>
+                                            PPPK
                                         </option>
-                                        <option value="kontrak" {{ old('status_kepegawaian', $teacher->status_kepegawaian) === 'kontrak' ? 'selected' : '' }}>
-                                            Kontrak
+                                        <option value="GTT" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTT' ? 'selected' : '' }}>
+                                            GTT (Guru Tidak Tetap)
                                         </option>
-                                        <option value="tetap_yayasan" {{ old('status_kepegawaian', $teacher->status_kepegawaian) === 'tetap_yayasan' ? 'selected' : '' }}>
-                                            Tetap Yayasan
+                                        <option value="GTY" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTY' ? 'selected' : '' }}>
+                                            GTY (Guru Tetap Yayasan)
+                                        </option>
+                                        <option value="GTK" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTK' ? 'selected' : '' }}>
+                                            GTK (Guru Tenaga Kependidikan)
                                         </option>
                                     </select>
                                     @error('status_kepegawaian')
@@ -223,7 +227,7 @@
                                            class="form-control @error('wali_kelas') is-invalid @enderror"
                                            id="wali_kelas"
                                            name="wali_kelas"
-                                           value="{{ old('wali_kelas', $teacher->wali_kelas) }}"
+                                           value="{{ old('wali_kelas', $teacher->guruProfile->wali_kelas ?? '') }}"
                                            placeholder="Contoh: VII-A, VIII-B, IX-C">
                                     <div class="form-text">Kosongkan jika tidak menjadi wali kelas</div>
                                     @error('wali_kelas')

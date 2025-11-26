@@ -158,9 +158,30 @@
                                 <label for="classFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
                                 <select name="kelas" id="classFilter" class="form-select">
                                     <option value="">Semua Kelas</option>
-                                    @foreach($classes as $kelas)
-                                        <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
-                                    @endforeach
+                                    <option value="7" {{ request('kelas') == '7' ? 'selected' : '' }}>Kelas 7 (Semua)</option>
+                                    <option value="8" {{ request('kelas') == '8' ? 'selected' : '' }}>Kelas 8 (Semua)</option>
+                                    <option value="9" {{ request('kelas') == '9' ? 'selected' : '' }}>Kelas 9 (Semua)</option>
+                                    <optgroup label="Kelas 7">
+                                        @foreach($classes as $kelas)
+                                            @if(substr($kelas, 0, 1) == '7')
+                                                <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                                            @endif
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Kelas 8">
+                                        @foreach($classes as $kelas)
+                                            @if(substr($kelas, 0, 1) == '8')
+                                                <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                                            @endif
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Kelas 9">
+                                        @foreach($classes as $kelas)
+                                            @if(substr($kelas, 0, 1) == '9')
+                                                <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                                            @endif
+                                        @endforeach
+                                    </optgroup>
                                 </select>
                             </div>
 
@@ -257,7 +278,7 @@
                                 <ul class="mb-0 mt-1">
                                     <li>Kolom NIS dan NISN akan otomatis diformat sebagai teks</li>
                                     <li>Jenis kelamin: gunakan <code>L</code> atau <code>P</code></li>
-                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code> atau <code>DD-MM-YYYY</code></li>
+                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code>, <code>DD-MM-YYYY</code>, <code>DD/MM/YYYY</code></li>
                                     <li>Email akan digenerate otomatis (format: nama.tengah@student.id)</li>
                                     <li>Password default: <code>12345678</code></li>
                                 </ul>

@@ -57,7 +57,11 @@
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Kelas</span>
-                                        <span class="fw-semibold">{{ $student->studentProfile->kelas ?? '-' }}</span>
+                                        @if($student->studentProfile && $student->studentProfile->kelas)
+                                            <span class="fw-semibold">{{ $student->studentProfile->kelas->full_name }}</span>
+                                        @else
+                                            <span class="fw-semibold">-</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -177,7 +181,7 @@
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Kelas</span>
                                 @if($student->studentProfile && $student->studentProfile->kelas)
-                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $student->studentProfile->kelas }}</span>
+                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $student->studentProfile->kelas->full_name }}</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif

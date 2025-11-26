@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\StudentProfile;
 use App\Models\GuruProfile;
+use App\Models\Kelas;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -25,20 +26,32 @@ class UserManagementService
                 'role' => 'siswa',
             ]);
 
+            // Handle kelas: find or create based on tingkat + nama_kelas
+            $kelasId = null;
+            if (isset($profileData['tingkat']) && isset($profileData['kelas'])) {
+                $fullKelasName = $profileData['tingkat'] . $profileData['kelas'];
+                $kelas = Kelas::findOrCreateByFullName($fullKelasName);
+                $kelasId = $kelas->id;
+            } elseif (isset($profileData['kelas'])) {
+                // If only kelas provided (already in full format like "7A")
+                $kelas = Kelas::findOrCreateByFullName($profileData['kelas']);
+                $kelasId = $kelas->id;
+            }
+
             // Create student profile
             $user->studentProfile()->create([
                 'nis' => $profileData['nis'] ?? null,
                 'nisn' => $profileData['nisn'] ?? null,
                 'tempat_lahir' => $profileData['tempat_lahir'] ?? null,
                 'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
-                'kelas' => $profileData['kelas'] ?? null,
+                'kelas_id' => $kelasId,
                 'nomor_telepon_orangtua' => $profileData['nomor_telepon_orangtua'] ?? null,
                 'foto_profil' => $profileData['foto_profil'] ?? null,
                 'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
                 'is_active' => true,
             ]);
 
-            return $user->load('studentProfile');
+            return $user->load('studentProfile.kelas');
         });
     }
 
@@ -53,15 +66,18 @@ class UserManagementService
                 'name' => $userData['name'],
                 'email' => $userData['email'],
                 'password' => Hash::make($userData['password']),
-                'role' => $userData['role'] ?? 'guru', // Could be 'guru' or 'kepala_sekolah'
-                'nomor_telepon' => $userData['nomor_telepon'] ?? null,
-                'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
-                'profile_photo' => $userData['profile_photo'] ?? null,
+                'role' => $userData['role'] ?? 'guru',
             ]);
 
             // Create teacher profile
             $user->teacherProfile()->create([
+                'nama' => $userData['name'], // Added to guru_profiles
                 'nip' => $profileData['nip'] ?? null,
+                'email' => $userData['email'], // Added to guru_profiles
+                'password' => Hash::make($userData['password']), // Added to guru_profiles
+                'nomor_telepon' => $userData['nomor_telepon'] ?? null,
+                'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
+                'foto_profil' => $userData['profile_photo'] ?? null,
                 'tempat_lahir' => $profileData['tempat_lahir'] ?? null,
                 'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
                 'alamat' => $profileData['alamat'] ?? null,
@@ -108,6 +124,18 @@ class UserManagementService
                 }
             }
 
+            // Handle kelas: find or create based on tingkat + nama_kelas
+            $kelasId = null;
+            if (isset($profileData['tingkat']) && isset($profileData['kelas'])) {
+                $fullKelasName = $profileData['tingkat'] . $profileData['kelas'];
+                $kelas = Kelas::findOrCreateByFullName($fullKelasName);
+                $kelasId = $kelas->id;
+            } elseif (isset($profileData['kelas'])) {
+                // If only kelas provided (already in full format like "7A")
+                $kelas = Kelas::findOrCreateByFullName($profileData['kelas']);
+                $kelasId = $kelas->id;
+            }
+
             // Update or create student profile
             $user->studentProfile()->updateOrCreate(
                 ['user_id' => $user->id],
@@ -116,7 +144,7 @@ class UserManagementService
                     'nisn' => $profileData['nisn'] ?? null,
                     'tempat_lahir' => $profileData['tempat_lahir'] ?? null,
                     'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
-                    'kelas' => $profileData['kelas'] ?? null,
+                    'kelas_id' => $kelasId,
                     'nomor_telepon_orangtua' => $profileData['nomor_telepon_orangtua'] ?? null,
                     'alamat' => $profileData['alamat'] ?? null,
                     'nama_orangtua_wali' => $profileData['nama_orangtua_wali'] ?? null,
@@ -127,7 +155,7 @@ class UserManagementService
                 ]
             );
 
-            return $user->load('studentProfile');
+            return $user->load('studentProfile.kelas');
         });
     }
 
@@ -206,7 +234,7 @@ class UserManagementService
      */
     public function getStudentsWithProfiles($search = null, $filters = [])
     {
-        $query = User::with('studentProfile')
+        $query = User::with('studentProfile.kelas')
             ->where('role', 'siswa')
             ->orderBy('name');
 
@@ -228,8 +256,18 @@ class UserManagementService
         }
 
         if (isset($filters['kelas'])) {
-            $query->whereHas('studentProfile', function ($q) use ($filters) {
-                $q->where('kelas', $filters['kelas']);
+            $kelas = $filters['kelas'];
+
+            $query->whereHas('studentProfile.kelas', function ($q) use ($kelas) {
+                if (strlen($kelas) == 1 && is_numeric($kelas)) {
+                    // Filter hanya berdasarkan tingkat (misal: "7", "8", "9")
+                    $q->where('tingkat', $kelas);
+                } else {
+                    // Filter berdasarkan kelas lengkap (misal: "7A", "8B")
+                    $tingkat = substr($kelas, 0, 1);
+                    $namaKelas = substr($kelas, 1);
+                    $q->where('tingkat', $tingkat)->where('nama_kelas', $namaKelas);
+                }
             });
         }
 

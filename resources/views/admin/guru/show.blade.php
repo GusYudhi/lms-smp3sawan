@@ -37,8 +37,8 @@
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-lg-3 text-center text-lg-start mb-4 mb-lg-0">
-                            @if($teacher->profile_photo)
-                                <img src="{{ asset('storage/' . $teacher->profile_photo) }}"
+                            @if($teacher->guruProfile && $teacher->guruProfile->foto_profil)
+                                <img src="{{ asset('storage/' . $teacher->guruProfile->foto_profil) }}"
                                      alt="Foto {{ $teacher->name }}"
                                      class="rounded-circle border"
                                      style="width: 150px; height: 150px; object-fit: cover;">
@@ -51,28 +51,28 @@
                         </div>
                         <div class="col-lg-9">
                             <h2 class="mb-2 fw-bold">{{ $teacher->name }}</h2>
-                            <p class="text-muted mb-3">NIP: {{ $teacher->nomor_induk }}</p>
+                            <p class="text-muted mb-3">NIP: {{ $teacher->guruProfile->nip ?? '-' }}</p>
 
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Mata Pelajaran</span>
-                                        <span class="fw-semibold">{{ $teacher->mata_pelajaran ?? '-' }}</span>
+                                        <span class="fw-semibold">{{ $teacher->guruProfile->subjects_string ?? '-' }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Status</span>
                                         <span class="badge bg-success-subtle text-success border mt-1 align-self-start">
-                                            {{ ucfirst(str_replace('_', ' ', $teacher->status_kepegawaian ?? 'Tidak diketahui')) }}
+                                            {{ ucfirst(str_replace('_', ' ', $teacher->guruProfile->status_kepegawaian ?? 'Tidak diketahui')) }}
                                         </span>
                                     </div>
                                 </div>
-                                @if($teacher->wali_kelas)
+                                @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Wali Kelas</span>
-                                        <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->wali_kelas }}</span>
+                                        <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->guruProfile->wali_kelas }}</span>
                                     </div>
                                 </div>
                                 @endif
@@ -105,7 +105,7 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Nomor Induk</span>
-                                <span class="fw-semibold">{{ $teacher->nomor_induk }}</span>
+                                <span class="fw-semibold">{{ $teacher->guruProfile->nip ?? '-' }}</span>
                             </div>
                         </div>
                         <div class="col-12">
@@ -119,9 +119,9 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Nomor Telepon</span>
-                                @if($teacher->nomor_telepon)
-                                    <a href="tel:{{ $teacher->nomor_telepon }}" class="text-primary text-decoration-none">
-                                        {{ $teacher->nomor_telepon }}
+                                @if($teacher->guruProfile && $teacher->guruProfile->nomor_telepon)
+                                    <a href="tel:{{ $teacher->guruProfile->nomor_telepon }}" class="text-primary text-decoration-none">
+                                        {{ $teacher->guruProfile->nomor_telepon }}
                                     </a>
                                 @else
                                     <span class="text-muted">-</span>
@@ -131,10 +131,10 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Jenis Kelamin</span>
-                                @if($teacher->jenis_kelamin)
+                                @if($teacher->guruProfile && $teacher->guruProfile->jenis_kelamin)
                                     <span class="fw-semibold">
-                                        <i class="fas fa-{{ $teacher->jenis_kelamin === 'laki-laki' ? 'mars text-info' : 'venus text-warning' }} me-1"></i>
-                                        {{ ucfirst($teacher->jenis_kelamin) }}
+                                        <i class="fas fa-{{ $teacher->guruProfile->jenis_kelamin === 'L' ? 'mars text-info' : 'venus text-warning' }} me-1"></i>
+                                        {{ $teacher->guruProfile->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
                                     </span>
                                 @else
                                     <span class="text-muted">-</span>
@@ -160,15 +160,15 @@
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Status Kepegawaian</span>
                                 <span class="badge bg-success-subtle text-success border mt-1 align-self-start">
-                                    {{ ucfirst(str_replace('_', ' ', $teacher->status_kepegawaian ?? 'Tidak diketahui')) }}
+                                    {{ ucfirst(str_replace('_', ' ', $teacher->guruProfile->status_kepegawaian ?? 'Tidak diketahui')) }}
                                 </span>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Mata Pelajaran</span>
-                                @if($teacher->mata_pelajaran)
-                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->mata_pelajaran }}</span>
+                                @if($teacher->guruProfile && $teacher->guruProfile->subjects_string)
+                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->guruProfile->subjects_string }}</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -177,8 +177,8 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Wali Kelas</span>
-                                @if($teacher->wali_kelas)
-                                    <span class="badge bg-warning-subtle text-warning border mt-1 align-self-start">{{ $teacher->wali_kelas }}</span>
+                                @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
+                                    <span class="badge bg-warning-subtle text-warning border mt-1 align-self-start">{{ $teacher->guruProfile->wali_kelas }}</span>
                                 @else
                                     <span class="text-muted">Tidak ada</span>
                                 @endif

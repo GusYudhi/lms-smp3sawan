@@ -31,13 +31,13 @@ class SiswaController extends Controller
 
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
-        // Get available classes for filter
-        $classes = \App\Models\StudentProfile::select('kelas')
-            ->whereNotNull('kelas')
-            ->where('kelas', '!=', '')
-            ->distinct()
-            ->orderBy('kelas')
-            ->pluck('kelas')
+        // Get available classes for filter from kelas table
+        $classes = \App\Models\Kelas::orderBy('tingkat')
+            ->orderBy('nama_kelas')
+            ->get()
+            ->map(function($item) {
+                return $item->full_name;
+            })
             ->toArray();
 
         // Calculate statistics
@@ -68,13 +68,13 @@ class SiswaController extends Controller
 
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
-        // Get available classes for filter
-        $classes = \App\Models\StudentProfile::select('kelas')
-            ->whereNotNull('kelas')
-            ->where('kelas', '!=', '')
-            ->distinct()
-            ->orderBy('kelas')
-            ->pluck('kelas')
+        // Get available classes for filter from kelas table
+        $classes = \App\Models\Kelas::orderBy('tingkat')
+            ->orderBy('nama_kelas')
+            ->get()
+            ->map(function($item) {
+                return $item->full_name;
+            })
             ->toArray();
 
         if ($request->ajax()) {
@@ -124,7 +124,8 @@ class SiswaController extends Controller
             'nisn' => 'nullable|string|max:50',
             'tempat_lahir' => 'nullable|string|max:255',
             'tanggal_lahir' => 'nullable|date',
-            'kelas' => 'nullable|string|max:50',
+            'tingkat' => 'required|string|in:7,8,9',
+            'kelas' => 'required|string|max:10',
             'nomor_telepon_orangtua' => 'nullable|string|max:30',
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
@@ -134,7 +135,7 @@ class SiswaController extends Controller
         $userData = $request->only(['name', 'email', 'password']);
 
         $profileData = $request->only([
-            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
             'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
@@ -185,7 +186,8 @@ class SiswaController extends Controller
             'nisn' => 'nullable|string|max:50',
             'tempat_lahir' => 'nullable|string|max:255',
             'tanggal_lahir' => 'nullable|date',
-            'kelas' => 'nullable|string|max:50',
+            'tingkat' => 'required|string|in:7,8,9',
+            'kelas' => 'required|string|max:10',
             'nomor_telepon_orangtua' => 'nullable|string|max:30',
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
@@ -195,7 +197,7 @@ class SiswaController extends Controller
         $userData = $request->only(['name', 'email', 'password']);
 
         $profileData = $request->only([
-            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'kelas',
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
             'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
@@ -275,7 +277,7 @@ class SiswaController extends Controller
                     $profile->nis ?? '',
                     $profile->nisn ?? '',
                     $gender,
-                    $profile->kelas ?? '',
+                    $profile->kelas ? $profile->kelas->full_name : '',
                     $profile->nomor_telepon_orangtua ?? '',
                     $profile->tanggal_lahir ?? '',
                     $student->email ?? '',

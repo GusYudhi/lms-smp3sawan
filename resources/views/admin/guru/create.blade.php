@@ -148,7 +148,9 @@
                                         <option value="">Pilih Status</option>
                                         <option value="PNS" {{ old('status_kepegawaian') == 'PNS' ? 'selected' : '' }}>PNS</option>
                                         <option value="PPPK" {{ old('status_kepegawaian') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                        <option value="Honorer" {{ old('status_kepegawaian') == 'Honorer' ? 'selected' : '' }}>Honorer</option>
+                                        <option value="GTT" {{ old('status_kepegawaian') == 'GTT' ? 'selected' : '' }}>GTT (Guru Tidak Tetap)</option>
+                                        <option value="GTY" {{ old('status_kepegawaian') == 'GTY' ? 'selected' : '' }}>GTY (Guru Tetap Yayasan)</option>
+                                        <option value="GTK" {{ old('status_kepegawaian') == 'GTK' ? 'selected' : '' }}>GTK (Guru Tenaga Kependidikan)</option>
                                     </select>
                                     @error('status_kepegawaian')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -282,133 +284,6 @@
             </div>
         </div>
     </div>
-                        </select>
-                        @error('status_kepegawaian')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="golongan">Golongan</label>
-                        <select class="form-control @error('golongan') is-invalid @enderror"
-                                id="golongan" name="golongan">
-                            <option value="">Pilih Golongan</option>
-                            <option value="II/a" {{ old('golongan') == 'II/a' ? 'selected' : '' }}>II/a</option>
-                            <option value="II/b" {{ old('golongan') == 'II/b' ? 'selected' : '' }}>II/b</option>
-                            <option value="II/c" {{ old('golongan') == 'II/c' ? 'selected' : '' }}>II/c</option>
-                            <option value="II/d" {{ old('golongan') == 'II/d' ? 'selected' : '' }}>II/d</option>
-                            <option value="III/a" {{ old('golongan') == 'III/a' ? 'selected' : '' }}>III/a</option>
-                            <option value="III/b" {{ old('golongan') == 'III/b' ? 'selected' : '' }}>III/b</option>
-                            <option value="III/c" {{ old('golongan') == 'III/c' ? 'selected' : '' }}>III/c</option>
-                            <option value="III/d" {{ old('golongan') == 'III/d' ? 'selected' : '' }}>III/d</option>
-                            <option value="IV/a" {{ old('golongan') == 'IV/a' ? 'selected' : '' }}>IV/a</option>
-                            <option value="IV/b" {{ old('golongan') == 'IV/b' ? 'selected' : '' }}>IV/b</option>
-                            <option value="IV/c" {{ old('golongan') == 'IV/c' ? 'selected' : '' }}>IV/c</option>
-                            <option value="IV/d" {{ old('golongan') == 'IV/d' ? 'selected' : '' }}>IV/d</option>
-                            <option value="IV/e" {{ old('golongan') == 'IV/e' ? 'selected' : '' }}>IV/e</option>
-                        </select>
-                        <small class="form-text">Kosongkan jika Honorer</small>
-                        @error('golongan')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mata_pelajaran">Mata Pelajaran <span class="required">*</span></label>
-                        <select class="form-control @error('mata_pelajaran') is-invalid @enderror"
-                                id="mata_pelajaran" name="mata_pelajaran" required>
-                            <option value="">Pilih Mata Pelajaran</option>
-                            <option value="Matematika" {{ old('mata_pelajaran') == 'Matematika' ? 'selected' : '' }}>Matematika</option>
-                            <option value="Bahasa Indonesia" {{ old('mata_pelajaran') == 'Bahasa Indonesia' ? 'selected' : '' }}>Bahasa Indonesia</option>
-                            <option value="Bahasa Inggris" {{ old('mata_pelajaran') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
-                            <option value="IPA Fisika" {{ old('mata_pelajaran') == 'IPA Fisika' ? 'selected' : '' }}>IPA Fisika</option>
-                            <option value="IPA Biologi" {{ old('mata_pelajaran') == 'IPA Biologi' ? 'selected' : '' }}>IPA Biologi</option>
-                            <option value="IPA Kimia" {{ old('mata_pelajaran') == 'IPA Kimia' ? 'selected' : '' }}>IPA Kimia</option>
-                            <option value="IPS Sejarah" {{ old('mata_pelajaran') == 'IPS Sejarah' ? 'selected' : '' }}>IPS Sejarah</option>
-                            <option value="IPS Geografi" {{ old('mata_pelajaran') == 'IPS Geografi' ? 'selected' : '' }}>IPS Geografi</option>
-                            <option value="IPS Ekonomi" {{ old('mata_pelajaran') == 'IPS Ekonomi' ? 'selected' : '' }}>IPS Ekonomi</option>
-                            <option value="PKN" {{ old('mata_pelajaran') == 'PKN' ? 'selected' : '' }}>PKN</option>
-                            <option value="Pendidikan Jasmani" {{ old('mata_pelajaran') == 'Pendidikan Jasmani' ? 'selected' : '' }}>Pendidikan Jasmani</option>
-                            <option value="Seni Budaya" {{ old('mata_pelajaran') == 'Seni Budaya' ? 'selected' : '' }}>Seni Budaya</option>
-                            <option value="Prakarya" {{ old('mata_pelajaran') == 'Prakarya' ? 'selected' : '' }}>Prakarya</option>
-                            <option value="TIK" {{ old('mata_pelajaran') == 'TIK' ? 'selected' : '' }}>TIK</option>
-                            <option value="BK" {{ old('mata_pelajaran') == 'BK' ? 'selected' : '' }}>Bimbingan Konseling</option>
-                        </select>
-                        @error('mata_pelajaran')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="wali_kelas">Wali Kelas</label>
-                        <select class="form-control @error('wali_kelas') is-invalid @enderror"
-                                id="wali_kelas" name="wali_kelas">
-                            <option value="">Tidak sebagai Wali Kelas</option>
-                            <option value="7A" {{ old('wali_kelas') == '7A' ? 'selected' : '' }}>7A</option>
-                            <option value="7B" {{ old('wali_kelas') == '7B' ? 'selected' : '' }}>7B</option>
-                            <option value="7C" {{ old('wali_kelas') == '7C' ? 'selected' : '' }}>7C</option>
-                            <option value="7D" {{ old('wali_kelas') == '7D' ? 'selected' : '' }}>7D</option>
-                            <option value="7E" {{ old('wali_kelas') == '7E' ? 'selected' : '' }}>7E</option>
-                            <option value="7F" {{ old('wali_kelas') == '7F' ? 'selected' : '' }}>7F</option>
-                            <option value="8A" {{ old('wali_kelas') == '8A' ? 'selected' : '' }}>8A</option>
-                            <option value="8B" {{ old('wali_kelas') == '8B' ? 'selected' : '' }}>8B</option>
-                            <option value="8C" {{ old('wali_kelas') == '8C' ? 'selected' : '' }}>8C</option>
-                            <option value="8D" {{ old('wali_kelas') == '8D' ? 'selected' : '' }}>8D</option>
-                            <option value="8E" {{ old('wali_kelas') == '8E' ? 'selected' : '' }}>8E</option>
-                            <option value="8F" {{ old('wali_kelas') == '8F' ? 'selected' : '' }}>8F</option>
-                            <option value="9A" {{ old('wali_kelas') == '9A' ? 'selected' : '' }}>9A</option>
-                            <option value="9B" {{ old('wali_kelas') == '9B' ? 'selected' : '' }}>9B</option>
-                            <option value="9C" {{ old('wali_kelas') == '9C' ? 'selected' : '' }}>9C</option>
-                            <option value="9D" {{ old('wali_kelas') == '9D' ? 'selected' : '' }}>9D</option>
-                            <option value="9E" {{ old('wali_kelas') == '9E' ? 'selected' : '' }}>9E</option>
-                            <option value="9F" {{ old('wali_kelas') == '9F' ? 'selected' : '' }}>9F</option>
-                        </select>
-                        @error('wali_kelas')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Account Information Section -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="fas fa-key"></i> Informasi Akun
-                </h3>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="password">Password <span class="required">*</span></label>
-                        <input type="password" class="form-control @error('password') is-invalid @enderror"
-                               id="password" name="password" required>
-                        <small class="form-text">Minimal 8 karakter</small>
-                        @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password_confirmation">Konfirmasi Password <span class="required">*</span></label>
-                        <input type="password" class="form-control"
-                               id="password_confirmation" name="password_confirmation" required>
-                        <small class="form-text">Ulangi password di atas</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="window.history.back()">
-                    <i class="fas fa-times"></i> Batal
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Simpan Data Guru
-                </button>
-            </div>
-        </form>
-    </div>
 </div>
 
 <!-- Success/Error Messages -->
@@ -433,15 +308,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle golongan field based on status kepegawaian
     statusKepegawaian.addEventListener('change', function() {
-        if (this.value === 'Honorer') {
+        if (this.value === 'Honorer' || this.value === 'GTT' || this.value === 'GTY' || this.value === 'GTK') {
             golonganField.value = '';
             golonganField.disabled = true;
-            golonganField.classList.add('disabled');
+            // golonganField.classList.add('disabled'); // Bootstrap doesn't use disabled class for inputs usually, attribute is enough
         } else {
             golonganField.disabled = false;
-            golonganField.classList.remove('disabled');
+            // golonganField.classList.remove('disabled');
         }
     });
+
+    // Trigger change on load
+    statusKepegawaian.dispatchEvent(new Event('change'));
 
     // Photo preview
     const photoInput = document.getElementById('profile_photo');

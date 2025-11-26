@@ -55,7 +55,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 'nip' => $nip,
             ], [
                 'nama' => 'required|string|max:255',
-                'nip' => 'nullable|string|max:50|unique:teacher_profiles,nip',
+                'nip' => 'nullable|string|max:50|unique:guru_profiles,nip',
             ]);
 
             if ($validator->fails()) {
@@ -69,6 +69,9 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
 
             // Normalize jenis kelamin (L/P)
             $jenis_kelamin = $this->normalizeGender($jenis_kelamin);
+
+            // Normalize status kepegawaian
+            $status_kepegawaian = $this->normalizeStatus($status_kepegawaian);
 
             // Parse mata pelajaran (could be comma-separated)
             $mata_pelajaran_array = [];
@@ -101,10 +104,10 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
             ];
 
             // Create teacher using UserManagementService
-            $teacher = $this->userService->createTeacher($userData, $profileData);
+            $this->userService->createTeacher($userData, $profileData);
 
             $this->successCount++;
-            return $teacher;
+            return null;
 
         } catch (\Exception $e) {
             $this->failureCount++;
@@ -162,6 +165,39 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
         }
 
         return null;
+    }
+
+    /**
+     * Normalize status kepegawaian
+     */
+    private function normalizeStatus($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+        $lowerValue = strtolower($value);
+
+        // Map common terms to Enum values
+        if ($lowerValue === 'honorer' || $lowerValue === 'kontrak') {
+            return 'GTT'; // Map Honorer to GTT (Guru Tidak Tetap)
+        }
+
+        if ($lowerValue === 'tetap yayasan') {
+            return 'GTY';
+        }
+
+        // If it's already a valid Enum value (case-insensitive check)
+        $validStatuses = ['PNS', 'PPPK', 'GTT', 'GTY', 'GTK'];
+        foreach ($validStatuses as $status) {
+            if (strtolower($status) === $lowerValue) {
+                return $status;
+            }
+        }
+
+        // Return original if no match found (will likely fail validation if invalid)
+        return $value;
     }
 
     /**

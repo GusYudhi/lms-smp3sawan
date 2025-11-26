@@ -38,7 +38,8 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'tempat_lahir' => 'nullable|string|max:255',
                     'tanggal_lahir' => 'nullable',
                     'jenis_kelamin' => 'required|in:L,P,Laki-laki,Perempuan',
-                    'kelas' => 'nullable|max:50',
+                    'tingkat' => 'nullable|in:7,8,9',
+                    'kelas' => 'nullable|max:10',
                 ]);
 
                 if ($validator->fails()) {
@@ -50,6 +51,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 // Convert numeric values to strings
                 $nisValue = !empty($row['nis']) ? (string) $row['nis'] : null;
                 $nisnValue = !empty($row['nisn']) ? (string) $row['nisn'] : null;
+                $tingkatValue = !empty($row['tingkat']) ? (string) $row['tingkat'] : null;
                 $kelasValue = !empty($row['kelas']) ? (string) $row['kelas'] : null;
 
                 // Generate Email
@@ -89,6 +91,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'nisn' => $nisnValue,
                     'tempat_lahir' => $row['tempat_lahir'] ?? null,
                     'tanggal_lahir' => $this->parseDate($row['tanggal_lahir'] ?? null),
+                    'tingkat' => $tingkatValue,
                     'kelas' => $kelasValue,
                     'jenis_kelamin' => $gender,
                     'nomor_telepon_orangtua' => $row['telepon_orangtua'] ?? $row['nomor_telepon_orangtua'] ?? null,

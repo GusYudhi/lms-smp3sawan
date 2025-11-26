@@ -103,6 +103,18 @@ class User extends Authenticatable
         };
     }
 
+    // relasi ke kelas
+    public function kelas() {
+        return $this->hasOneThrough(
+            Kelas::class,
+            StudentProfile::class,
+            'user_id', // Foreign key on student_profiles table
+            'id',       // Foreign key on kelas table
+            'id',       // Local key on users table
+            'kelas_id'  // Local key on student_profiles table
+        );
+    }
+
     /**
      * Get profile photo URL
      */

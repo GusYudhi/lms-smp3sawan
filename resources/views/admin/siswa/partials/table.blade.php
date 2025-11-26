@@ -64,7 +64,7 @@
                 </td>
                 <td class="text-center">
                     @if($student->studentProfile && $student->studentProfile->kelas)
-                        <span class="badge bg-primary-subtle text-primary border">{{ $student->studentProfile->kelas }}</span>
+                        <span class="badge bg-primary-subtle text-primary border">{{ $student->studentProfile->kelas->full_name }}</span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif

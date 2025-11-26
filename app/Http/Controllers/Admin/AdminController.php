@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Services\UserManagementService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -14,9 +15,16 @@ use App\Exports\TeachersTemplateExport;
 
 class AdminController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserManagementService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public function manageGuru(Request $request)
     {
-        $query = User::where('role', 'guru');
+        $query = User::where('role', 'guru')->with('guruProfile');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -24,19 +32,25 @@ class AdminController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
                   ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_induk', 'LIKE', "%{$search}%")
-                  ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                  ->orWhereHas('guruProfile', function($sub) use ($search) {
+                      $sub->where('nip', 'LIKE', "%{$search}%")
+                          ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
         // Filter by status kepegawaian if needed
         if ($request->filled('status')) {
-            $query->where('status_kepegawaian', $request->status);
+            $query->whereHas('guruProfile', function($q) use ($request) {
+                $q->where('status_kepegawaian', $request->status);
+            });
         }
 
         // Filter by gender if needed
         if ($request->filled('gender')) {
-            $query->where('jenis_kelamin', $request->gender);
+            $query->whereHas('guruProfile', function($q) use ($request) {
+                $q->where('jenis_kelamin', $request->gender);
+            });
         }
 
         $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
@@ -56,7 +70,7 @@ class AdminController extends Controller
      */
     public function searchGuru(Request $request)
     {
-        $query = User::where('role', 'guru');
+        $query = User::where('role', 'guru')->with('guruProfile');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -64,19 +78,25 @@ class AdminController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
                   ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_induk', 'LIKE', "%{$search}%")
-                  ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                  ->orWhereHas('guruProfile', function($sub) use ($search) {
+                      $sub->where('nip', 'LIKE', "%{$search}%")
+                          ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                  });
             });
         }
 
         // Filter by status kepegawaian if needed
         if ($request->filled('status')) {
-            $query->where('status_kepegawaian', $request->status);
+            $query->whereHas('guruProfile', function($q) use ($request) {
+                $q->where('status_kepegawaian', $request->status);
+            });
         }
 
         // Filter by gender if needed
         if ($request->filled('gender')) {
-            $query->where('jenis_kelamin', $request->gender);
+            $query->whereHas('guruProfile', function($q) use ($request) {
+                $q->where('jenis_kelamin', $request->gender);
+            });
         }
 
         $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
@@ -113,13 +133,13 @@ class AdminController extends Controller
             // Validation rules
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
-                'nomor_induk' => 'required|string|max:50|unique:users,nomor_induk',
+                'nomor_induk' => 'required|string|max:50|unique:guru_profiles,nip',
                 'email' => 'required|email|unique:users,email',
                 'nomor_telepon' => 'nullable|string|max:20',
                 'jenis_kelamin' => 'required|in:L,P',
                 'tempat_lahir' => 'nullable|string|max:100',
                 'tanggal_lahir' => 'nullable|date',
-                'status_kepegawaian' => 'required|in:PNS,PPPK,Honorer',
+                'status_kepegawaian' => 'required|in:PNS,PPPK,GTT,GTY,GTK',
                 'golongan' => 'nullable|string|max:10',
                 'mata_pelajaran' => 'required|string|max:100',
                 'wali_kelas' => 'nullable|string|max:10',
@@ -132,28 +152,32 @@ class AdminController extends Controller
             if ($request->hasFile('profile_photo')) {
                 $file = $request->file('profile_photo');
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $profilePhotoPath = $file->storeAs('photos', $filename, 'public');
+                $profilePhotoPath = $file->storeAs('profile_photos', $filename, 'public');
             }
 
-            // Create new teacher
-            $teacher = User::create([
+            $userData = [
                 'name' => $validatedData['name'],
-                'nomor_induk' => $validatedData['nomor_induk'],
                 'email' => $validatedData['email'],
+                'password' => $validatedData['password'],
+                'role' => 'guru',
                 'nomor_telepon' => $validatedData['nomor_telepon'],
                 'jenis_kelamin' => $validatedData['jenis_kelamin'],
+                'profile_photo' => $profilePhotoPath,
+            ];
+
+            $profileData = [
+                'nip' => $validatedData['nomor_induk'],
                 'tempat_lahir' => $validatedData['tempat_lahir'],
                 'tanggal_lahir' => $validatedData['tanggal_lahir'],
                 'status_kepegawaian' => $validatedData['status_kepegawaian'],
                 'golongan' => $validatedData['golongan'],
                 'mata_pelajaran' => $validatedData['mata_pelajaran'],
                 'wali_kelas' => $validatedData['wali_kelas'],
-                'role' => 'guru',
-                'password' => Hash::make($validatedData['password']),
-                'profile_photo_path' => $profilePhotoPath,
-            ]);
+            ];
 
-            Log::info('Teacher created successfully', ['teacher_id' => $teacher->id, 'name' => $teacher->name]);
+            $this->userService->createTeacher($userData, $profileData);
+
+            Log::info('Teacher created successfully', ['name' => $userData['name']]);
 
             return redirect()->route('admin.guru.index')->with('success', 'Data guru berhasil ditambahkan!');
 
@@ -172,6 +196,7 @@ class AdminController extends Controller
         try {
             // Create simple CSV export
             $teachers = User::where('role', 'guru')
+                          ->with('guruProfile')
                           ->orderBy('name', 'asc')
                           ->get();
 
@@ -207,20 +232,21 @@ class AdminController extends Controller
                 // Data rows
                 $no = 1;
                 foreach ($teachers as $teacher) {
+                    $profile = $teacher->guruProfile;
                     fputcsv($file, [
                         $no++,
                         $teacher->name ?? '-',
-                        $teacher->nomor_induk ?? '-',
+                        $profile->nip ?? '-',
                         $teacher->email ?? '-',
-                        $teacher->nomor_telepon ?? '-',
-                        $teacher->jenis_kelamin ?? '-',
-                        $teacher->tempat_lahir ?? '-',
-                        $teacher->tanggal_lahir ?? '-',
-                        $teacher->status_kepegawaian ?? '-',
-                        $teacher->golongan ?? '-',
-                        $teacher->mata_pelajaran ?? '-',
-                        $teacher->wali_kelas ?? '-',
-                        'Aktif'
+                        $profile->nomor_telepon ?? '-',
+                        $profile->jenis_kelamin ?? '-',
+                        $profile->tempat_lahir ?? '-',
+                        $profile->tanggal_lahir ? $profile->tanggal_lahir->format('Y-m-d') : '-',
+                        $profile->status_kepegawaian ?? '-',
+                        $profile->golongan ?? '-',
+                        $profile->subjects_string ?? '-',
+                        $profile->wali_kelas ?? '-',
+                        ($profile && $profile->is_active) ? 'Aktif' : 'Tidak Aktif'
                     ]);
                 }
 
@@ -316,19 +342,23 @@ class AdminController extends Controller
     public function updateGuru(Request $request, $id)
     {
         try {
-            $teacher = User::where('role', 'guru')->findOrFail($id);
+            $teacher = User::where('role', 'guru')->with('guruProfile')->findOrFail($id);
+            $profileId = $teacher->guruProfile ? $teacher->guruProfile->id : null;
 
             // Validation rules
             $rules = [
                 'name' => 'required|string|max:255',
-                'nomor_induk' => 'required|string|max:20|unique:users,nomor_induk,' . $id,
+                'nomor_induk' => 'required|string|max:50|unique:guru_profiles,nip,' . $profileId,
                 'email' => 'required|email|unique:users,email,' . $id,
-                'jenis_kelamin' => 'required|in:laki-laki,perempuan',
+                'jenis_kelamin' => 'required|in:L,P',
                 'nomor_telepon' => 'nullable|string|max:20',
                 'mata_pelajaran' => 'required|string|max:100',
-                'status_kepegawaian' => 'required|in:pns,honorer,kontrak,tetap_yayasan',
+                'status_kepegawaian' => 'required|in:PNS,PPPK,GTT,GTY,GTK',
                 'wali_kelas' => 'nullable|string|max:50',
-                'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+                'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'tempat_lahir' => 'nullable|string|max:100',
+                'tanggal_lahir' => 'nullable|date',
+                'golongan' => 'nullable|string|max:10',
             ];
 
             // Add password validation only if provided
@@ -336,53 +366,48 @@ class AdminController extends Controller
                 $rules['password'] = 'string|min:8|confirmed';
             }
 
-            $request->validate($rules, [
-                'name.required' => 'Nama lengkap harus diisi.',
-                'nomor_induk.required' => 'Nomor induk harus diisi.',
-                'nomor_induk.unique' => 'Nomor induk sudah digunakan.',
-                'email.required' => 'Email harus diisi.',
-                'email.unique' => 'Email sudah digunakan.',
-                'jenis_kelamin.required' => 'Jenis kelamin harus dipilih.',
-                'mata_pelajaran.required' => 'Mata pelajaran harus diisi.',
-                'status_kepegawaian.required' => 'Status kepegawaian harus dipilih.',
-                'profile_photo.image' => 'File foto harus berupa gambar.',
-                'profile_photo.max' => 'Ukuran foto maksimal 2MB.',
-                'password.min' => 'Password minimal 8 karakter.',
-                'password.confirmed' => 'Konfirmasi password tidak sesuai.'
-            ]);
+            $request->validate($rules);
 
-            // Prepare data for update
-            $data = [
+            // Update User
+            $userData = [
                 'name' => $request->input('name'),
-                'nomor_induk' => $request->input('nomor_induk'),
                 'email' => $request->input('email'),
-                'jenis_kelamin' => $request->input('jenis_kelamin'),
-                'nomor_telepon' => $request->input('nomor_telepon'),
-                'mata_pelajaran' => $request->input('mata_pelajaran'),
-                'status_kepegawaian' => $request->input('status_kepegawaian'),
-                'wali_kelas' => $request->input('wali_kelas'),
             ];
-
-            // Handle password update
             if ($request->filled('password')) {
-                $data['password'] = Hash::make($request->input('password'));
+                $userData['password'] = Hash::make($request->input('password'));
             }
+            $teacher->update($userData);
 
-            // Handle profile photo upload
+            // Handle profile photo
+            $photoPath = $teacher->guruProfile->foto_profil ?? null;
             if ($request->hasFile('profile_photo')) {
-                // Delete old photo if exists
-                if ($teacher->profile_photo && Storage::disk('public')->exists($teacher->profile_photo)) {
-                    Storage::disk('public')->delete($teacher->profile_photo);
+                if ($photoPath && Storage::disk('public')->exists($photoPath)) {
+                    Storage::disk('public')->delete($photoPath);
                 }
-
                 $photo = $request->file('profile_photo');
-                $photoName = 'guru_' . $teacher->nomor_induk . '_' . time() . '.' . $photo->getClientOriginalExtension();
+                $photoName = time() . '_' . $photo->getClientOriginalName();
                 $photoPath = $photo->storeAs('profile_photos', $photoName, 'public');
-                $data['profile_photo'] = $photoPath;
             }
 
-            // Update teacher data
-            $teacher->update($data);
+            // Update GuruProfile
+            $teacher->guruProfile()->updateOrCreate(
+                ['user_id' => $teacher->id],
+                [
+                    'nama' => $request->input('name'),
+                    'nip' => $request->input('nomor_induk'),
+                    'email' => $request->input('email'),
+                    'nomor_telepon' => $request->input('nomor_telepon'),
+                    'jenis_kelamin' => $request->input('jenis_kelamin'),
+                    'tempat_lahir' => $request->input('tempat_lahir'),
+                    'tanggal_lahir' => $request->input('tanggal_lahir'),
+                    'status_kepegawaian' => $request->input('status_kepegawaian'),
+                    'golongan' => $request->input('golongan'),
+                    'mata_pelajaran' => [$request->input('mata_pelajaran')],
+                    'wali_kelas' => $request->input('wali_kelas'),
+                    'foto_profil' => $photoPath,
+                    'password' => $request->filled('password') ? Hash::make($request->input('password')) : ($teacher->guruProfile->password ?? $teacher->password),
+                ]
+            );
 
             Log::info('Teacher updated successfully', ['teacher_id' => $teacher->id, 'updated_by' => auth()->id()]);
 
@@ -407,14 +432,20 @@ class AdminController extends Controller
     public function destroyGuru($id)
     {
         try {
-            $teacher = User::where('role', 'guru')->findOrFail($id);
+            $teacher = User::where('role', 'guru')->with('guruProfile')->findOrFail($id);
 
             // Delete profile photo if exists
-            if ($teacher->profile_photo && Storage::disk('public')->exists($teacher->profile_photo)) {
-                Storage::disk('public')->delete($teacher->profile_photo);
+            if ($teacher->guruProfile && $teacher->guruProfile->foto_profil && Storage::disk('public')->exists($teacher->guruProfile->foto_profil)) {
+                Storage::disk('public')->delete($teacher->guruProfile->foto_profil);
             }
 
             $teacherName = $teacher->name;
+
+            // Delete profile first (if not cascade)
+            if ($teacher->guruProfile) {
+                $teacher->guruProfile->delete();
+            }
+
             $teacher->delete();
 
             Log::info('Teacher deleted successfully', ['teacher_name' => $teacherName, 'deleted_by' => auth()->id()]);

@@ -24,7 +24,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 'Jakarta',
                 '2010-05-15',
                 'L',
-                '7A',
+                '7',
+                'A',
                 'ahmad.budi@example.com',
                 'password123'
             ],
@@ -35,7 +36,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 'Bandung',
                 '2010-08-22',
                 'P',
-                '7B',
+                '7',
+                'B',
                 'siti.nur@example.com',
                 'password123'
             ]
@@ -54,6 +56,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
             'TEMPAT LAHIR',
             'TANGGAL LAHIR',
             'JENIS KELAMIN',
+            'TINGKAT',
             'KELAS',
             'EMAIL',
             'PASWORD'
@@ -83,7 +86,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
         return [
             'B' => NumberFormat::FORMAT_TEXT, // NIS as text
             'C' => NumberFormat::FORMAT_TEXT, // NISN as text
-            'G' => NumberFormat::FORMAT_TEXT, // KELAS as text
+            'G' => NumberFormat::FORMAT_TEXT, // TINGKAT as text
+            'H' => NumberFormat::FORMAT_TEXT, // KELAS as text
         ];
     }
 }
