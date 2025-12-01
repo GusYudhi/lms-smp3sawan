@@ -41,25 +41,44 @@ class JadwalMengajarController extends Controller
         try {
             $currentUserId = auth()->id();
 
-            // Get all schedules for the class
-            $schedules = DB::table('jadwal_pelajarans as jp')
+            // Get current active semester
+            $semesterId = DB::table('semester')
+                ->where('is_active', 1)
+                ->value('id');
+
+            // Get all schedules for the class (filtered by active semester)
+            $query = DB::table('jadwal_pelajarans as jp')
                 ->join('mata_pelajarans as mp', 'jp.mata_pelajaran_id', '=', 'mp.id')
                 ->join('users as u', 'jp.guru_id', '=', 'u.id')
-                ->where('jp.kelas_id', $kelasId)
-                ->select(
-                    'jp.*',
+                ->where('jp.kelas_id', $kelasId);
+
+            // Filter by semester if available
+            if ($semesterId) {
+                $query->where('jp.semester_id', $semesterId);
+            }
+
+            $schedules = $query->select(
+                    'jp.id',
+                    'jp.semester_id',
+                    'jp.kelas_id',
+                    'jp.mata_pelajaran_id',
+                    'jp.guru_id',
+                    'jp.hari',
+                    'jp.jam_ke',
                     'mp.nama_mapel',
                     'mp.kode_mapel',
-                    'u.name as guru_name',
-                    'u.id as guru_id'
+                    'u.name as guru_name'
                 )
                 ->get();
 
             // Get fixed schedules (istirahat, upacara, etc)
-            $fixedSchedules = DB::table('fixed_schedules')
-                ->where('kelas_id', $kelasId)
-                ->orWhereNull('kelas_id')
-                ->get();
+            $fixedQuery = DB::table('fixed_schedules');
+
+            if ($semesterId) {
+                $fixedQuery->where('semester_id', $semesterId);
+            }
+
+            $fixedSchedules = $fixedQuery->get();
 
             // Organize by day and jam_ke
             $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];

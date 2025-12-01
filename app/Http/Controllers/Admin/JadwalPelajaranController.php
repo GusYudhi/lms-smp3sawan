@@ -36,10 +36,18 @@ class JadwalPelajaranController extends Controller
 
     public function getByKelas($kelasId)
     {
-        // Get Lessons
-        $jadwals = JadwalPelajaran::with(['mataPelajaran', 'guru'])
-            ->where('kelas_id', $kelasId)
-            ->get();
+        // Get current active semester from session or request
+        $semesterId = session('semester_id') ?? request('semester_id');
+
+        // Get Lessons - filter by semester if available
+        $query = JadwalPelajaran::with(['mataPelajaran', 'guru'])
+            ->where('kelas_id', $kelasId);
+
+        if ($semesterId) {
+            $query->where('semester_id', $semesterId);
+        }
+
+        $jadwals = $query->get();
 
         // Get Fixed Schedules
         $fixedSchedules = FixedSchedule::all();
@@ -89,6 +97,9 @@ class JadwalPelajaranController extends Controller
             'jumlah_jam' => 'nullable|integer|min:1|max:7',
         ]);
 
+        // Get semester_id from session or request
+        $semesterId = session('semester_id') ?? $request->input('semester_id');
+
         $jumlahJam = $request->input('jumlah_jam', 1);
         $startJam = $request->jam_ke;
         $kelasId = $request->kelas_id;
@@ -118,6 +129,9 @@ class JadwalPelajaranController extends Controller
             $teacherBusy = JadwalPelajaran::where('guru_id', $guruId)
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
+                ->when($semesterId, function($q) use ($semesterId) {
+                    return $q->where('semester_id', $semesterId);
+                })
                 ->exists();
             if ($teacherBusy) {
                 return response()->json(['message' => "Guru ini sudah mengajar di kelas lain pada jam ke-$currentJam."], 422);
@@ -127,6 +141,9 @@ class JadwalPelajaranController extends Controller
             $slotTaken = JadwalPelajaran::where('kelas_id', $kelasId)
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
+                ->when($semesterId, function($q) use ($semesterId) {
+                    return $q->where('semester_id', $semesterId);
+                })
                 ->exists();
             if ($slotTaken) {
                 return response()->json(['message' => "Slot jam ke-$currentJam sudah terisi di kelas ini."], 422);
@@ -137,6 +154,7 @@ class JadwalPelajaranController extends Controller
         for ($i = 0; $i < $jumlahJam; $i++) {
             $currentJam = $startJam + $i;
             JadwalPelajaran::create([
+                'semester_id' => $semesterId,
                 'kelas_id' => $kelasId,
                 'mata_pelajaran_id' => $mapelId,
                 'guru_id' => $guruId,
@@ -158,6 +176,9 @@ class JadwalPelajaranController extends Controller
             'jam_ke' => 'required|integer',
         ]);
 
+        // Get semester_id from session or request
+        $semesterId = session('semester_id') ?? $request->input('semester_id');
+
         // Check if slot is fixed
         $isFixed = FixedSchedule::where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
@@ -172,6 +193,9 @@ class JadwalPelajaranController extends Controller
             ->where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
             ->where('id', '!=', $id)
+            ->when($semesterId, function($q) use ($semesterId) {
+                return $q->where('semester_id', $semesterId);
+            })
             ->exists();
 
         if ($conflict) {
@@ -179,7 +203,14 @@ class JadwalPelajaranController extends Controller
         }
 
         $jadwal = JadwalPelajaran::findOrFail($id);
-        $jadwal->update($request->all());
+        $jadwal->update([
+            'semester_id' => $semesterId,
+            'kelas_id' => $request->kelas_id,
+            'mata_pelajaran_id' => $request->mata_pelajaran_id,
+            'guru_id' => $request->guru_id,
+            'hari' => $request->hari,
+            'jam_ke' => $request->jam_ke,
+        ]);
 
         return response()->json(['message' => 'Jadwal berhasil diperbarui']);
     }

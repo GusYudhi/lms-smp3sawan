@@ -101,6 +101,9 @@
                 <input type="hidden" id="kelas_id" name="kelas_id">
                 <input type="hidden" id="hari" name="hari">
                 <input type="hidden" id="jam_ke" name="jam_ke">
+                @if($semester)
+                <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                @endif
 
                 <div class="modal-body">
                     <div class="alert alert-info">
@@ -171,7 +174,10 @@ $(document).ready(function() {
         // Clear existing items
         $('[id^="cell-"]').empty();
 
-        $.get(`{{ url('admin/jadwal-mapel/get-by-kelas') }}/${kelasId}`)
+        const url = `{{ url('admin/jadwal-mapel/get-by-kelas') }}/${kelasId}`;
+        const params = @if($semester) { semester_id: {{ $semester->id }} } @else {} @endif;
+
+        $.get(url, params)
             .done(function(data) {
                 Object.keys(data).forEach(hari => {
                     const slots = data[hari];
