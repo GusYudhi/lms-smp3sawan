@@ -27,7 +27,7 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $filters = $request->only(['jenis_kelamin', 'kelas']);
+        $filters = $request->only(['jenis_kelamin', 'kelas', 'status']);
 
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
@@ -64,7 +64,7 @@ class SiswaController extends Controller
     public function search(Request $request)
     {
         $search = $request->input('search');
-        $filters = $request->only(['jenis_kelamin', 'kelas']);
+        $filters = $request->only(['jenis_kelamin', 'kelas', 'status']);
 
         $students = $this->userService->getStudentsWithProfiles($search, $filters);
 
@@ -84,7 +84,7 @@ class SiswaController extends Controller
                 'info' => view('admin.siswa.partials.table-info', compact('students'))->render(),
                 'total' => $students->total(),
                 'current_page' => $students->currentPage(),
-                'filters' => $request->only(['search', 'jenis_kelamin', 'kelas'])
+                'filters' => $request->only(['search', 'jenis_kelamin', 'kelas', 'status'])
             ]);
         }
 
@@ -126,6 +126,7 @@ class SiswaController extends Controller
             'tanggal_lahir' => 'nullable|date',
             'tingkat' => 'required|string|in:7,8,9',
             'kelas' => 'required|string|max:10',
+            'tahun_angkatan' => 'nullable|digits:4|integer|min:2000|max:' . (date('Y') + 1),
             'nomor_telepon_orangtua' => 'nullable|string|max:30',
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
@@ -136,7 +137,7 @@ class SiswaController extends Controller
 
         $profileData = $request->only([
             'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
-            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
+            'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
         // Handle profile photo upload
@@ -188,6 +189,7 @@ class SiswaController extends Controller
             'tanggal_lahir' => 'nullable|date',
             'tingkat' => 'required|string|in:7,8,9',
             'kelas' => 'required|string|max:10',
+            'tahun_angkatan' => 'nullable|digits:4|integer|min:2000|max:' . (date('Y') + 1),
             'nomor_telepon_orangtua' => 'nullable|string|max:30',
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
@@ -198,7 +200,7 @@ class SiswaController extends Controller
 
         $profileData = $request->only([
             'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
-            'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
+            'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
         // Handle profile photo upload

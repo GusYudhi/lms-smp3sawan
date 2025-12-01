@@ -144,7 +144,20 @@
                                     @error('kelas')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-3">
+                                    <label for="tahun_angkatan" class="form-label fw-medium">Tahun Angkatan</label>
+                                    <input type="text"
+                                           class="form-control @error('tahun_angkatan') is-invalid @enderror"
+                                           id="tahun_angkatan"
+                                           name="tahun_angkatan"
+                                           value="{{ old('tahun_angkatan', date('Y')) }}"
+                                           placeholder="{{ date('Y') }}"
+                                           maxlength="4">
+                                    <div class="form-text">Tahun masuk pertama kali (Kelas 7)</div>
+                                    @error('tahun_angkatan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div class="col-md-3">
                                     <label for="nomor_telepon_orangtua" class="form-label fw-medium">Nomor Telepon Orang Tua</label>
                                     <input type="tel" class="form-control @error('nomor_telepon_orangtua') is-invalid @enderror" id="nomor_telepon_orangtua" name="nomor_telepon_orangtua" value="{{ old('nomor_telepon_orangtua') }}">
                                     @error('nomor_telepon_orangtua')<div class="invalid-feedback">{{ $message }}</div>@enderror

@@ -153,23 +153,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.mapel') ? 'active' : '' }}" href="{{ route('admin.mapel.index') }}">
-                                    <i class="fas fa-book me-2"></i> Mata Pelajaran
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jadwal') ? 'active' : '' }}" href="{{ route('admin.jadwal.index') }}">
-                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Pelajaran
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jam-pelajaran') ? 'active' : '' }}" href="{{ route('admin.jam-pelajaran.index') }}">
-                                    <i class="fas fa-clock me-2"></i> Jam Pelajaran
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.fixed-schedule') ? 'active' : '' }}" href="{{ route('admin.fixed-schedule.index') }}">
-                                    <i class="fas fa-thumbtack me-2"></i> Jadwal Tetap
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.tahun-pelajaran') || Str::startsWith(Route::currentRouteName(), 'admin.semester') ? 'active' : '' }}" href="{{ route('admin.tahun-pelajaran.index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Tahun Pelajaran
                                 </a>
                             </li>
                             <li class="nav-item">

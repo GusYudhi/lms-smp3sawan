@@ -48,6 +48,7 @@ class UserManagementService
                 'nomor_telepon_orangtua' => $profileData['nomor_telepon_orangtua'] ?? null,
                 'foto_profil' => $profileData['foto_profil'] ?? null,
                 'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
+                'tahun_angkatan' => $profileData['tahun_angkatan'] ?? null,
                 'is_active' => true,
             ]);
 
@@ -151,6 +152,7 @@ class UserManagementService
                     'pekerjaan_orangtua' => $profileData['pekerjaan_orangtua'] ?? null,
                     'tahun_masuk' => $profileData['tahun_masuk'] ?? null,
                     'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
+                    'tahun_angkatan' => $profileData['tahun_angkatan'] ?? null,
                     'foto_profil' => $profileData['foto_profil'] ?? ($user->studentProfile->foto_profil ?? null),
                 ]
             );
@@ -268,6 +270,12 @@ class UserManagementService
                     $namaKelas = substr($kelas, 1);
                     $q->where('tingkat', $tingkat)->where('nama_kelas', $namaKelas);
                 }
+            });
+        }
+
+        if (isset($filters['status'])) {
+            $query->whereHas('studentProfile', function ($q) use ($filters) {
+                $q->where('status', $filters['status']);
             });
         }
 

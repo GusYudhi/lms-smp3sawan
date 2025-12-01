@@ -13,5 +13,11 @@ class FixedSchedule extends Model
         'hari',
         'jam_ke',
         'keterangan',
+        'semester_id',
     ];
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
+    }
 }

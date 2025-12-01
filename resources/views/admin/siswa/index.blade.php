@@ -188,10 +188,10 @@
                             <!-- Gender Filter -->
                             <div class="col-md-2">
                                 <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Jenis Kelamin</label>
-                                <select name="gender" id="genderFilter" class="form-select">
+                                <select name="jenis_kelamin" id="genderFilter" class="form-select">
                                     <option value="">Semua</option>
-                                    <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
+                                    <option value="L" {{ request('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="P" {{ request('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
                             </div>
 
@@ -200,8 +200,9 @@
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
                                 <select name="status" id="statusFilter" class="form-select">
                                     <option value="">Semua Status</option>
-                                    <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                    <option value="tidak_aktif" {{ request('status') === 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                                    <option value="AKTIF" {{ request('status') === 'AKTIF' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="LULUS" {{ request('status') === 'LULUS' ? 'selected' : '' }}>Lulus</option>
+                                    <option value="TIDAK_AKTIF" {{ request('status') === 'TIDAK_AKTIF' ? 'selected' : '' }}>Tidak Aktif</option>
                                 </select>
                             </div>
 
@@ -354,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('studentSearch');
     const genderFilter = document.getElementById('genderFilter');
     const classFilter = document.getElementById('classFilter');
+    const statusFilter = document.getElementById('statusFilter');
     const filterForm = document.getElementById('filterForm');
 
     // Prevent form submission
@@ -381,6 +383,11 @@ document.addEventListener('DOMContentLoaded', function() {
         performAjaxSearch();
     });
 
+    statusFilter.addEventListener('change', function() {
+        currentPage = 1;
+        performAjaxSearch();
+    });
+
     // Auto-hide alerts
     const alerts = document.querySelectorAll('.alert.alert-dismissible');
     alerts.forEach(alert => {
@@ -402,11 +409,13 @@ function performAjaxSearch() {
     const searchValue = document.getElementById('studentSearch').value;
     const genderValue = document.getElementById('genderFilter').value;
     const classValue = document.getElementById('classFilter').value;
+    const statusValue = document.getElementById('statusFilter').value;
 
     const params = new URLSearchParams({
         search: searchValue,
-        gender: genderValue,
+        jenis_kelamin: genderValue,
         kelas: classValue,
+        status: statusValue,
         page: currentPage
     });
 
@@ -437,10 +446,12 @@ function performAjaxSearch() {
         const newUrl = new URL(window.location);
         if (searchValue) newUrl.searchParams.set('search', searchValue);
         else newUrl.searchParams.delete('search');
-        if (genderValue) newUrl.searchParams.set('gender', genderValue);
-        else newUrl.searchParams.delete('gender');
+        if (genderValue) newUrl.searchParams.set('jenis_kelamin', genderValue);
+        else newUrl.searchParams.delete('jenis_kelamin');
         if (classValue) newUrl.searchParams.set('kelas', classValue);
         else newUrl.searchParams.delete('kelas');
+        if (statusValue) newUrl.searchParams.set('status', statusValue);
+        else newUrl.searchParams.delete('status');
         if (currentPage > 1) newUrl.searchParams.set('page', currentPage);
         else newUrl.searchParams.delete('page');
 
@@ -521,10 +532,12 @@ function exportData() {
     const search = document.getElementById('studentSearch').value;
     const gender = document.getElementById('genderFilter').value;
     const kelas = document.getElementById('classFilter').value;
+    const status = document.getElementById('statusFilter').value;
 
     if (search) params.append('search', search);
-    if (gender) params.append('gender', gender);
+    if (gender) params.append('jenis_kelamin', gender);
     if (kelas) params.append('kelas', kelas);
+    if (status) params.append('status', status);
 
     const exportUrl = `{{ route('admin.siswa.export') }}?${params.toString()}`;
 

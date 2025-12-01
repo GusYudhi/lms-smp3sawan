@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($semester ? 'layouts.semester' : 'layouts.app')
 
 @section('title', 'Manajemen Mata Pelajaran')
 
@@ -6,7 +6,14 @@
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Manajemen Mata Pelajaran</h1>
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Manajemen Mata Pelajaran</h1>
+            @if($semester)
+            <p class="text-muted mb-0">
+                <small>{{ $semester->tahunPelajaran->nama }} - {{ $semester->nama }}</small>
+            </p>
+            @endif
+        </div>
     </div>
 
     <!-- Content Row -->
@@ -38,6 +45,9 @@
 
                     <form action="{{ route('admin.mapel.store') }}" method="POST">
                         @csrf
+                        @if($semester)
+                        <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                        @endif
                         <div class="mb-3">
                             <label for="nama_mapel" class="form-label">Nama Mata Pelajaran</label>
                             <input type="text" class="form-control" id="nama_mapel" name="nama_mapel" required>

@@ -13,5 +13,11 @@ class JamPelajaran extends Model
         'jam_ke',
         'jam_mulai',
         'jam_selesai',
+        'semester_id',
     ];
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
+    }
 }

@@ -150,7 +150,7 @@
                                             </span>
                                             <input type="text"
                                                    class="form-control bg-light"
-                                                   value="{{ $profile->kelas ?? 'Belum diisi' }}"
+                                                   value="{{ $profile->kelas->full_name ?? 'Belum diisi' }}"
                                                    readonly>
                                         </div>
                                         <small class="text-muted">Data ini tidak dapat diubah</small>

@@ -10,17 +10,28 @@ use App\Models\MataPelajaran;
 use App\Models\User;
 use App\Models\FixedSchedule;
 use App\Models\JamPelajaran;
+use App\Models\Semester;
 
 class JadwalPelajaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kelas = Kelas::all();
-        $mapels = MataPelajaran::all();
-        $gurus = User::where('role', 'guru')->get();
-        $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
+        $semesterId = $request->input('semester_id');
 
-        return view('admin.jadwal-mapel.jadwal', compact('kelas', 'mapels', 'gurus', 'jamPelajarans'));
+        if ($semesterId) {
+            $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
+            $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
+            $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
+        } else {
+            $semester = null;
+            $mapels = MataPelajaran::all();
+            $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
+        }
+
+        $kelas = Kelas::all();
+        $gurus = User::where('role', 'guru')->get();
+
+        return view('admin.jadwal-mapel.jadwal', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester'));
     }
 
     public function getByKelas($kelasId)

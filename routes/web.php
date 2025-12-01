@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin routes
     Route::prefix('admin')->middleware('role:admin')->group(function () {
-        Route::get('/admin/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/guru', [App\Http\Controllers\Admin\AdminController::class, 'manageGuru'])->name('admin.guru.index');
         Route::get('/guru/create', [App\Http\Controllers\Admin\AdminController::class, 'createGuru'])->name('admin.guru.create');
         Route::get('/guru/search', [App\Http\Controllers\Admin\AdminController::class, 'searchGuru'])->name('admin.guru.search');
@@ -47,6 +47,27 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/guru/{id}/edit', [App\Http\Controllers\Admin\AdminController::class, 'editGuru'])->name('admin.guru.edit');
         Route::put('/guru/{id}', [App\Http\Controllers\Admin\AdminController::class, 'updateGuru'])->name('admin.guru.update');
         Route::delete('/guru/{id}', [App\Http\Controllers\Admin\AdminController::class, 'destroyGuru'])->name('admin.guru.destroy');
+
+        // Tahun Pelajaran & Semester routes
+        Route::get('/tahun-pelajaran', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'index'])->name('admin.tahun-pelajaran.index');
+        Route::get('/tahun-pelajaran/create', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'create'])->name('admin.tahun-pelajaran.create');
+        Route::post('/tahun-pelajaran', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'store'])->name('admin.tahun-pelajaran.store');
+        Route::get('/tahun-pelajaran/{id}/dashboard', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'dashboard'])->name('admin.tahun-pelajaran.dashboard');
+        Route::get('/tahun-pelajaran/{id}/edit', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'edit'])->name('admin.tahun-pelajaran.edit');
+        Route::put('/tahun-pelajaran/{id}', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'update'])->name('admin.tahun-pelajaran.update');
+        Route::post('/tahun-pelajaran/{id}/set-active', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'setActive'])->name('admin.tahun-pelajaran.set-active');
+        Route::delete('/tahun-pelajaran/{id}', [App\Http\Controllers\Admin\TahunPelajaranController::class, 'destroy'])->name('admin.tahun-pelajaran.destroy');
+
+        // Semester routes
+        Route::get('/tahun-pelajaran/{tahunPelajaranId}/semester', [App\Http\Controllers\Admin\SemesterController::class, 'index'])->name('admin.semester.index');
+        Route::get('/semester/create', [App\Http\Controllers\Admin\SemesterController::class, 'create'])->name('admin.semester.create');
+        Route::post('/semester', [App\Http\Controllers\Admin\SemesterController::class, 'store'])->name('admin.semester.store');
+        Route::get('/semester/{id}/dashboard', [App\Http\Controllers\Admin\SemesterController::class, 'dashboard'])->name('admin.semester.dashboard');
+        Route::get('/semester/{id}/edit', [App\Http\Controllers\Admin\SemesterController::class, 'edit'])->name('admin.semester.edit');
+        Route::put('/semester/{id}', [App\Http\Controllers\Admin\SemesterController::class, 'update'])->name('admin.semester.update');
+        Route::post('/semester/{id}/set-active', [App\Http\Controllers\Admin\SemesterController::class, 'setActive'])->name('admin.semester.set-active');
+        Route::post('/semester/{id}/import-from-semester-1', [App\Http\Controllers\Admin\SemesterController::class, 'importFromSemester1'])->name('admin.semester.import-from-semester-1');
+        Route::delete('/semester/{id}', [App\Http\Controllers\Admin\SemesterController::class, 'destroy'])->name('admin.semester.destroy');
 
         // Siswa management routes
         Route::get('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'index'])->name('admin.siswa.index');

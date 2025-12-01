@@ -54,6 +54,9 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 $tingkatValue = !empty($row['tingkat']) ? (string) $row['tingkat'] : null;
                 $kelasValue = !empty($row['kelas']) ? (string) $row['kelas'] : null;
 
+                // Handle tahun_angkatan: use from Excel if provided, otherwise use current year
+                $tahunAngkatan = !empty($row['tahun_angkatan']) ? (int) $row['tahun_angkatan'] : date('Y');
+
                 // Generate Email
                 $email = $this->generateEmail($row['nama']);
 
@@ -93,6 +96,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'tanggal_lahir' => $this->parseDate($row['tanggal_lahir'] ?? null),
                     'tingkat' => $tingkatValue,
                     'kelas' => $kelasValue,
+                    'tahun_angkatan' => $tahunAngkatan,
                     'jenis_kelamin' => $gender,
                     'nomor_telepon_orangtua' => $row['telepon_orangtua'] ?? $row['nomor_telepon_orangtua'] ?? null,
                     'foto_profil' => null,

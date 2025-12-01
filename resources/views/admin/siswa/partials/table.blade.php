@@ -88,9 +88,30 @@
                     @endif
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-success-subtle text-success border">
-                        <i class="fas fa-check-circle me-1"></i>Aktif
-                    </span>
+                    @if($student->studentProfile)
+                        @php
+                            $status = $student->studentProfile->status ?? 'AKTIF';
+                        @endphp
+                        @if($status === 'AKTIF')
+                            <span class="badge bg-success-subtle text-success border">
+                                <i class="fas fa-check-circle me-1"></i>Aktif
+                            </span>
+                        @elseif($status === 'LULUS')
+                            <span class="badge bg-info-subtle text-info border">
+                                <i class="fas fa-graduation-cap me-1"></i>Lulus
+                            </span>
+                        @elseif($status === 'TIDAK_AKTIF')
+                            <span class="badge bg-secondary-subtle text-secondary border">
+                                <i class="fas fa-times-circle me-1"></i>Tidak Aktif
+                            </span>
+                        @else
+                            <span class="badge bg-warning-subtle text-warning border">
+                                <i class="fas fa-question-circle me-1"></i>{{ $status }}
+                            </span>
+                        @endif
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
                 </td>
                 <td class="text-center">
                     <div class="btn-group-vertical gap-1" role="group">

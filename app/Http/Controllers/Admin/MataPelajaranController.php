@@ -5,13 +5,23 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\MataPelajaran;
+use App\Models\Semester;
 
 class MataPelajaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mapels = MataPelajaran::all();
-        return view('admin.mata-pelajaran.index', compact('mapels'));
+        $semesterId = $request->input('semester_id');
+
+        if ($semesterId) {
+            $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
+            $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
+        } else {
+            $semester = null;
+            $mapels = MataPelajaran::all();
+        }
+
+        return view('admin.mata-pelajaran.index', compact('mapels', 'semester'));
     }
 
     public function store(Request $request)
@@ -19,6 +29,7 @@ class MataPelajaranController extends Controller
         $request->validate([
             'nama_mapel' => 'required|string|max:255',
             'kode_mapel' => 'required|string|max:10|unique:mata_pelajarans,kode_mapel',
+            'semester_id' => 'nullable|exists:semester,id',
         ]);
 
         MataPelajaran::create($request->all());
@@ -31,6 +42,7 @@ class MataPelajaranController extends Controller
         $request->validate([
             'nama_mapel' => 'required|string|max:255',
             'kode_mapel' => 'required|string|max:10|unique:mata_pelajarans,kode_mapel,' . $id,
+            'semester_id' => 'nullable|exists:semester,id',
         ]);
 
         $mapel = MataPelajaran::findOrFail($id);

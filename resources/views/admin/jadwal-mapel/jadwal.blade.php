@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends($semester ? 'layouts.semester' : 'layouts.app')
 
 @section('title', 'Jadwal Pelajaran')
 
@@ -6,7 +6,14 @@
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Manajemen Jadwal Pelajaran</h1>
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Manajemen Jadwal Pelajaran</h1>
+            @if($semester)
+            <p class="text-muted mb-0">
+                <small>{{ $semester->tahunPelajaran->nama }} - {{ $semester->nama }}</small>
+            </p>
+            @endif
+        </div>
     </div>
 
     <!-- Filter Section -->
@@ -18,7 +25,7 @@
                     <select class="form-select" id="filter_kelas">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($kelas as $k)
-                            <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                            <option value="{{ $k->id }}">{{ $k->full_name }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -15,6 +15,7 @@ class JadwalPelajaran extends Model
         'guru_id',
         'hari',
         'jam_ke',
+        'semester_id',
     ];
 
     public function kelas()
@@ -30,5 +31,10 @@ class JadwalPelajaran extends Model
     public function guru()
     {
         return $this->belongsTo(User::class, 'guru_id');
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 }

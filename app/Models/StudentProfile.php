@@ -17,10 +17,12 @@ class StudentProfile extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'kelas_id',
+        'tahun_angkatan',
         'nomor_telepon_orangtua',
         'foto_profil',
         'jenis_kelamin',
         'is_active',
+        'status',
     ];
 
     protected $casts = [
@@ -124,6 +126,32 @@ class StudentProfile extends Model
             'L' => 'Laki-laki',
             'P' => 'Perempuan',
             default => 'Belum diisi'
+        };
+    }
+
+    /**
+     * Get status display name with badge
+     */
+    public function getStatusBadge()
+    {
+        return match($this->status) {
+            'AKTIF' => '<span class="badge bg-success">Aktif</span>',
+            'LULUS' => '<span class="badge bg-info">Lulus</span>',
+            'TIDAK_AKTIF' => '<span class="badge bg-secondary">Tidak Aktif</span>',
+            default => '<span class="badge bg-warning">-</span>'
+        };
+    }
+
+    /**
+     * Get status display name
+     */
+    public function getStatusDisplayName()
+    {
+        return match($this->status) {
+            'AKTIF' => 'Aktif',
+            'LULUS' => 'Lulus',
+            'TIDAK_AKTIF' => 'Tidak Aktif',
+            default => '-'
         };
     }
 }

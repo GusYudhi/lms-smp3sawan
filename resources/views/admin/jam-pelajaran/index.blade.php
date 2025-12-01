@@ -1,11 +1,18 @@
-@extends('layouts.app')
+@extends($semester ? 'layouts.semester' : 'layouts.app')
 
 @section('title', 'Manajemen Jam Pelajaran')
 
 @section('content')
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Manajemen Jam Pelajaran</h1>
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Manajemen Jam Pelajaran</h1>
+            @if($semester)
+            <p class="text-muted mb-0">
+                <small>{{ $semester->tahunPelajaran->nama }} - {{ $semester->nama }}</small>
+            </p>
+            @endif
+        </div>
     </div>
 
     <div class="row">
@@ -35,6 +42,9 @@
 
                     <form action="{{ route('admin.jam-pelajaran.store') }}" method="POST">
                         @csrf
+                        @if($semester)
+                        <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                        @endif
                         <div class="mb-3">
                             <label class="form-label">Jam Ke-</label>
                             <input type="number" class="form-control" name="jam_ke" required min="1">
