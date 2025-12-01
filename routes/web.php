@@ -129,6 +129,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi/today', [App\Http\Controllers\Guru\AbsensiController::class, 'getTodayAttendance'])->name('guru.absensi.today');
         Route::post('/absensi/process', [App\Http\Controllers\Guru\AbsensiController::class, 'processAttendance'])->name('guru.absensi.process');
         Route::get('/absensi/qr/{nisn}', [App\Http\Controllers\Guru\AbsensiController::class, 'generateQRCode'])->name('guru.absensi.qr');
+
+        // Teacher Self-Attendance routes
+        Route::get('/absensi-guru', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'index'])->name('guru.absensi-guru');
+        Route::post('/absensi-guru/store', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'store'])->name('guru.absensi-guru.store');
+        Route::get('/absensi-guru/weekly', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'weekly'])->name('guru.absensi-guru.weekly');
+
+        // Teaching Schedule routes
+        Route::get('/jadwal-mengajar', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'index'])->name('guru.jadwal-mengajar');
+        Route::get('/jadwal-mengajar/get-by-kelas/{kelasId}', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'getByKelas'])->name('guru.jadwal-mengajar.get-by-kelas');
     });
 
     // Siswa routes

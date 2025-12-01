@@ -33,7 +33,11 @@
                             </h1>
                             <p class="text-muted mb-0">
                                 <i class="fas fa-calendar me-2"></i>
-                                {{ $semester->tanggal_mulai->format('d F Y') }} - {{ $semester->tanggal_selesai->format('d F Y') }}
+                                @if($semester->tanggal_mulai && $semester->tanggal_selesai)
+                                    {{ $semester->tanggal_mulai->format('d F Y') }} - {{ $semester->tanggal_selesai->format('d F Y') }}
+                                @else
+                                    <span class="text-warning">Tanggal belum diatur</span>
+                                @endif
                             </p>
                         </div>
                         <div>

@@ -230,6 +230,16 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'guru.absensi-guru' ? 'active' : '' }}" href="{{ route('guru.absensi-guru') }}">
+                                    <i class="fas fa-camera me-2"></i> Absensi Guru
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'guru.jadwal-mengajar' ? 'active' : '' }}" href="{{ route('guru.jadwal-mengajar') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i> Jadwal Mengajar
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="#">
                                     <i class="fas fa-calendar-alt me-2"></i> Kalender Jadwal
                                 </a>

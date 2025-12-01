@@ -80,13 +80,22 @@ class TahunPelajaranController extends Controller
 
             // Auto-create 2 semesters if requested
             if ($request->boolean('create_semesters', true)) {
+                // Calculate default dates for semesters
+                // Semester Ganjil: July - December
+                $semesterGanjilMulai = $request->tanggal_mulai ?? \Carbon\Carbon::create($request->tahun_mulai, 7, 15);
+                $semesterGanjilSelesai = \Carbon\Carbon::create($request->tahun_mulai, 12, 31);
+
+                // Semester Genap: January - June
+                $semesterGenapMulai = \Carbon\Carbon::create($request->tahun_selesai, 1, 1);
+                $semesterGenapSelesai = $request->tanggal_selesai ?? \Carbon\Carbon::create($request->tahun_selesai, 6, 30);
+
                 // Semester Ganjil
                 $semesterGanjil = Semester::create([
                     'tahun_pelajaran_id' => $tahunPelajaran->id,
                     'nama' => 'Ganjil',
                     'semester_ke' => 1,
-                    'tanggal_mulai' => $request->tanggal_mulai,
-                    'tanggal_selesai' => null,
+                    'tanggal_mulai' => $semesterGanjilMulai,
+                    'tanggal_selesai' => $semesterGanjilSelesai,
                     'is_active' => $request->boolean('is_active', false),
                     'keterangan' => 'Semester Ganjil ' . $request->nama,
                 ]);
@@ -96,8 +105,8 @@ class TahunPelajaranController extends Controller
                     'tahun_pelajaran_id' => $tahunPelajaran->id,
                     'nama' => 'Genap',
                     'semester_ke' => 2,
-                    'tanggal_mulai' => null,
-                    'tanggal_selesai' => $request->tanggal_selesai,
+                    'tanggal_mulai' => $semesterGenapMulai,
+                    'tanggal_selesai' => $semesterGenapSelesai,
                     'is_active' => false,
                     'keterangan' => 'Semester Genap ' . $request->nama,
                 ]);

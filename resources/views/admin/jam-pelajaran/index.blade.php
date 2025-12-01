@@ -96,40 +96,6 @@
                                             </form>
                                         </td>
                                     </tr>
-
-                                    <!-- Edit Modal -->
-                                    <div class="modal fade" id="editModal{{ $jam->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Edit Jam Pelajaran</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form action="{{ route('admin.jam-pelajaran.update', $jam->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Jam Ke-</label>
-                                                            <input type="number" class="form-control" name="jam_ke" value="{{ $jam->jam_ke }}" required>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Jam Mulai</label>
-                                                            <input type="time" class="form-control" name="jam_mulai" value="{{ $jam->jam_mulai }}" required>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Jam Selesai</label>
-                                                            <input type="time" class="form-control" name="jam_selesai" value="{{ $jam->jam_selesai }}" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-primary">Update</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
                                 @empty
                                     <tr>
                                         <td colspan="3" class="text-center">Belum ada data jam pelajaran</td>
@@ -143,4 +109,41 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Modals (Outside of table) -->
+@foreach($jamPelajarans as $jam)
+<div class="modal fade" id="editModal{{ $jam->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Jam Pelajaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.jam-pelajaran.update', $jam->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Jam Ke-</label>
+                        <input type="number" class="form-control" name="jam_ke" value="{{ $jam->jam_ke }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jam Mulai</label>
+                        <input type="time" class="form-control" name="jam_mulai" value="{{ $jam->jam_mulai }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jam Selesai</label>
+                        <input type="time" class="form-control" name="jam_selesai" value="{{ $jam->jam_selesai }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
+
 @endsection
