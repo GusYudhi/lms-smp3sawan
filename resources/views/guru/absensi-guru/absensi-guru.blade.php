@@ -35,10 +35,33 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-gradient bg-primary text-white">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-camera me-2"></i>Ambil Foto Selfie untuk Absensi
+                        <i class="fas fa-user-check me-2"></i>Absensi Guru
                     </h5>
                 </div>
                 <div class="card-body p-4">
+                    <!-- Attendance Type Selection -->
+                    <ul class="nav nav-pills mb-4" id="attendance-type-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="hadir-tab" data-bs-toggle="pill" data-bs-target="#hadir-panel" type="button" role="tab">
+                                <i class="fas fa-camera me-1"></i>Hadir (Foto)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="izin-tab" data-bs-toggle="pill" data-bs-target="#izin-panel" type="button" role="tab">
+                                <i class="fas fa-file-medical me-1"></i>Izin
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sakit-tab" data-bs-toggle="pill" data-bs-target="#sakit-panel" type="button" role="tab">
+                                <i class="fas fa-notes-medical me-1"></i>Sakit
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="attendance-type-content">
+                        <!-- Hadir Tab (Camera) -->
+                        <div class="tab-pane fade show active" id="hadir-panel" role="tabpanel">
                     <!-- Camera Container -->
                     <div class="camera-container text-center">
                         <div id="camera-placeholder">
@@ -102,7 +125,71 @@
                     <!-- Status Info -->
                     <div class="alert alert-info mt-3" role="alert">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Catatan:</strong> Absensi hanya dapat dilakukan di area sekolah dengan radius maksimal 100 meter dari koordinat sekolah.
+                        <strong>Catatan:</strong> Absensi hadir hanya dapat dilakukan di area sekolah dengan radius maksimal 100 meter dari koordinat sekolah.
+                    </div>
+                        </div>
+
+                        <!-- Izin Tab -->
+                        <div class="tab-pane fade" id="izin-panel" role="tabpanel">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-file-medical text-info fs-1 mb-3"></i>
+                                <h5>Form Izin</h5>
+                                <p class="text-muted">Isi form di bawah untuk mengajukan izin tidak masuk</p>
+                            </div>
+
+                            <form id="izin-form">
+                                <div class="mb-3">
+                                    <label for="izin-alasan" class="form-label">Alasan Izin <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="izin-alasan" name="alasan" rows="4" required placeholder="Tuliskan alasan izin Anda..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="izin-dokumen" class="form-label">Lampiran Dokumen (Opsional)</label>
+                                    <input type="file" class="form-control" id="izin-dokumen" name="dokumen" accept="image/*,.pdf">
+                                    <small class="text-muted">Format: JPG, PNG, PDF (Max: 2MB)</small>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Perhatian:</strong> Pastikan alasan izin yang Anda berikan sesuai dengan kondisi sebenarnya.
+                                </div>
+
+                                <button type="submit" class="btn btn-info w-100" id="submit-izin-btn">
+                                    <i class="fas fa-paper-plane me-2"></i>Kirim Pengajuan Izin
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Sakit Tab -->
+                        <div class="tab-pane fade" id="sakit-panel" role="tabpanel">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-notes-medical text-danger fs-1 mb-3"></i>
+                                <h5>Form Sakit</h5>
+                                <p class="text-muted">Isi form di bawah untuk melaporkan kondisi sakit</p>
+                            </div>
+
+                            <form id="sakit-form">
+                                <div class="mb-3">
+                                    <label for="sakit-keterangan" class="form-label">Keterangan Sakit <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="sakit-keterangan" name="keterangan" rows="4" required placeholder="Jelaskan kondisi sakit Anda..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="sakit-surat-dokter" class="form-label">Surat Dokter (Opsional)</label>
+                                    <input type="file" class="form-control" id="sakit-surat-dokter" name="surat_dokter" accept="image/*,.pdf">
+                                    <small class="text-muted">Format: JPG, PNG, PDF (Max: 2MB)</small>
+                                </div>
+
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-heartbeat me-2"></i>
+                                    <strong>Informasi:</strong> Jika sakit lebih dari 3 hari, harap melampirkan surat dokter.
+                                </div>
+
+                                <button type="submit" class="btn btn-danger w-100" id="submit-sakit-btn">
+                                    <i class="fas fa-paper-plane me-2"></i>Kirim Laporan Sakit
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -113,10 +200,19 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-gradient bg-success text-white">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>Riwayat Absensi Minggu Ini
+                        <i class="fas fa-history me-2"></i>Riwayat Absensi
                     </h5>
                 </div>
                 <div class="card-body p-3">
+                    <!-- Date Picker for Week Selection -->
+                    <div class="mb-3">
+                        <label for="week-date-picker" class="form-label">
+                            <i class="fas fa-calendar-alt me-1"></i>Pilih Tanggal
+                        </label>
+                        <input type="date" class="form-control" id="week-date-picker" value="{{ date('Y-m-d') }}">
+                        <small class="text-muted">Pilih tanggal untuk melihat riwayat minggu tersebut</small>
+                    </div>
+
                     <!-- Current Week Info -->
                     <div class="mb-3 text-center">
                         <h6 class="text-muted mb-2">
@@ -161,7 +257,7 @@
                             <div class="card bg-info text-white text-center">
                                 <div class="card-body p-2">
                                     <h4 class="mb-0" id="izin-count">0</h4>
-                                    <small>Izin</small>
+                                    <small>Izin/Sakit</small>
                                 </div>
                             </div>
                         </div>
@@ -198,6 +294,12 @@ $(document).ready(function() {
     // Load weekly attendance
     loadWeeklyAttendance();
 
+    // Date picker change event
+    $('#week-date-picker').on('change', function() {
+        const selectedDate = $(this).val();
+        loadWeeklyAttendance(selectedDate);
+    });
+
     // Button handlers
     $('#start-camera').click(startCamera);
     $('#stop-camera').click(stopCamera);
@@ -205,6 +307,10 @@ $(document).ready(function() {
     $('#capture-photo').click(capturePhoto);
     $('#retake-photo').click(retakePhoto);
     $('#confirm-photo').click(confirmAttendance);
+
+    // Form handlers
+    $('#izin-form').submit(submitIzinForm);
+    $('#sakit-form').submit(submitSakitForm);
 });
 
 function updateTime() {
@@ -565,15 +671,29 @@ function showError(message) {
     });
 }
 
-function loadWeeklyAttendance() {
+function loadWeeklyAttendance(date = null) {
+    // If no date provided, use today
+    if (!date) {
+        date = new Date().toISOString().split('T')[0];
+    }
+
     $.ajax({
         url: '{{ route("guru.absensi-guru.weekly") }}',
         type: 'GET',
+        data: { date: date },
         success: function(response) {
             if (response.success) {
+                console.log('Weekly attendance data:', response.data); // Debug
                 renderWeeklyCalendar(response.data);
                 updateStatistics(response.statistics);
-                $('#week-range').text(response.week_range);
+
+                // Update week info
+                if (response.week_info) {
+                    $('#week-number').text(response.week_info.week_number);
+                    $('#week-range').text(response.week_info.start_date + ' - ' + response.week_info.end_date);
+                } else if (response.week_range) {
+                    $('#week-range').text(response.week_range);
+                }
             }
         },
         error: function(xhr) {
@@ -583,18 +703,24 @@ function loadWeeklyAttendance() {
 }
 
 function renderWeeklyCalendar(attendanceData) {
-    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const dayShort = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    console.log('Rendering calendar with data:', attendanceData);
 
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     let calendarHtml = '';
 
     days.forEach((day, index) => {
         const data = attendanceData[index];
+        console.log(`Day ${index} (${day}):`, data);
+
         let statusClass = 'secondary';
         let statusIcon = 'question';
         let statusText = 'Belum Absen';
+        let statusDetail = '';
 
+        // Check if data exists and has status
         if (data && data.status) {
+            console.log(`Status found for ${day}:`, data.status);
+
             switch(data.status) {
                 case 'hadir':
                     statusClass = 'success';
@@ -611,16 +737,37 @@ function renderWeeklyCalendar(attendanceData) {
                     statusIcon = 'file-medical';
                     statusText = 'Izin';
                     break;
+                case 'sakit':
+                    statusClass = 'danger';
+                    statusIcon = 'notes-medical';
+                    statusText = 'Sakit';
+                    break;
                 case 'alpha':
                     statusClass = 'danger';
                     statusIcon = 'times-circle';
                     statusText = 'Alpha';
                     break;
             }
+        } else {
+            console.log(`No status for ${day}`);
         }
 
+        // Build status detail for tooltip
+        if (data && data.status) {
+            statusDetail = `Status: ${statusText}`;
+            if (data.waktu) {
+                statusDetail += `<br>Waktu: ${data.waktu}`;
+            }
+            if (data.keterangan) {
+                statusDetail += `<br>Keterangan: ${data.keterangan}`;
+            }
+        }
+
+        // Determine badge text color
+        const badgeTextClass = ['warning', 'secondary'].includes(statusClass) ? 'text-dark' : 'text-white';
+
         calendarHtml += `
-            <div class="day-card card mb-2 border-${statusClass}">
+            <div class="day-card card mb-2 border-${statusClass}" ${statusDetail ? `data-bs-toggle="tooltip" data-bs-html="true" title="${statusDetail}"` : ''}>
                 <div class="card-body p-2">
                     <div class="d-flex align-items-center">
                         <div class="me-2">
@@ -628,10 +775,10 @@ function renderWeeklyCalendar(attendanceData) {
                         </div>
                         <div class="flex-grow-1">
                             <strong>${day}</strong><br>
-                            <small class="text-muted">${data ? data.tanggal : '-'}</small>
+                            <small class="text-muted">${data && data.tanggal ? data.tanggal : '-'}</small>
                         </div>
                         <div class="text-end">
-                            <span class="badge bg-${statusClass}">${statusText}</span>
+                            <span class="badge bg-${statusClass} ${badgeTextClass}">${statusText}</span>
                             ${data && data.waktu ? `<br><small class="text-muted">${data.waktu}</small>` : ''}
                         </div>
                     </div>
@@ -641,6 +788,10 @@ function renderWeeklyCalendar(attendanceData) {
     });
 
     $('#weekly-calendar').html(calendarHtml);
+
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 }
 
 function updateStatistics(stats) {
@@ -648,6 +799,156 @@ function updateStatistics(stats) {
     $('#terlambat-count').text(stats.terlambat || 0);
     $('#alpha-count').text(stats.alpha || 0);
     $('#izin-count').text(stats.izin || 0);
+}
+
+// Izin Form Handler
+function submitIzinForm(e) {
+    e.preventDefault();
+
+    const alasan = $('#izin-alasan').val().trim();
+    if (!alasan) {
+        showError('Alasan izin harus diisi');
+        return;
+    }
+
+    $('#submit-izin-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Mengirim...');
+
+    const formData = new FormData();
+    formData.append('type', 'izin');
+    formData.append('alasan', alasan);
+
+    const dokumen = $('#izin-dokumen')[0].files[0];
+    if (dokumen) {
+        formData.append('dokumen', dokumen);
+    }
+
+    $.ajax({
+        url: '{{ route("guru.absensi-guru.store-non-hadir") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            $('#submit-izin-btn').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Kirim Pengajuan Izin');
+
+            if (response.success) {
+                $('#izin-form')[0].reset();
+                showSuccessNonHadirModal(response.data, 'Izin');
+                loadWeeklyAttendance();
+            } else {
+                showError(response.message);
+            }
+        },
+        error: function(xhr) {
+            $('#submit-izin-btn').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Kirim Pengajuan Izin');
+
+            let message = 'Terjadi kesalahan saat mengirim izin';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+            showError(message);
+        }
+    });
+}
+
+// Sakit Form Handler
+function submitSakitForm(e) {
+    e.preventDefault();
+
+    const keterangan = $('#sakit-keterangan').val().trim();
+    if (!keterangan) {
+        showError('Keterangan sakit harus diisi');
+        return;
+    }
+
+    $('#submit-sakit-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Mengirim...');
+
+    const formData = new FormData();
+    formData.append('type', 'sakit');
+    formData.append('keterangan', keterangan);
+
+    const suratDokter = $('#sakit-surat-dokter')[0].files[0];
+    if (suratDokter) {
+        formData.append('surat_dokter', suratDokter);
+    }
+
+    $.ajax({
+        url: '{{ route("guru.absensi-guru.store-non-hadir") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            $('#submit-sakit-btn').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Kirim Laporan Sakit');
+
+            if (response.success) {
+                $('#sakit-form')[0].reset();
+                showSuccessNonHadirModal(response.data, 'Sakit');
+                loadWeeklyAttendance();
+            } else {
+                showError(response.message);
+            }
+        },
+        error: function(xhr) {
+            $('#submit-sakit-btn').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Kirim Laporan Sakit');
+
+            let message = 'Terjadi kesalahan saat mengirim laporan sakit';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+            showError(message);
+        }
+    });
+}
+
+function showSuccessNonHadirModal(data, type) {
+    const statusClass = type === 'Izin' ? 'info' : 'danger';
+    const statusIcon = type === 'Izin' ? 'file-medical' : 'notes-medical';
+
+    const modal = $(`
+        <div class="modal fade" id="successModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-${statusClass} text-white border-0">
+                        <h5 class="modal-title">
+                            <i class="fas fa-${statusIcon} me-2"></i>Laporan ${type} Berhasil
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center p-4">
+                        <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
+                        <h5>Laporan ${type} Tersimpan</h5>
+                        <p class="text-muted mb-3">
+                            Tanggal: <strong>${data.tanggal}</strong><br>
+                            Status: <strong>${type}</strong>
+                        </p>
+                        <div class="alert alert-${statusClass}">
+                            <small>${data.message || 'Laporan Anda telah dicatat. Semoga cepat sembuh dan bisa kembali beraktivitas.'}</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="fas fa-check me-2"></i>Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    $('body').append(modal);
+    const modalElement = new bootstrap.Modal(document.getElementById('successModal'));
+    modalElement.show();
+
+    $('#successModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
 }
 </script>
 

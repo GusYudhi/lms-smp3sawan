@@ -131,9 +131,12 @@ class AbsensiGuruController extends Controller
     public function weekly(Request $request)
     {
         try {
-            // Get current week (Monday to Saturday)
-            $startOfWeek = Carbon::now()->startOfWeek(); // Monday
-            $endOfWeek = Carbon::now()->startOfWeek()->addDays(5); // Saturday
+            // Get date from request or use today
+            $referenceDate = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::now();
+
+            // Get start of week (Monday) for the reference date
+            $startOfWeek = $referenceDate->copy()->startOfWeek(); // Monday
+            $endOfWeek = $startOfWeek->copy()->addDays(5); // Saturday
 
             // Get attendance records for this week
             $attendances = GuruAttendance::where('user_id', auth()->id())
@@ -141,19 +144,44 @@ class AbsensiGuruController extends Controller
                 ->orderBy('tanggal')
                 ->get();
 
+            // Debug: Log the query and results
+            logger()->info('Weekly Attendance Query', [
+                'user_id' => auth()->id(),
+                'start_date' => $startOfWeek->format('Y-m-d'),
+                'end_date' => $endOfWeek->format('Y-m-d'),
+                'found_records' => $attendances->count(),
+                'records' => $attendances->map(function($att) {
+                    return [
+                        'id' => $att->id,
+                        'tanggal' => $att->tanggal,
+                        'status' => $att->status,
+                        'waktu' => $att->waktu_absen ? $att->waktu_absen->format('Y-m-d H:i:s') : null
+                    ];
+                })->toArray()
+            ]);
+
             // Map to days of week (0=Monday, 5=Saturday)
             $weekData = [];
             $daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
             for ($i = 0; $i < 6; $i++) {
                 $date = $startOfWeek->copy()->addDays($i);
-                $attendance = $attendances->firstWhere('tanggal', $date->format('Y-m-d'));
+                $dateString = $date->format('Y-m-d');
+
+                // Find attendance for this date
+                $attendance = $attendances->first(function($att) use ($dateString) {
+                    return $att->tanggal->format('Y-m-d') === $dateString;
+                });
 
                 $weekData[] = [
                     'hari' => $daysOfWeek[$i],
                     'tanggal' => $date->format('d M'),
+                    'tanggal_full' => $dateString,
                     'status' => $attendance ? $attendance->status : null,
-                    'waktu' => $attendance ? $attendance->waktu_absen->format('H:i') : null
+                    'waktu' => $attendance && $attendance->waktu_absen ? $attendance->waktu_absen->format('H:i') : null,
+                    'keterangan' => $attendance ? $attendance->keterangan : null,
+                    'dokumen' => $attendance && $attendance->dokumen_path ? true : false,
+                    'has_attendance' => $attendance ? true : false // Debug field
                 ];
             }
 
@@ -161,7 +189,7 @@ class AbsensiGuruController extends Controller
             $statistics = [
                 'hadir' => $attendances->where('status', 'hadir')->count(),
                 'terlambat' => $attendances->where('status', 'terlambat')->count(),
-                'izin' => $attendances->where('status', 'izin')->count(),
+                'izin' => $attendances->whereIn('status', ['izin', 'sakit'])->count(),
                 'alpha' => 0 // To be calculated based on working days vs attendance
             ];
 
@@ -170,11 +198,106 @@ class AbsensiGuruController extends Controller
             $totalAttendance = $statistics['hadir'] + $statistics['terlambat'] + $statistics['izin'];
             $statistics['alpha'] = max(0, $workingDays - $totalAttendance);
 
+            // Week information
+            $weekInfo = [
+                'week_number' => $startOfWeek->weekOfYear,
+                'start_date' => $startOfWeek->format('d M Y'),
+                'end_date' => $endOfWeek->format('d M Y')
+            ];
+
             return response()->json([
                 'success' => true,
                 'data' => $weekData,
                 'statistics' => $statistics,
+                'week_info' => $weekInfo,
                 'week_range' => $startOfWeek->format('d M') . ' - ' . $endOfWeek->format('d M Y')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Store non-attendance (izin/sakit) with optional document
+     */
+    public function storeNonHadir(Request $request)
+    {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:izin,sakit',
+            'alasan' => 'required_if:type,izin|string|min:10',
+            'keterangan' => 'required_if:type,sakit|string|min:10',
+            'dokumen' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'surat_dokter' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid: ' . $validator->errors()->first(),
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Check if already checked in today
+            $today = Carbon::today();
+            $existingAttendance = GuruAttendance::where('user_id', auth()->id())
+                ->whereDate('tanggal', $today)
+                ->first();
+
+            if ($existingAttendance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah melakukan absensi hari ini'
+                ], 400);
+            }
+
+            $type = $request->type;
+
+            // Get keterangan based on type
+            $keterangan = $type === 'izin' ? $request->alasan : $request->keterangan;
+            $dokumenPath = null;
+
+            // Store document if provided
+            $dokumenFile = $request->file('dokumen') ?? $request->file('surat_dokter');
+            if ($dokumenFile) {
+                $dokumenName = 'guru_' . $type . '_' . auth()->id() . '_' . time() . '.' . $dokumenFile->getClientOriginalExtension();
+                $dokumenPath = $dokumenFile->storeAs('attendance/guru/dokumen', $dokumenName, 'public');
+            }
+
+            // Create attendance record
+            $currentTime = Carbon::now();
+            $attendance = GuruAttendance::create([
+                'user_id' => auth()->id(),
+                'tanggal' => $today,
+                'waktu_absen' => $currentTime,
+                'status' => $type,
+                'keterangan' => $keterangan,
+                'dokumen_path' => $dokumenPath,
+                'photo_path' => null,
+                'latitude' => null,
+                'longitude' => null,
+                'distance_from_school' => null,
+                'accuracy' => null
+            ]);
+
+            $message = $type === 'izin'
+                ? 'Pengajuan izin berhasil. Semoga urusan Anda lancar.'
+                : 'Laporan sakit berhasil dicatat. Semoga cepat sembuh.';
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan berhasil disimpan',
+                'data' => [
+                    'status' => $type,
+                    'tanggal' => $today->format('d F Y'),
+                    'message' => $message
+                ]
             ]);
 
         } catch (\Exception $e) {

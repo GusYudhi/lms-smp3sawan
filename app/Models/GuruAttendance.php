@@ -16,7 +16,9 @@ class GuruAttendance extends Model
         'tanggal',
         'waktu_absen',
         'status',
+        'keterangan',
         'photo_path',
+        'dokumen_path',
         'latitude',
         'longitude',
         'distance_from_school',
@@ -49,6 +51,7 @@ class GuruAttendance extends Model
             'hadir' => '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Hadir</span>',
             'terlambat' => '<span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Terlambat</span>',
             'izin' => '<span class="badge bg-info"><i class="fas fa-file-medical me-1"></i>Izin</span>',
+            'sakit' => '<span class="badge bg-danger"><i class="fas fa-notes-medical me-1"></i>Sakit</span>',
             'alpha' => '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Alpha</span>'
         ];
 
@@ -62,6 +65,17 @@ class GuruAttendance extends Model
     {
         if ($this->photo_path) {
             return asset('storage/' . $this->photo_path);
+        }
+        return null;
+    }
+
+    /**
+     * Get dokumen URL
+     */
+    public function getDokumenUrl()
+    {
+        if ($this->dokumen_path) {
+            return asset('storage/' . $this->dokumen_path);
         }
         return null;
     }

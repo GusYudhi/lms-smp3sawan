@@ -133,6 +133,7 @@ Route::middleware(['auth'])->group(function () {
         // Teacher Self-Attendance routes
         Route::get('/absensi-guru', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'index'])->name('guru.absensi-guru');
         Route::post('/absensi-guru/store', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'store'])->name('guru.absensi-guru.store');
+        Route::post('/absensi-guru/store-non-hadir', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'storeNonHadir'])->name('guru.absensi-guru.store-non-hadir');
         Route::get('/absensi-guru/weekly', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'weekly'])->name('guru.absensi-guru.weekly');
 
         // Teaching Schedule routes
