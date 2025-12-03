@@ -40,6 +40,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/guru/create', [App\Http\Controllers\Admin\AdminController::class, 'createGuru'])->name('admin.guru.create');
         Route::get('/guru/search', [App\Http\Controllers\Admin\AdminController::class, 'searchGuru'])->name('admin.guru.search');
         Route::get('/guru/export', [App\Http\Controllers\Admin\AdminController::class, 'exportGuru'])->name('admin.guru.export');
+
+        // API for autocomplete
+        Route::get('/api/mata-pelajaran', [App\Http\Controllers\Admin\AdminController::class, 'getMataPelajaran'])->name('admin.api.mata-pelajaran');
+        Route::get('/api/kelas', [App\Http\Controllers\Admin\AdminController::class, 'getKelas'])->name('admin.api.kelas');
         Route::get('/guru/template', [App\Http\Controllers\Admin\AdminController::class, 'downloadTemplateGuru'])->name('admin.guru.template');
         Route::post('/guru/import', [App\Http\Controllers\Admin\AdminController::class, 'importGuru'])->name('admin.guru.import');
         Route::post('/guru/store', [App\Http\Controllers\Admin\AdminController::class, 'storeGuru'])->name('admin.guru.store');
@@ -135,6 +139,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/absensi-guru/store', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'store'])->name('guru.absensi-guru.store');
         Route::post('/absensi-guru/store-non-hadir', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'storeNonHadir'])->name('guru.absensi-guru.store-non-hadir');
         Route::get('/absensi-guru/weekly', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'weekly'])->name('guru.absensi-guru.weekly');
+        Route::get('/absensi-guru/school-location', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'getSchoolLocation'])->name('guru.absensi-guru.school-location');
 
         // Teaching Schedule routes
         Route::get('/jadwal-mengajar', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'index'])->name('guru.jadwal-mengajar');

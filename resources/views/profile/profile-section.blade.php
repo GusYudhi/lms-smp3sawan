@@ -317,10 +317,12 @@
                                             <input type="text"
                                                    id="nomor_induk"
                                                    name="nomor_induk"
-                                                   class="form-control"
+                                                   class="form-control bg-light"
                                                    placeholder="Masukkan {{ strtolower($user->getNomorIndukLabel()) }}"
-                                                   value="{{ old('nomor_induk', $user->nomor_induk) }}">
+                                                   value="{{ old('nomor_induk', $profile->nip ?? '') }}"
+                                                   readonly>
                                         </div>
+                                        <small class="text-muted">Data ini tidak dapat diubah</small>
                                     </div>
                                 </div>
 
@@ -339,7 +341,7 @@
                                                    name="nomor_telepon"
                                                    class="form-control"
                                                    placeholder="Contoh: 081234567890"
-                                                   value="{{ old('nomor_telepon', $user->nomor_telepon) }}">
+                                                   value="{{ old('nomor_telepon', $profile->nomor_telepon ?? '') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -352,8 +354,8 @@
                                         </label>
                                         <select id="jenis_kelamin" name="jenis_kelamin" class="form-select">
                                             <option value="">Pilih Jenis Kelamin</option>
-                                            <option value="L" {{ old('jenis_kelamin', $user->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki</option>
-                                            <option value="P" {{ old('jenis_kelamin', $user->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
+                                            <option value="L" {{ old('jenis_kelamin', $profile->jenis_kelamin ?? '') == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                            <option value="P" {{ old('jenis_kelamin', $profile->jenis_kelamin ?? '') == 'P' ? 'selected' : '' }}>Perempuan</option>
                                         </select>
                                     </div>
                                 </div>
@@ -373,7 +375,7 @@
                                                    name="tempat_lahir"
                                                    class="form-control"
                                                    placeholder="Masukkan tempat lahir"
-                                                   value="{{ old('tempat_lahir', $user->tempat_lahir) }}">
+                                                   value="{{ old('tempat_lahir', $profile->tempat_lahir ?? '') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -392,7 +394,7 @@
                                                    id="tanggal_lahir"
                                                    name="tanggal_lahir"
                                                    class="form-control"
-                                                   value="{{ old('tanggal_lahir', $user->tanggal_lahir) }}">
+                                                   value="{{ old('tanggal_lahir', $profile && $profile->tanggal_lahir ? $profile->tanggal_lahir->format('Y-m-d') : '') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -406,9 +408,11 @@
                                             </label>
                                             <select id="status_kepegawaian" name="status_kepegawaian" class="form-select">
                                                 <option value="">Pilih Status Kepegawaian</option>
-                                                <option value="PNS" {{ old('status_kepegawaian', $user->status_kepegawaian) == 'PNS' ? 'selected' : '' }}>PNS</option>
-                                                <option value="Honor" {{ old('status_kepegawaian', $user->status_kepegawaian) == 'Honor' ? 'selected' : '' }}>Honor</option>
-                                                <option value="Kontrak" {{ old('status_kepegawaian', $user->status_kepegawaian) == 'Kontrak' ? 'selected' : '' }}>Kontrak</option>
+                                                <option value="PNS" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'PNS' ? 'selected' : '' }}>PNS</option>
+                                                <option value="PPPK" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
+                                                <option value="GTT" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTT' ? 'selected' : '' }}>GTT (Guru Tidak Tetap)</option>
+                                                <option value="GTY" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTY' ? 'selected' : '' }}>GTY (Guru Tetap Yayasan)</option>
+                                                <option value="GTK" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTK' ? 'selected' : '' }}>GTK (Guru Tenaga Kependidikan)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -428,7 +432,7 @@
                                                        name="golongan"
                                                        class="form-control"
                                                        placeholder="Contoh: III/a"
-                                                       value="{{ old('golongan', $user->golongan) }}">
+                                                       value="{{ old('golongan', $profile->golongan ?? '') }}">
                                             </div>
                                         </div>
                                     </div>
@@ -448,7 +452,7 @@
                                                        name="mata_pelajaran"
                                                        class="form-control"
                                                        placeholder="Contoh: Matematika"
-                                                       value="{{ old('mata_pelajaran', $user->mata_pelajaran) }}">
+                                                       value="{{ old('mata_pelajaran', is_array($profile->mata_pelajaran ?? null) ? implode(', ', $profile->mata_pelajaran) : ($profile->mata_pelajaran ?? '')) }}">
                                             </div>
                                         </div>
                                     </div>
@@ -468,7 +472,7 @@
                                                        name="wali_kelas"
                                                        class="form-control"
                                                        placeholder="Contoh: 7-A"
-                                                       value="{{ old('wali_kelas', $user->wali_kelas) }}">
+                                                       value="{{ old('wali_kelas', $profile->wali_kelas ?? '') }}">
                                             </div>
                                         </div>
                                     </div>

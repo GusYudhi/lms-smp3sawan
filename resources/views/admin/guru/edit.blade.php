@@ -155,6 +155,33 @@
                                     @enderror
                                 </div>
                             </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label for="tempat_lahir" class="form-label fw-medium">Tempat Lahir</label>
+                                    <input type="text"
+                                           class="form-control @error('tempat_lahir') is-invalid @enderror"
+                                           id="tempat_lahir"
+                                           name="tempat_lahir"
+                                           value="{{ old('tempat_lahir', $teacher->guruProfile->tempat_lahir ?? '') }}"
+                                           placeholder="Contoh: Jakarta">
+                                    @error('tempat_lahir')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="tanggal_lahir" class="form-label fw-medium">Tanggal Lahir</label>
+                                    <input type="date"
+                                           class="form-control @error('tanggal_lahir') is-invalid @enderror"
+                                           id="tanggal_lahir"
+                                           name="tanggal_lahir"
+                                           value="{{ old('tanggal_lahir', $teacher->guruProfile->tanggal_lahir ? $teacher->guruProfile->tanggal_lahir->format('Y-m-d') : '') }}">
+                                    @error('tanggal_lahir')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Professional Information Section -->
@@ -165,39 +192,67 @@
 
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('mata_pelajaran') is-invalid @enderror"
-                                            id="mata_pelajaran"
-                                            name="mata_pelajaran"
-                                            required>
-                                        <option value="">Pilih Mata Pelajaran</option>
+                                    <label for="jabatan_di_sekolah" class="form-label fw-medium">Jabatan di Sekolah</label>
+                                    <select class="form-select @error('jabatan_di_sekolah') is-invalid @enderror"
+                                            id="jabatan_di_sekolah" name="jabatan_di_sekolah">
+                                        <option value="">Pilih Jabatan (Opsional)</option>
                                         @php
-                                        $mataPelajaran = [
-                                            'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA Fisika',
-                                            'IPA Biologi', 'IPS Sejarah', 'IPS Geografi', 'IPS Ekonomi',
-                                            'PKN', 'Pendidikan Jasmani', 'Seni Budaya', 'Prakarya',
-                                            'Bahasa Daerah', 'Teknologi Informasi', 'Bimbingan Konseling'
+                                        $jabatanList = [
+                                            'Kepala Sekolah',
+                                            'Wakil Kepala Sekolah Kurikulum',
+                                            'Wakil Kepala Sekolah Kesiswaan',
+                                            'Wakil Kepala Sekolah Sarana Prasarana',
+                                            'Wakil Kepala Sekolah Humas',
+                                            'Koordinator BK',
+                                            'Guru',
+                                            'Guru BK',
+                                            'Kepala Laboratorium',
+                                            'Kepala Perpustakaan',
+                                            'Staff TU',
+                                            'Operator Sekolah',
+                                            'Petugas Kebersihan',
+                                            'Petugas Keamanan'
                                         ];
-                                        $currentMapel = old('mata_pelajaran', $teacher->guruProfile->mata_pelajaran[0] ?? '');
+                                        $currentJabatan = old('jabatan_di_sekolah', $teacher->guruProfile->jabatan_di_sekolah ?? '');
                                         @endphp
-                                        @foreach($mataPelajaran as $mapel)
-                                        <option value="{{ $mapel }}" {{ $currentMapel === $mapel ? 'selected' : '' }}>
-                                            {{ $mapel }}
+                                        @foreach($jabatanList as $jabatan)
+                                        <option value="{{ $jabatan }}" {{ $currentJabatan === $jabatan ? 'selected' : '' }}>
+                                            {{ $jabatan }}
                                         </option>
                                         @endforeach
                                     </select>
-                                    @error('mata_pelajaran')
+                                    <div class="form-text">Kosongkan jika hanya sebagai Guru biasa</div>
+                                    @error('jabatan_di_sekolah')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="status_kepegawaian" class="form-label fw-medium">Status Kepegawaian <span class="text-danger">*</span></label>
+                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran</label>
+                                    @php
+                                        $currentMapel = old('mata_pelajaran', $teacher->guruProfile->mata_pelajaran[0] ?? '');
+                                    @endphp
+                                    <input type="text"
+                                           class="form-control @error('mata_pelajaran') is-invalid @enderror"
+                                           id="mata_pelajaran"
+                                           name="mata_pelajaran_display"
+                                           placeholder="Ketik nama mata pelajaran..."
+                                           value="{{ old('mata_pelajaran_display', $currentMapel) }}"
+                                           autocomplete="off">
+                                    <input type="hidden" id="mata_pelajaran_hidden" name="mata_pelajaran" value="{{ old('mata_pelajaran', $currentMapel) }}">
+                                    <div id="mata-pelajaran-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    <div class="form-text">Kosongkan jika Guru BK atau jabatan non-pengajar</div>
+                                    @error('mata_pelajaran')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="status_kepegawaian" class="form-label fw-medium">Status Kepegawaian</label>
                                     <select class="form-select @error('status_kepegawaian') is-invalid @enderror"
                                             id="status_kepegawaian"
-                                            name="status_kepegawaian"
-                                            required>
-                                        <option value="">Pilih Status Kepegawaian</option>
+                                            name="status_kepegawaian">
+                                        <option value="">Pilih Status Kepegawaian (Opsional)</option>
                                         <option value="PNS" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'PNS' ? 'selected' : '' }}>
                                             PNS
                                         </option>
@@ -222,16 +277,23 @@
 
                             <div class="row g-3 mt-2">
                                 <div class="col-md-6">
-                                    <label for="wali_kelas" class="form-label fw-medium">Wali Kelas</label>
+                                    <label for="kelas_id" class="form-label fw-medium">Wali Kelas</label>
+                                    @php
+                                        $currentKelas = $teacher->guruProfile->kelas ?? null;
+                                        $currentKelasDisplay = $currentKelas ? "{$currentKelas->tingkat} {$currentKelas->nama_kelas}" : '';
+                                    @endphp
                                     <input type="text"
-                                           class="form-control @error('wali_kelas') is-invalid @enderror"
-                                           id="wali_kelas"
-                                           name="wali_kelas"
-                                           value="{{ old('wali_kelas', $teacher->guruProfile->wali_kelas ?? '') }}"
-                                           placeholder="Contoh: VII-A, VIII-B, IX-C">
+                                           class="form-control @error('kelas_id') is-invalid @enderror"
+                                           id="kelas_id"
+                                           name="kelas_display"
+                                           placeholder="Ketik tingkat/nama kelas (misal: 7 atau 7A)..."
+                                           value="{{ old('kelas_display', $currentKelasDisplay) }}"
+                                           autocomplete="off">
+                                    <input type="hidden" id="kelas_id_hidden" name="kelas_id" value="{{ old('kelas_id', $teacher->guruProfile->kelas_id ?? '') }}">
+                                    <div id="kelas-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
                                     <div class="form-text">Kosongkan jika tidak menjadi wali kelas</div>
-                                    @error('wali_kelas')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @error('kelas_id')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -320,7 +382,7 @@ function previewPhoto(input) {
     }
 }
 
-// Form validation
+// Form validation and autocomplete
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('teacherForm');
     const password = document.getElementById('password');
@@ -341,6 +403,110 @@ document.addEventListener('DOMContentLoaded', function() {
 
     password.addEventListener('input', validatePassword);
     passwordConfirm.addEventListener('input', validatePassword);
+
+    // Autocomplete for Mata Pelajaran
+    const mataPelajaranInput = document.getElementById('mata_pelajaran');
+    const mataPelajaranHidden = document.getElementById('mata_pelajaran_hidden');
+    const mataPelajaranDropdown = document.getElementById('mata-pelajaran-dropdown');
+    let mataPelajaranTimeout;
+
+    mataPelajaranInput.addEventListener('input', function() {
+        clearTimeout(mataPelajaranTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 1) {
+            mataPelajaranDropdown.classList.remove('show');
+            return;
+        }
+
+        mataPelajaranTimeout = setTimeout(() => {
+            fetch(`{{ route('admin.api.mata-pelajaran') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    mataPelajaranDropdown.innerHTML = '';
+
+                    if (data.length === 0) {
+                        mataPelajaranDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada mata pelajaran ditemukan</div>';
+                    } else {
+                        data.forEach(mapel => {
+                            const item = document.createElement('a');
+                            item.className = 'dropdown-item';
+                            item.href = '#';
+                            item.textContent = `${mapel.nama_mapel} (${mapel.kode_mapel})`;
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                mataPelajaranInput.value = mapel.nama_mapel;
+                                mataPelajaranHidden.value = mapel.nama_mapel;
+                                mataPelajaranDropdown.classList.remove('show');
+                            });
+                            mataPelajaranDropdown.appendChild(item);
+                        });
+                    }
+
+                    mataPelajaranDropdown.classList.add('show');
+                })
+                .catch(error => {
+                    console.error('Error fetching mata pelajaran:', error);
+                });
+        }, 300);
+    });
+
+    // Autocomplete for Kelas
+    const kelasInput = document.getElementById('kelas_id');
+    const kelasHidden = document.getElementById('kelas_id_hidden');
+    const kelasDropdown = document.getElementById('kelas-dropdown');
+    let kelasTimeout;
+
+    kelasInput.addEventListener('input', function() {
+        clearTimeout(kelasTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 1) {
+            kelasDropdown.classList.remove('show');
+            return;
+        }
+
+        kelasTimeout = setTimeout(() => {
+            fetch(`{{ route('admin.api.kelas') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    kelasDropdown.innerHTML = '';
+
+                    if (data.length === 0) {
+                        kelasDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada kelas ditemukan</div>';
+                    } else {
+                        data.forEach(kelas => {
+                            const item = document.createElement('a');
+                            item.className = 'dropdown-item';
+                            item.href = '#';
+                            item.textContent = `Kelas ${kelas.tingkat} ${kelas.nama_kelas}`;
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                kelasInput.value = `${kelas.tingkat} ${kelas.nama_kelas}`;
+                                kelasHidden.value = kelas.id;
+                                kelasDropdown.classList.remove('show');
+                            });
+                            kelasDropdown.appendChild(item);
+                        });
+                    }
+
+                    kelasDropdown.classList.add('show');
+                })
+                .catch(error => {
+                    console.error('Error fetching kelas:', error);
+                });
+        }, 300);
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!mataPelajaranInput.contains(e.target) && !mataPelajaranDropdown.contains(e.target)) {
+            mataPelajaranDropdown.classList.remove('show');
+        }
+        if (!kelasInput.contains(e.target) && !kelasDropdown.contains(e.target)) {
+            kelasDropdown.classList.remove('show');
+        }
+    });
 });
 </script>
 @endsection

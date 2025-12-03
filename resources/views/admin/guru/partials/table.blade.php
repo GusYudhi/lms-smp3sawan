@@ -5,7 +5,7 @@
                 <th scope="col" class="text-center fw-semibold">#</th>
                 <th scope="col" class="text-center fw-semibold">Foto</th>
                 <th scope="col" class="fw-semibold">Nama Lengkap</th>
-                <th scope="col" class="text-center fw-semibold">NIP/NIK</th>
+                <th scope="col" class="text-center fw-semibold">Jabatan</th>
                 <th scope="col" class="text-center fw-semibold">Mata Pelajaran</th>
                 <th scope="col" class="text-center fw-semibold">Status</th>
                 <th scope="col" class="text-center fw-semibold">Golongan</th>
@@ -35,7 +35,13 @@
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-light text-dark border">{{ $teacher->guruProfile->nip ?? '-' }}</span>
+                    @if($teacher->guruProfile && $teacher->guruProfile->jabatan_di_sekolah)
+                        <span class="badge bg-info-subtle text-info border">
+                            <i class="fas fa-user-tie me-1"></i>{{ $teacher->guruProfile->jabatan_di_sekolah }}
+                        </span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
                 </td>
                 <td class="text-center">
                     <span class="badge bg-primary-subtle text-primary border">{{ $teacher->guruProfile->subjects_string ?? '-' }}</span>
@@ -71,8 +77,10 @@
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
-                        <span class="badge bg-warning-subtle text-warning border">{{ $teacher->guruProfile->wali_kelas }}</span>
+                    @if($teacher->guruProfile && $teacher->guruProfile->kelas)
+                        <span class="badge bg-warning-subtle text-warning border">
+                            {{ $teacher->guruProfile->kelas->tingkat }} {{ $teacher->guruProfile->kelas->nama_kelas }}
+                        </span>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif
@@ -119,8 +127,8 @@
                 <td colspan="12" class="text-center py-5">
                     <div class="text-muted">
                         <i class="fas fa-users fa-3x opacity-25 mb-3 d-block"></i>
-                        <h6 class="mb-2 fw-semibold">Tidak ada data guru</h6>
-                        <p class="mb-0">Belum ada data guru yang ditemukan</p>
+                        <h6 class="mb-2 fw-semibold">Tidak ada data pegawai</h6>
+                        <p class="mb-0">Belum ada data pegawai yang ditemukan</p>
                     </div>
                 </td>
             </tr>

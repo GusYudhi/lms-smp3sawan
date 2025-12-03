@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\StudentProfile;
+use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +20,15 @@ class ProfileController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        return view('profile.profile-section');
+
+        // Eager load profile relationships based on role
+        if ($user->role === 'siswa') {
+            $user->load('studentProfile.kelas');
+        } elseif (in_array($user->role, ['guru', 'kepala_sekolah'])) {
+            $user->load('guruProfile');
+        }
+
+        return view('profile.profile-section', compact('user'));
     }
 
     /**
@@ -85,7 +94,7 @@ class ProfileController extends Controller
                     'status_kepegawaian' => 'nullable|string|in:PNS,Honor,Kontrak',
                     'golongan' => 'nullable|string|max:20',
                     'mata_pelajaran' => 'nullable|string|max:100',
-                    'wali_kelas' => 'nullable|string|max:10',
+                    'kelas_id' => 'nullable|exists:kelas,id',
                     'profile_photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
                 ], [
                     'name.required' => 'Nama lengkap wajib diisi',
@@ -103,38 +112,64 @@ class ProfileController extends Controller
                     'status_kepegawaian.in' => 'Status kepegawaian harus PNS, Honor, atau Kontrak',
                     'golongan.max' => 'Golongan maksimal 20 karakter',
                     'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
-                    'wali_kelas.max' => 'Wali kelas maksimal 10 karakter',
+                    'kelas_id.exists' => 'Kelas tidak valid',
                     'profile_photo.image' => 'File harus berupa gambar',
                     'profile_photo.mimes' => 'Format foto harus JPG, PNG, atau WebP',
                     'profile_photo.max' => 'Ukuran foto maksimal 2MB',
                     'golongan.max' => 'Golongan maksimal 20 karakter',
                     'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
-                    'wali_kelas.max' => 'Wali kelas maksimal 10 karakter',
                 ]);
 
-                // Handle profile photo upload for teachers/admin
+                // Handle profile photo upload for teachers
                 if ($request->hasFile('profile_photo')) {
                     $photo = $request->file('profile_photo');
 
-                    // Delete old photo if exists
-                    if ($user->profile_photo) {
-                        Storage::disk('public')->delete('profile_photos/' . $user->profile_photo);
+                    // Delete old photo if exists in guru profile
+                    if ($user->guruProfile && $user->guruProfile->foto_profil) {
+                        Storage::disk('public')->delete('profile_photos/' . $user->guruProfile->foto_profil);
                     }
 
-                    // Generate unique filename
-                    $extension = $photo->getClientOriginalExtension();
-                    $photoName = time() . '_' . $user->id . '_' . uniqid() . '.' . $extension;
+                    // Compress and store the photo as WebP
+                    $photoPath = ImageCompressor::compressAndStore(
+                        $photo,
+                        'profile_photos',
+                        time() . '_' . $user->id . '_' . uniqid()
+                    );
 
-                    // Store the file
-                    $photo->storeAs('profile_photos', $photoName, 'public');
-
-                    // Add photo name to validated data
-                    $validated['profile_photo'] = $photoName;
+                    // Store photo to guru profile (not user table)
+                    $validated['foto_profil'] = basename($photoPath);
                 }
 
-                // Update user data
-                $user->fill($validated);
+                // Update user basic data
+                $user->name = $validated['name'];
+                $user->email = $validated['email'];
                 $user->save();
+
+                // Update guru profile with all fields
+                if ($user->role === 'guru' || $user->role === 'kepala_sekolah') {
+                    $profileData = [
+                        'nama' => $validated['name'],
+                        'email' => $validated['email'],
+                        'nomor_telepon' => $validated['nomor_telepon'] ?? null,
+                        'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+                        'tempat_lahir' => $validated['tempat_lahir'] ?? null,
+                        'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+                        'status_kepegawaian' => $validated['status_kepegawaian'] ?? null,
+                        'golongan' => $validated['golongan'] ?? null,
+                        'mata_pelajaran' => $validated['mata_pelajaran'] ?? null,
+                        'kelas_id' => $validated['kelas_id'] ?? null,
+                    ];
+
+                    // Add foto_profil if uploaded
+                    if (isset($validated['foto_profil'])) {
+                        $profileData['foto_profil'] = $validated['foto_profil'];
+                    }
+
+                    $user->guruProfile()->updateOrCreate(
+                        ['user_id' => $user->id],
+                        $profileData
+                    );
+                }
             }
 
             Log::info('Profile updated successfully', [
@@ -289,6 +324,14 @@ class ProfileController extends Controller
 
             // Handle profile photo upload
             if ($request->hasFile('profile_photo')) {
+                // Admins are not allowed to upload profile photos per new policy
+                if ($user->role === 'admin') {
+                    Log::info('Admin attempted to upload profile photo - action skipped', ['user_id' => $user->id]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Admin tidak perlu mengunggah foto profil',
+                    ], 403);
+                }
                 $photo = $request->file('profile_photo');
 
                 // Check if file is valid
@@ -300,56 +343,50 @@ class ProfileController extends Controller
                     ], 422);
                 }
 
-                // Delete old photo if exists
+                // Delete old photo if exists based on user role
                 if ($user->role === 'siswa' && $user->studentProfile && $user->studentProfile->foto_profil) {
-                    // For students, delete from student profile
                     Storage::disk('public')->delete('profile_photos/' . $user->studentProfile->foto_profil);
                     Log::info('Old student photo deleted', ['old_photo' => $user->studentProfile->foto_profil]);
-                } elseif ($user->profile_photo) {
-                    // For other users, delete from user profile
-                    Storage::disk('public')->delete('profile_photos/' . $user->profile_photo);
-                    Log::info('Old photo deleted', ['old_photo' => $user->profile_photo]);
+                } elseif (in_array($user->role, ['guru', 'kepala_sekolah']) && $user->guruProfile && $user->guruProfile->foto_profil) {
+                    Storage::disk('public')->delete('profile_photos/' . $user->guruProfile->foto_profil);
+                    Log::info('Old guru photo deleted', ['old_photo' => $user->guruProfile->foto_profil]);
                 }
 
-                // Generate unique filename
-                $extension = $photo->getClientOriginalExtension();
-                $photoName = time() . '_' . $user->id . '_' . uniqid() . '.' . $extension;
+                // Compress and store the photo as WebP
+                $photoPath = ImageCompressor::compressAndStore(
+                    $photo,
+                    'profile_photos',
+                    time() . '_' . $user->id . '_' . uniqid()
+                );
 
-                Log::info('Storing photo', [
-                    'photo_name' => $photoName,
+                Log::info('Photo compressed and stored', [
+                    'photo_path' => $photoPath,
                     'original_name' => $photo->getClientOriginalName(),
                     'size' => $photo->getSize(),
                     'mime_type' => $photo->getMimeType()
                 ]);
 
-                // Store the file
-                $stored = $photo->storeAs('profile_photos', $photoName, 'public');
+                $photoName = basename($photoPath);
 
-                if (!$stored) {
-                    Log::error('Failed to store photo');
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Gagal menyimpan file foto',
-                    ], 500);
-                }
-
-                // Update user or student profile record
+                // Update profile photo based on user role
                 if ($user->role === 'siswa') {
-                    // For students, save photo in student profile
+                    // For students, save photo in student_profiles.foto_profil
                     $user->studentProfile()->updateOrCreate(
                         ['user_id' => $user->id],
                         ['foto_profil' => $photoName]
                     );
-                } else {
-                    // For other users, save in user profile
-                    $user->profile_photo = $photoName;
-                    $user->save();
+                } elseif (in_array($user->role, ['guru', 'kepala_sekolah'])) {
+                    // For teachers, save photo in guru_profiles.foto_profil
+                    $user->guruProfile()->updateOrCreate(
+                        ['user_id' => $user->id],
+                        ['foto_profil' => $photoName]
+                    );
                 }
 
                 Log::info('Photo stored successfully', [
                     'photo_name' => $photoName,
                     'user_id' => $user->id,
-                    'stored_path' => $stored
+                    'stored_path' => $photoPath
                 ]);
 
                 $profilePhotoUrl = asset('storage/profile_photos/' . $photoName);

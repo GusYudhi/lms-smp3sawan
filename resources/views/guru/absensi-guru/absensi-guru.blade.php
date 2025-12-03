@@ -62,6 +62,48 @@
                     <div class="tab-content" id="attendance-type-content">
                         <!-- Hadir Tab (Camera) -->
                         <div class="tab-pane fade show active" id="hadir-panel" role="tabpanel">
+
+                    @if($todayAttendance)
+                    <!-- Already Attended Today -->
+                    <div class="card border-success shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-check-circle text-success" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h4 class="text-success mb-3">
+                                        <i class="fas fa-calendar-check me-2"></i>Hari ini Anda sudah melakukan absensi
+                                    </h4>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block mb-1">Status Absensi</small>
+                                                <div>{!! $todayAttendance->getStatusBadge() !!}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block mb-1">Waktu Absensi</small>
+                                                <strong>{{ $todayAttendance->waktu_absen ? $todayAttendance->waktu_absen->format('H:i:s') : '-' }}</strong>
+                                            </div>
+                                        </div>
+                                        @if($todayAttendance->keterangan)
+                                        <div class="col-12">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block mb-1">Keterangan</small>
+                                                <p class="mb-0">{{ $todayAttendance->keterangan }}</p>
+                                            </div>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @else
                     <!-- Camera Container -->
                     <div class="camera-container text-center">
                         <div id="camera-placeholder">
@@ -125,12 +167,28 @@
                     <!-- Status Info -->
                     <div class="alert alert-info mt-3" role="alert">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Catatan:</strong> Absensi hadir hanya dapat dilakukan di area sekolah dengan radius maksimal 100 meter dari koordinat sekolah.
+                        <strong>Catatan:</strong> Absensi hadir hanya dapat dilakukan di area sekolah dengan radius maksimal 500 meter dari koordinat sekolah.
                     </div>
+                    @endif
                         </div>
 
                         <!-- Izin Tab -->
                         <div class="tab-pane fade" id="izin-panel" role="tabpanel">
+                            @if($todayAttendance)
+                            <!-- Already Attended Today -->
+                            <div class="card border-info shadow-sm">
+                                <div class="card-body p-4 text-center">
+                                    <div class="mb-3">
+                                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3">
+                                            <i class="fas fa-info-circle text-info" style="font-size: 2.5rem;"></i>
+                                        </div>
+                                    </div>
+                                    <h5 class="mb-3">Anda sudah melakukan absensi hari ini</h5>
+                                    <p class="text-muted mb-3">Form izin tidak dapat diakses karena Anda sudah absen dengan status:</p>
+                                    <div>{!! $todayAttendance->getStatusBadge() !!}</div>
+                                </div>
+                            </div>
+                            @else
                             <div class="text-center mb-4">
                                 <i class="fas fa-file-medical text-info fs-1 mb-3"></i>
                                 <h5>Form Izin</h5>
@@ -158,10 +216,26 @@
                                     <i class="fas fa-paper-plane me-2"></i>Kirim Pengajuan Izin
                                 </button>
                             </form>
+                            @endif
                         </div>
 
                         <!-- Sakit Tab -->
                         <div class="tab-pane fade" id="sakit-panel" role="tabpanel">
+                            @if($todayAttendance)
+                            <!-- Already Attended Today -->
+                            <div class="card border-info shadow-sm">
+                                <div class="card-body p-4 text-center">
+                                    <div class="mb-3">
+                                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3">
+                                            <i class="fas fa-info-circle text-info" style="font-size: 2.5rem;"></i>
+                                        </div>
+                                    </div>
+                                    <h5 class="mb-3">Anda sudah melakukan absensi hari ini</h5>
+                                    <p class="text-muted mb-3">Form sakit tidak dapat diakses karena Anda sudah absen dengan status:</p>
+                                    <div>{!! $todayAttendance->getStatusBadge() !!}</div>
+                                </div>
+                            </div>
+                            @else
                             <div class="text-center mb-4">
                                 <i class="fas fa-notes-medical text-danger fs-1 mb-3"></i>
                                 <h5>Form Sakit</h5>
@@ -189,6 +263,7 @@
                                     <i class="fas fa-paper-plane me-2"></i>Kirim Laporan Sakit
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -275,11 +350,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// School coordinates from config
-const SCHOOL_COORDINATES = {
-    latitude: {{ config('school.latitude') }},
-    longitude: {{ config('school.longitude') }},
-    radius: {{ config('school.attendance_radius') }}
+// School configuration - will be loaded from API
+let schoolConfig = {
+    latitude: null,
+    longitude: null,
+    radius: 500,
+    name: ''
 };
 
 let videoStream = null;
@@ -288,6 +364,9 @@ let capturedPhoto = null;
 let currentLocation = null;
 
 $(document).ready(function() {
+    // Load school location from database
+    loadSchoolLocation();
+
     // Update time every second
     setInterval(updateTime, 1000);
 
@@ -312,6 +391,26 @@ $(document).ready(function() {
     $('#izin-form').submit(submitIzinForm);
     $('#sakit-form').submit(submitSakitForm);
 });
+
+function loadSchoolLocation() {
+    $.ajax({
+        url: '{{ route("guru.absensi-guru.school-location") }}',
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                schoolConfig.latitude = response.data.latitude;
+                schoolConfig.longitude = response.data.longitude;
+                schoolConfig.radius = response.data.radius;
+                schoolConfig.name = response.data.school_name;
+                console.log('School location loaded:', schoolConfig);
+            }
+        },
+        error: function(xhr) {
+            console.error('Failed to load school location:', xhr);
+            showError('Gagal memuat koordinat sekolah. Hubungi administrator.');
+        }
+    });
+}
 
 function updateTime() {
     const now = new Date();
@@ -395,15 +494,22 @@ async function capturePhoto() {
     try {
         currentLocation = await getCurrentLocation();
 
+        // Check if school location is loaded
+        if (!schoolConfig.latitude || !schoolConfig.longitude) {
+            $('#loading-spinner').hide();
+            showError('Koordinat sekolah belum dimuat. Refresh halaman atau hubungi administrator.');
+            return;
+        }
+
         // Verify location is within school radius
         const distance = calculateDistance(
             currentLocation.latitude,
             currentLocation.longitude,
-            SCHOOL_COORDINATES.latitude,
-            SCHOOL_COORDINATES.longitude
+            schoolConfig.latitude,
+            schoolConfig.longitude
         );
 
-        if (distance > SCHOOL_COORDINATES.radius) {
+        if (distance > schoolConfig.radius) {
             $('#loading-spinner').hide();
             showLocationError(distance);
             return;
@@ -570,7 +676,7 @@ function showLocationError(distance) {
                         <h5>Anda Berada Di Luar Area Sekolah</h5>
                         <p class="text-muted mb-3">
                             Jarak Anda dari sekolah: <strong>${distance.toFixed(2)} meter</strong><br>
-                            Maksimal jarak yang diperbolehkan: <strong>${SCHOOL_COORDINATES.radius} meter</strong>
+                            Maksimal jarak yang diperbolehkan: <strong>${schoolConfig.radius} meter</strong>
                         </p>
                         <div class="alert alert-warning">
                             <i class="fas fa-info-circle me-2"></i>
@@ -636,6 +742,8 @@ function showSuccessModal(data) {
 
     $('#successModal').on('hidden.bs.modal', function() {
         $(this).remove();
+        // Refresh halaman untuk menampilkan data terbaru
+        location.reload();
     });
 }
 
@@ -948,6 +1056,8 @@ function showSuccessNonHadirModal(data, type) {
 
     $('#successModal').on('hidden.bs.modal', function() {
         $(this).remove();
+        // Refresh halaman untuk menampilkan data terbaru
+        location.reload();
     });
 }
 </script>

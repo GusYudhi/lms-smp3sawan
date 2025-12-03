@@ -42,9 +42,9 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h1 class="h3 mb-2 text-high-contrast">
-                                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Data Guru
+                                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Data Pegawai dan Tenaga Pendidik
                             </h1>
-                            <p class="text-subtle mb-0 fw-medium">Kelola informasi data guru dan tenaga pendidik</p>
+                            <p class="text-subtle mb-0 fw-medium">Kelola informasi data pegawai dan tenaga pendidik</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex flex-wrap gap-2 justify-content-end">
@@ -54,7 +54,7 @@
                                 </button>
                                 <a href="{{ route('admin.guru.create') }}" class="btn btn-primary shadow-sm">
                                     <i class="fas fa-plus me-1"></i>
-                                    <span class="d-none d-sm-inline">Tambah Guru</span>
+                                    <span class="d-none d-sm-inline">Tambah Pegawai</span>
                                 </a>
                                 <a href="{{ route('admin.guru.export') }}" class="btn btn-outline-secondary shadow-sm">
                                     <i class="fas fa-download me-1"></i>
@@ -134,7 +134,7 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Wali Kelas</h6>
-                    <h2 class="text-secondary fw-bold mb-1">{{ \App\Models\GuruProfile::whereNotNull('wali_kelas')->where('wali_kelas', '!=', '')->count() }}</h2>
+                    <h2 class="text-secondary fw-bold mb-1">{{ \App\Models\GuruProfile::whereNotNull('kelas_id')->count() }}</h2>
                     <small class="text-subtle fw-medium">Total Kelas</small>
                 </div>
             </div>
@@ -238,7 +238,7 @@
                     <div class="row align-items-center">
                         <div class="col">
                             <h6 class="card-title mb-0 text-high-contrast fw-semibold">
-                                <i class="fas fa-table text-primary me-2"></i>Daftar Guru
+                                <i class="fas fa-table text-primary me-2"></i>Daftar Pegawai dan Tenaga Pendidik
                             </h6>
                         </div>
                         <div class="col-auto">

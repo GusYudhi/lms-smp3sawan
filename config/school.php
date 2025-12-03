@@ -11,8 +11,8 @@ return [
     |
     */
 
-    'latitude' => env('SCHOOL_LATITUDE', -8.6705),
-    'longitude' => env('SCHOOL_LONGITUDE', 115.2126),
+    'latitude' => env('SCHOOL_LATITUDE', -8.13308),
+    'longitude' => env('SCHOOL_LONGITUDE', 115.15520),
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ return [
     |
     */
 
-    'attendance_radius' => env('SCHOOL_ATTENDANCE_RADIUS', 100),
+    'attendance_radius' => env('SCHOOL_ATTENDANCE_RADIUS', 500),
 
     /*
     |--------------------------------------------------------------------------
@@ -35,5 +35,5 @@ return [
     |
     */
 
-    'late_threshold' => env('SCHOOL_LATE_THRESHOLD', '07:30'),
+    'late_threshold' => env('SCHOOL_LATE_THRESHOLD', '08:00'),
 ];

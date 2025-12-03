@@ -25,7 +25,8 @@ class GuruProfile extends Model
         'status_kepegawaian',
         'golongan',
         'mata_pelajaran',
-        'wali_kelas',
+        'kelas_id',
+        'jabatan_di_sekolah',
         'password',
         'is_active',
     ];
@@ -92,10 +93,26 @@ class GuruProfile extends Model
     }
 
     /**
+     * Get the position (jabatan) at school
+     */
+    public function getJabatanDiSekolahAttribute()
+    {
+        return $this->attributes['jabatan_di_sekolah'] ?? null;
+    }
+
+    /**
      * Get school where this teacher is kepala sekolah
      */
     public function schoolAsKepalaSekolah()
     {
         return $this->hasOne(SchoolProfile::class, 'id_kepala_sekolah');
+    }
+
+    /**
+     * Get the kelas that this teacher is wali kelas of
+     */
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 }

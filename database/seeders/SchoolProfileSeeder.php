@@ -17,26 +17,24 @@ class SchoolProfileSeeder extends Seeder
         SchoolProfile::updateOrCreate(
             ['id' => 1],
             [
-                'name' => 'SMPN 3 SAWAN',
-                'visi' => 'Menjadi sekolah unggulan yang menghasilkan lulusan berkualitas, berkarakter, dan berdaya saing global dengan mengutamakan nilai-nilai Pancasila dan budaya lokal.',
+                'name' => 'SMP NEGERI 3 SAWAN',
+                'visi' => 'Terwujud Lulusan yang Unggul dalam Prestasi, Berkarakter, dan Berwawasan lingkungan',
                 'misi' => [
-                    'Menyelenggarakan pendidikan yang berkualitas dan berstandar nasional dengan kurikulum yang seimbang antara akademik dan karakter',
-                    'Mengembangkan potensi peserta didik secara optimal melalui pembelajaran yang inovatif dan bermakna',
-                    'Membangun karakter yang berakhlak mulia dan berbudi pekerti luhur berdasarkan nilai-nilai agama dan budaya',
-                    'Menciptakan lingkungan belajar yang kondusif, aman, dan menyenangkan untuk seluruh warga sekolah',
-                    'Meningkatkan profesionalisme tenaga pendidik dan kependidikan melalui pengembangan berkelanjutan',
-                    'Menjalin kerjasama yang harmonis dengan orang tua dan masyarakat dalam mendukung pendidikan karakter'
+                    'Mewujudkan lulusan yang unggul dalam bidang akademik dan non akademik.',
+                    'Terwujud sikap mental dan spiritual yang menjunjung tinggi nilai-nilai  Pendidikan Karakter dengan konsep Nangun Sat Kerthi Loka Bali dengan semboyan : Loka Jnana Shanti, Loka berarti alam/dunia, Shanti berarti damai, Jnana berarti Pengetahuan,  jadi SMP Negeri 3 Sawan merupakan alam/tempat/dunia pengetahuan yang damai.',
+                    'Mewujudkan  pendidikan yang berkarakter mengedepankan pembentukan Delapan dimensi profil lulusan, yang memiliki delapan dimensi utama yaitu : Keimanan dan Ketakwaan kepada Tuhan Yang Maha Esa, Kewargaan, Penalaran Kritis, Kreativitas, Kolaborasi, Kemandirian, Kesehatan, dan Komunikasi.',
+                    'Mewujudkan pendidikan yang mengembangkan keterampilan abad 21'
                 ],
-                'alamat' => 'Jl. Raya Sawan No. 123, Desa Sawan, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171',
-                'telepon' => '(0362) 123456',
+                'alamat' => 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171',
+                'telepon' => '085850190190',
                 'email' => 'info@smpn3sawan.sch.id',
                 'website' => 'smpn3sawan.sch.id',
-                'maps_latitude' => -8.1542,
-                'maps_longitude' => 115.0956,
-                'kepala_sekolah' => 'Dr. Budi Santoso, M.Pd.',
-                'tahun_berdiri' => 1985,
+                'maps_latitude' => -8.13332,
+                'maps_longitude' => 115.15519,
+                'kepala_sekolah' => 'Nyoman Paksa Adi Gama, S.Pd., M.Pd.',
+                'tahun_berdiri' => 1995,
                 'akreditasi' => 'A',
-                'npsn' => '50100123'
+                'npsn' => '50100301'
             ]
         );
 

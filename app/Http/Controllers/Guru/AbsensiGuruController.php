@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\GuruAttendance;
+use App\Models\SchoolProfile;
 
 class AbsensiGuruController extends Controller
 {
@@ -21,7 +23,15 @@ class AbsensiGuruController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        return view('guru.absensi-guru.absensi-guru');
+        // Check if already attended today
+        $today = Carbon::today();
+        $todayAttendance = GuruAttendance::where('user_id', auth()->id())
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        return view('guru.absensi-guru.absensi-guru', [
+            'todayAttendance' => $todayAttendance
+        ]);
     }
 
     /**
@@ -46,10 +56,19 @@ class AbsensiGuruController extends Controller
         }
 
         try {
-            // Get school coordinates from config
-            $schoolLat = config('school.latitude');
-            $schoolLon = config('school.longitude');
-            $maxRadius = config('school.attendance_radius');
+            // Get school coordinates from database
+            $schoolProfile = SchoolProfile::first();
+
+            if (!$schoolProfile || !$schoolProfile->maps_latitude || !$schoolProfile->maps_longitude) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koordinat sekolah belum dikonfigurasi. Hubungi administrator.'
+                ], 500);
+            }
+
+            $schoolLat = $schoolProfile->maps_latitude;
+            $schoolLon = $schoolProfile->maps_longitude;
+            $maxRadius = config('school.attendance_radius', 300);
 
             // Calculate distance from school
             $distance = $this->calculateDistance(
@@ -81,10 +100,13 @@ class AbsensiGuruController extends Controller
                 ], 400);
             }
 
-            // Store photo
+            // Store and compress photo to WebP
             $photo = $request->file('photo');
-            $photoName = 'guru_' . auth()->id() . '_' . time() . '.' . $photo->getClientOriginalExtension();
-            $photoPath = $photo->storeAs('attendance/guru', $photoName, 'public');
+            $photoPath = ImageCompressor::compressAndStore(
+                $photo,
+                'attendance/guru',
+                'guru_' . auth()->id() . '_' . time()
+            );
 
             // Determine attendance status based on time
             $currentTime = Carbon::now();
@@ -345,5 +367,30 @@ class AbsensiGuruController extends Controller
         }
 
         return $count;
+    }
+
+    /**
+     * Get school location configuration
+     */
+    public function getSchoolLocation()
+    {
+        $schoolProfile = SchoolProfile::first();
+
+        if (!$schoolProfile || !$schoolProfile->maps_latitude || !$schoolProfile->maps_longitude) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Koordinat sekolah belum dikonfigurasi'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'latitude' => $schoolProfile->maps_latitude,
+                'longitude' => $schoolProfile->maps_longitude,
+                'school_name' => $schoolProfile->name,
+                'radius' => config('school.attendance_radius', 300)
+            ]
+        ]);
     }
 }

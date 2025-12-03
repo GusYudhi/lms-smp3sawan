@@ -78,7 +78,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="nomor_telepon" class="form-label fw-medium">Nomor Telepon</label>
+                                    <label for="nomor_telepon" class="form-label fw-medium">Nomor Telepon (opsional)</label>
                                     <input type="tel" class="form-control @error('nomor_telepon') is-invalid @enderror"
                                            id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon') }}">
                                     <div class="form-text">Format: 081234567890</div>
@@ -103,7 +103,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="tempat_lahir" class="form-label fw-medium">Tempat Lahir</label>
+                                    <label for="tempat_lahir" class="form-label fw-medium">Tempat Lahir (opsional)</label>
                                     <input type="text" class="form-control @error('tempat_lahir') is-invalid @enderror"
                                            id="tempat_lahir" name="tempat_lahir" value="{{ old('tempat_lahir') }}">
                                     @error('tempat_lahir')
@@ -114,7 +114,7 @@
 
                             <div class="row g-3 mt-2">
                                 <div class="col-md-6">
-                                    <label for="tanggal_lahir" class="form-label fw-medium">Tanggal Lahir</label>
+                                    <label for="tanggal_lahir" class="form-label fw-medium">Tanggal Lahir (opsional)</label>
                                     <input type="date" class="form-control @error('tanggal_lahir') is-invalid @enderror"
                                            id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}">
                                     @error('tanggal_lahir')
@@ -123,7 +123,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="profile_photo" class="form-label fw-medium">Foto Profil</label>
+                                    <label for="profile_photo" class="form-label fw-medium">Foto Profil (opsional)</label>
                                     <input type="file" class="form-control @error('profile_photo') is-invalid @enderror"
                                            id="profile_photo" name="profile_photo" accept="image/*">
                                     <div class="form-text">Format: JPG, PNG, maksimal 2MB</div>
@@ -151,6 +151,7 @@
                                         <option value="GTT" {{ old('status_kepegawaian') == 'GTT' ? 'selected' : '' }}>GTT (Guru Tidak Tetap)</option>
                                         <option value="GTY" {{ old('status_kepegawaian') == 'GTY' ? 'selected' : '' }}>GTY (Guru Tetap Yayasan)</option>
                                         <option value="GTK" {{ old('status_kepegawaian') == 'GTK' ? 'selected' : '' }}>GTK (Guru Tenaga Kependidikan)</option>
+                                        <option value="HONORER" {{ old('status_kepegawaian') == 'HONORER' ? 'selected' : '' }}>HONORER</option>
                                     </select>
                                     @error('status_kepegawaian')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -158,7 +159,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="golongan" class="form-label fw-medium">Golongan</label>
+                                    <label for="golongan" class="form-label fw-medium">Golongan (opsional)</label>
                                     <select class="form-select @error('golongan') is-invalid @enderror"
                                             id="golongan" name="golongan">
                                         <option value="">Pilih Golongan</option>
@@ -185,56 +186,62 @@
 
                             <div class="row g-3 mt-2">
                                 <div class="col-md-6">
-                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('mata_pelajaran') is-invalid @enderror"
-                                            id="mata_pelajaran" name="mata_pelajaran" required>
-                                        <option value="">Pilih Mata Pelajaran</option>
-                                        <option value="Matematika" {{ old('mata_pelajaran') == 'Matematika' ? 'selected' : '' }}>Matematika</option>
-                                        <option value="Bahasa Indonesia" {{ old('mata_pelajaran') == 'Bahasa Indonesia' ? 'selected' : '' }}>Bahasa Indonesia</option>
-                                        <option value="Bahasa Inggris" {{ old('mata_pelajaran') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
-                                        <option value="IPA Fisika" {{ old('mata_pelajaran') == 'IPA Fisika' ? 'selected' : '' }}>IPA Fisika</option>
-                                        <option value="IPA Biologi" {{ old('mata_pelajaran') == 'IPA Biologi' ? 'selected' : '' }}>IPA Biologi</option>
-                                        <option value="IPA Kimia" {{ old('mata_pelajaran') == 'IPA Kimia' ? 'selected' : '' }}>IPA Kimia</option>
-                                        <option value="IPS Sejarah" {{ old('mata_pelajaran') == 'IPS Sejarah' ? 'selected' : '' }}>IPS Sejarah</option>
-                                        <option value="IPS Geografi" {{ old('mata_pelajaran') == 'IPS Geografi' ? 'selected' : '' }}>IPS Geografi</option>
-                                        <option value="IPS Ekonomi" {{ old('mata_pelajaran') == 'IPS Ekonomi' ? 'selected' : '' }}>IPS Ekonomi</option>
-                                        <option value="PKN" {{ old('mata_pelajaran') == 'PKN' ? 'selected' : '' }}>PKN</option>
-                                        <option value="Pendidikan Jasmani" {{ old('mata_pelajaran') == 'Pendidikan Jasmani' ? 'selected' : '' }}>Pendidikan Jasmani</option>
-                                        <option value="Seni Budaya" {{ old('mata_pelajaran') == 'Seni Budaya' ? 'selected' : '' }}>Seni Budaya</option>
-                                        <option value="Prakarya" {{ old('mata_pelajaran') == 'Prakarya' ? 'selected' : '' }}>Prakarya</option>
-                                        <option value="TIK" {{ old('mata_pelajaran') == 'TIK' ? 'selected' : '' }}>TIK</option>
-                                        <option value="Agama Islam" {{ old('mata_pelajaran') == 'Agama Islam' ? 'selected' : '' }}>Agama Islam</option>
-                                        <option value="Agama Kristen" {{ old('mata_pelajaran') == 'Agama Kristen' ? 'selected' : '' }}>Agama Kristen</option>
-                                        <option value="Agama Katolik" {{ old('mata_pelajaran') == 'Agama Katolik' ? 'selected' : '' }}>Agama Katolik</option>
-                                        <option value="Agama Hindu" {{ old('mata_pelajaran') == 'Agama Hindu' ? 'selected' : '' }}>Agama Hindu</option>
-                                        <option value="Agama Buddha" {{ old('mata_pelajaran') == 'Agama Buddha' ? 'selected' : '' }}>Agama Buddha</option>
-                                        <option value="Bahasa Daerah" {{ old('mata_pelajaran') == 'Bahasa Daerah' ? 'selected' : '' }}>Bahasa Daerah</option>
+                                    <label for="jabatan_di_sekolah" class="form-label fw-medium">Jabatan di Sekolah <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('jabatan_di_sekolah') is-invalid @enderror"
+                                            id="jabatan_di_sekolah" name="jabatan_di_sekolah">
+                                        <option value="">Pilih Jabatan</option>
+                                        <option value="Kepala Sekolah" {{ old('jabatan_di_sekolah') == 'Kepala Sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
+                                        <option value="Wakil Kepala Sekolah Kurikulum" {{ old('jabatan_di_sekolah') == 'Wakil Kepala Sekolah Kurikulum' ? 'selected' : '' }}>Wakil Kepala Sekolah Kurikulum</option>
+                                        <option value="Wakil Kepala Sekolah Kesiswaan" {{ old('jabatan_di_sekolah') == 'Wakil Kepala Sekolah Kesiswaan' ? 'selected' : '' }}>Wakil Kepala Sekolah Kesiswaan</option>
+                                        <option value="Wakil Kepala Sekolah Sarana Prasarana" {{ old('jabatan_di_sekolah') == 'Wakil Kepala Sekolah Sarana Prasarana' ? 'selected' : '' }}>Wakil Kepala Sekolah Sarana Prasarana</option>
+                                        <option value="Wakil Kepala Sekolah Humas" {{ old('jabatan_di_sekolah') == 'Wakil Kepala Sekolah Humas' ? 'selected' : '' }}>Wakil Kepala Sekolah Humas</option>
+                                        <option value="Koordinator BK" {{ old('jabatan_di_sekolah') == 'Koordinator BK' ? 'selected' : '' }}>Koordinator BK</option>
+                                        <option value="Guru" {{ old('jabatan_di_sekolah') == 'Guru' ? 'selected' : '' }}>Guru</option>
+                                        <option value="Guru BK" {{ old('jabatan_di_sekolah') == 'Guru BK' ? 'selected' : '' }}>Guru BK (Bimbingan Konseling)</option>
+                                        <option value="Kepala Laboratorium" {{ old('jabatan_di_sekolah') == 'Kepala Laboratorium' ? 'selected' : '' }}>Kepala Laboratorium</option>
+                                        <option value="Kepala Perpustakaan" {{ old('jabatan_di_sekolah') == 'Kepala Perpustakaan' ? 'selected' : '' }}>Kepala Perpustakaan</option>
+                                        <option value="Staff TU" {{ old('jabatan_di_sekolah') == 'Staff TU' ? 'selected' : '' }}>Staff TU (Tata Usaha)</option>
+                                        <option value="Operator Sekolah" {{ old('jabatan_di_sekolah') == 'Operator Sekolah' ? 'selected' : '' }}>Operator Sekolah</option>
+                                        <option value="Petugas Kebersihan" {{ old('jabatan_di_sekolah') == 'Petugas Kebersihan' ? 'selected' : '' }}>Petugas Kebersihan</option>
+                                        <option value="Petugas Keamanan" {{ old('jabatan_di_sekolah') == 'Petugas Keamanan' ? 'selected' : '' }}>Petugas Keamanan</option>
                                     </select>
-                                    @error('mata_pelajaran')
+                                    <div class="form-text">Kosongkan jika hanya sebagai Guru biasa</div>
+                                    @error('jabatan_di_sekolah')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="wali_kelas" class="form-label fw-medium">Wali Kelas</label>
-                                    <select class="form-select @error('wali_kelas') is-invalid @enderror"
-                                            id="wali_kelas" name="wali_kelas">
-                                        <option value="">Pilih Kelas (Opsional)</option>
-                                        <option value="VII-A" {{ old('wali_kelas') == 'VII-A' ? 'selected' : '' }}>VII-A</option>
-                                        <option value="VII-B" {{ old('wali_kelas') == 'VII-B' ? 'selected' : '' }}>VII-B</option>
-                                        <option value="VII-C" {{ old('wali_kelas') == 'VII-C' ? 'selected' : '' }}>VII-C</option>
-                                        <option value="VII-D" {{ old('wali_kelas') == 'VII-D' ? 'selected' : '' }}>VII-D</option>
-                                        <option value="VIII-A" {{ old('wali_kelas') == 'VIII-A' ? 'selected' : '' }}>VIII-A</option>
-                                        <option value="VIII-B" {{ old('wali_kelas') == 'VIII-B' ? 'selected' : '' }}>VIII-B</option>
-                                        <option value="VIII-C" {{ old('wali_kelas') == 'VIII-C' ? 'selected' : '' }}>VIII-C</option>
-                                        <option value="VIII-D" {{ old('wali_kelas') == 'VIII-D' ? 'selected' : '' }}>VIII-D</option>
-                                        <option value="IX-A" {{ old('wali_kelas') == 'IX-A' ? 'selected' : '' }}>IX-A</option>
-                                        <option value="IX-B" {{ old('wali_kelas') == 'IX-B' ? 'selected' : '' }}>IX-B</option>
-                                        <option value="IX-C" {{ old('wali_kelas') == 'IX-C' ? 'selected' : '' }}>IX-C</option>
-                                        <option value="IX-D" {{ old('wali_kelas') == 'IX-D' ? 'selected' : '' }}>IX-D</option>
-                                    </select>
-                                    @error('wali_kelas')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran (opsional)</label>
+                                    <input type="text"
+                                           class="form-control @error('mata_pelajaran') is-invalid @enderror"
+                                           id="mata_pelajaran"
+                                           name="mata_pelajaran_display"
+                                           placeholder="Ketik nama mata pelajaran..."
+                                           value="{{ old('mata_pelajaran_display') }}"
+                                           autocomplete="off">
+                                    <input type="hidden" id="mata_pelajaran_hidden" name="mata_pelajaran" value="{{ old('mata_pelajaran') }}">
+                                    <div id="mata-pelajaran-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    <div class="form-text">Kosongkan jika Guru BK atau jabatan non-pengajar</div>
+                                    @error('mata_pelajaran')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="kelas_id" class="form-label fw-medium">Wali Kelas (opsional)</label>
+                                    <input type="text"
+                                           class="form-control @error('kelas_id') is-invalid @enderror"
+                                           id="kelas_id"
+                                           name="kelas_display"
+                                           placeholder="Ketik tingkat/nama kelas (misal: 7 atau 7A)..."
+                                           value="{{ old('kelas_display') }}"
+                                           autocomplete="off">
+                                    <input type="hidden" id="kelas_id_hidden" name="kelas_id" value="{{ old('kelas_id') }}">
+                                    <div id="kelas-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    <div class="form-text">Kosongkan jika tidak menjadi wali kelas</div>
+                                    @error('kelas_id')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -311,10 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.value === 'Honorer' || this.value === 'GTT' || this.value === 'GTY' || this.value === 'GTK') {
             golonganField.value = '';
             golonganField.disabled = true;
-            // golonganField.classList.add('disabled'); // Bootstrap doesn't use disabled class for inputs usually, attribute is enough
         } else {
             golonganField.disabled = false;
-            // golonganField.classList.remove('disabled');
         }
     });
 
@@ -331,6 +336,110 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Photo selected:', file.name);
             };
             reader.readAsDataURL(file);
+        }
+    });
+
+    // Autocomplete for Mata Pelajaran
+    const mataPelajaranInput = document.getElementById('mata_pelajaran');
+    const mataPelajaranHidden = document.getElementById('mata_pelajaran_hidden');
+    const mataPelajaranDropdown = document.getElementById('mata-pelajaran-dropdown');
+    let mataPelajaranTimeout;
+
+    mataPelajaranInput.addEventListener('input', function() {
+        clearTimeout(mataPelajaranTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 1) {
+            mataPelajaranDropdown.classList.remove('show');
+            return;
+        }
+
+        mataPelajaranTimeout = setTimeout(() => {
+            fetch(`{{ route('admin.api.mata-pelajaran') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    mataPelajaranDropdown.innerHTML = '';
+
+                    if (data.length === 0) {
+                        mataPelajaranDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada mata pelajaran ditemukan</div>';
+                    } else {
+                        data.forEach(mapel => {
+                            const item = document.createElement('a');
+                            item.className = 'dropdown-item';
+                            item.href = '#';
+                            item.textContent = `${mapel.nama_mapel} (${mapel.kode_mapel})`;
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                mataPelajaranInput.value = mapel.nama_mapel;
+                                mataPelajaranHidden.value = mapel.nama_mapel;
+                                mataPelajaranDropdown.classList.remove('show');
+                            });
+                            mataPelajaranDropdown.appendChild(item);
+                        });
+                    }
+
+                    mataPelajaranDropdown.classList.add('show');
+                })
+                .catch(error => {
+                    console.error('Error fetching mata pelajaran:', error);
+                });
+        }, 300);
+    });
+
+    // Autocomplete for Kelas
+    const kelasInput = document.getElementById('kelas_id');
+    const kelasHidden = document.getElementById('kelas_id_hidden');
+    const kelasDropdown = document.getElementById('kelas-dropdown');
+    let kelasTimeout;
+
+    kelasInput.addEventListener('input', function() {
+        clearTimeout(kelasTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 1) {
+            kelasDropdown.classList.remove('show');
+            return;
+        }
+
+        kelasTimeout = setTimeout(() => {
+            fetch(`{{ route('admin.api.kelas') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    kelasDropdown.innerHTML = '';
+
+                    if (data.length === 0) {
+                        kelasDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada kelas ditemukan</div>';
+                    } else {
+                        data.forEach(kelas => {
+                            const item = document.createElement('a');
+                            item.className = 'dropdown-item';
+                            item.href = '#';
+                            item.textContent = `Kelas ${kelas.tingkat} ${kelas.nama_kelas}`;
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                kelasInput.value = `${kelas.tingkat} ${kelas.nama_kelas}`;
+                                kelasHidden.value = kelas.id;
+                                kelasDropdown.classList.remove('show');
+                            });
+                            kelasDropdown.appendChild(item);
+                        });
+                    }
+
+                    kelasDropdown.classList.add('show');
+                })
+                .catch(error => {
+                    console.error('Error fetching kelas:', error);
+                });
+        }, 300);
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!mataPelajaranInput.contains(e.target) && !mataPelajaranDropdown.contains(e.target)) {
+            mataPelajaranDropdown.classList.remove('show');
+        }
+        if (!kelasInput.contains(e.target) && !kelasDropdown.contains(e.target)) {
+            kelasDropdown.classList.remove('show');
         }
     });
 

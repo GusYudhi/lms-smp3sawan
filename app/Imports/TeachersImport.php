@@ -100,7 +100,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 'status_kepegawaian' => $status_kepegawaian,
                 'golongan' => $golongan,
                 'mata_pelajaran' => $mata_pelajaran_array,
-                'wali_kelas' => $wali_kelas,
+                'kelas_id' => null, // TODO: Import wali_kelas needs to be updated to find kelas ID from kelas table
             ];
 
             // Create teacher using UserManagementService
