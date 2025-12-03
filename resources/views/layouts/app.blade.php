@@ -162,16 +162,6 @@
                                     <i class="fas fa-school me-2"></i> Data Sekolah
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-chart-bar me-2"></i> Laporan System
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-cogs me-2"></i> Pengaturan
-                                </a>
-                            </li>
                         @elseif(auth()->user()->isKepalaSekolah())
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'kepala-sekolah.dashboard' ? 'active' : '' }}" href="{{ route('kepala-sekolah.dashboard') }}">
