@@ -40,27 +40,37 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
             // Map possible column variations
             $nama = $row['nama_lengkap'] ?? $row['nama'] ?? null;
             $nip = $row['nip_nik'] ?? $row['nipnik'] ?? $row['nip'] ?? $row['nik'] ?? null;
-            $telepon = $row['telepon'] ?? $row['nomor_telepon'] ?? $row['no_telepon'] ?? null;
             $jenis_kelamin = $row['jenis_kelamin'] ?? $row['kelamin'] ?? null;
             $tempat_lahir = $row['tempat_lahir'] ?? null;
             $tanggal_lahir = $row['tanggal_lahir'] ?? $row['tgl_lahir'] ?? null;
+            $telepon = $row['telepon'] ?? $row['nomor_telepon'] ?? $row['no_telepon'] ?? null;
             $status_kepegawaian = $row['status_kepegawaian'] ?? $row['status'] ?? null;
             $golongan = $row['golongan'] ?? null;
+            $jabatan_di_sekolah = $row['jabatan_di_sekolah'] ?? $row['jabatan'] ?? null;
             $mata_pelajaran = $row['mata_pelajaran'] ?? $row['mapel'] ?? null;
             $wali_kelas = $row['wali_kelas'] ?? null;
+
+            // Skip empty rows
+            if (empty($nama) || empty($nip)) {
+                return null;
+            }
 
             // Validate required fields
             $validator = Validator::make([
                 'nama' => $nama,
                 'nip' => $nip,
+                'jenis_kelamin' => $jenis_kelamin,
+                'status_kepegawaian' => $status_kepegawaian,
             ], [
                 'nama' => 'required|string|max:255',
                 'nip' => 'nullable|string|max:50|unique:guru_profiles,nip',
+                'jenis_kelamin' => 'required|in:L,P,Laki-laki,Perempuan,laki-laki,perempuan',
+                'status_kepegawaian' => 'required|string',
             ]);
 
             if ($validator->fails()) {
                 $this->failureCount++;
-                $this->errors[] = "Baris {$this->failureCount}: " . $nama . " - " . implode(', ', $validator->errors()->all());
+                $this->errors[] = "Baris dengan nama {$nama}: " . implode(', ', $validator->errors()->all());
                 return null;
             }
 
@@ -79,6 +89,18 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 $mata_pelajaran_array = array_map('trim', explode(',', $mata_pelajaran));
             }
 
+            // Determine role based on jabatan
+            $role = 'guru';
+            if ($jabatan_di_sekolah && strtolower($jabatan_di_sekolah) === 'kepala sekolah') {
+                $role = 'kepala_sekolah';
+            }
+
+            // Parse wali kelas to find kelas_id
+            $kelas_id = null;
+            if ($wali_kelas) {
+                $kelas_id = $this->findKelasId($wali_kelas);
+            }
+
             // Generate default password
             $defaultPassword = '12345678';
 
@@ -87,7 +109,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 'name' => $nama,
                 'email' => $email,
                 'password' => $defaultPassword,
-                'role' => 'guru',
+                'role' => $role,
                 'nomor_telepon' => $telepon,
                 'jenis_kelamin' => $jenis_kelamin,
             ];
@@ -99,8 +121,9 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 'tanggal_lahir' => $this->parseDate($tanggal_lahir),
                 'status_kepegawaian' => $status_kepegawaian,
                 'golongan' => $golongan,
+                'jabatan_di_sekolah' => $jabatan_di_sekolah,
                 'mata_pelajaran' => $mata_pelajaran_array,
-                'kelas_id' => null, // TODO: Import wali_kelas needs to be updated to find kelas ID from kelas table
+                'kelas_id' => $kelas_id,
             ];
 
             // Create teacher using UserManagementService
@@ -111,7 +134,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
 
         } catch (\Exception $e) {
             $this->failureCount++;
-            $errorMsg = "Baris {$this->failureCount}: " . ($nama ?? 'Unknown') . " - " . $e->getMessage();
+            $errorMsg = "Baris dengan nama " . ($nama ?? 'Unknown') . ": " . $e->getMessage();
             $this->errors[] = $errorMsg;
             Log::error('Teacher Import Error: ' . $errorMsg);
             return null;
@@ -189,7 +212,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
         }
 
         // If it's already a valid Enum value (case-insensitive check)
-        $validStatuses = ['PNS', 'PPPK', 'GTT', 'GTY', 'GTK'];
+        $validStatuses = ['PNS', 'PPPK', 'GTT', 'GTY', 'GTK', 'HONORER'];
         foreach ($validStatuses as $status) {
             if (strtolower($status) === $lowerValue) {
                 return $status;
@@ -198,6 +221,39 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
 
         // Return original if no match found (will likely fail validation if invalid)
         return $value;
+    }
+
+    /**
+     * Find kelas ID from wali_kelas string (e.g., "7A", "8 B", "9C")
+     */
+    private function findKelasId($waliKelas)
+    {
+        if (empty($waliKelas)) {
+            return null;
+        }
+
+        // Clean and normalize the input
+        $waliKelas = trim($waliKelas);
+        $waliKelas = str_replace(' ', '', $waliKelas); // Remove spaces
+
+        // Extract tingkat (first digit) and nama_kelas (remaining characters)
+        if (preg_match('/^(\d+)([A-Za-z])$/', $waliKelas, $matches)) {
+            $tingkat = $matches[1];
+            $namaKelas = strtoupper($matches[2]);
+
+            // Find kelas in database
+            $kelas = \App\Models\Kelas::where('tingkat', $tingkat)
+                ->where('nama_kelas', $namaKelas)
+                ->first();
+
+            if ($kelas) {
+                return $kelas->id;
+            }
+
+            Log::warning("Kelas tidak ditemukan: tingkat={$tingkat}, nama={$namaKelas}");
+        }
+
+        return null;
     }
 
     /**

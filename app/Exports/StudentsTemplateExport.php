@@ -27,8 +27,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 '7',
                 'A',
                 '2024',
-                'ahmad.budi@example.com',
-                'password123'
+                'Kosongkan',
+                'Kosongkan'
             ],
             [
                 'Siti Nurhaliza',
@@ -40,8 +40,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 '7',
                 'B',
                 '2024',
-                'siti.nur@example.com',
-                'password123'
+                'Kosongkan',
+                'Kosongkan'
             ]
         ];
     }

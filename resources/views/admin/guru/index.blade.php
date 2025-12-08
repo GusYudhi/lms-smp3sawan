@@ -318,15 +318,20 @@
                         </a>
                         <div class="p-3 mb-2 bg-info bg-opacity-10 border border-info rounded mt-2">
                             <small>
-                                <strong>Tips:</strong>
+                                <strong>Petunjuk Pengisian:</strong>
                                 <ul class="mb-0 mt-1">
-                                    <li>Kolom NIP/NIK akan otomatis diformat sebagai teks</li>
-                                    <li>Jenis kelamin: gunakan <code>L</code> atau <code>P</code></li>
-                                    <li>Status Kepegawaian: <code>PNS</code>, <code>PPPK</code>, <code>GTT</code>, <code>GTY</code>, <code>GTK</code></li>
-                                    <li>Format Tanggal Lahir: <code>YYYY-MM-DD</code>, <code>DD-MM-YYYY</code>, <code>DD/MM/YYYY</code></li>
-                                    <li>Email akan digenerate otomatis (format: nama.tengah@guru.id)</li>
-                                    <li>Password default: <code>12345678</code></li>
-                                    <li>Mata pelajaran: Isi dengan satu mata pelajaran utama</li>
+                                    <li><strong>Nama Lengkap:</strong> Wajib diisi. Contoh: Dr. Ahmad Hidayat, M.Pd</li>
+                                    <li><strong>NIP/NIK:</strong> Wajib diisi. NIP untuk PNS/PPPK atau NIK untuk Honorer (akan otomatis diformat sebagai teks)</li>
+                                    <li><strong>Jenis Kelamin:</strong> Wajib diisi. Gunakan <code>L</code> untuk Laki-laki atau <code>P</code> untuk Perempuan</li>
+                                    <li><strong>Tempat Lahir:</strong> Opsional. Contoh: Sawan, Singaraja</li>
+                                    <li><strong>Tanggal Lahir:</strong> Opsional. Format: <code>YYYY-MM-DD</code>, <code>DD-MM-YYYY</code>, atau <code>DD/MM/YYYY</code></li>
+                                    <li><strong>Telepon:</strong> Opsional. Format: 081234567890 (tanpa tanda +)</li>
+                                    <li><strong>Status Kepegawaian:</strong> Wajib diisi. Pilih: <code>PNS</code>, <code>PPPK</code>, <code>GTT</code>, <code>GTY</code>, <code>GTK</code>, atau <code>HONORER</code></li>
+                                    <li><strong>Golongan:</strong> Opsional (kosongkan jika Honorer). Contoh: III/a, IV/b</li>
+                                    <li><strong>Jabatan di Sekolah:</strong> Opsional. Contoh: Guru, Kepala Sekolah, Wakil Kepala Sekolah Kurikulum, Guru BK</li>
+                                    <li><strong>Mata Pelajaran:</strong> Opsional. Isi dengan satu mata pelajaran utama. Contoh: Matematika, IPA</li>
+                                    <li><strong>Wali Kelas:</strong> Opsional. Format: tingkat dan nama kelas. Contoh: <code>7A</code>, <code>8B</code>, <code>9C</code></li>
+                                    <li><strong>Email & Password:</strong> Akan digenerate otomatis. Email format: nama.tengah@guru.id, Password default: <code>12345678</code></li>
                                 </ul>
                             </small>
                         </div>
