@@ -158,6 +158,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.absensi') ? 'active' : '' }}" href="{{ route('admin.absensi.index') }}">
+                                    <i class="fas fa-clipboard-check me-2"></i> Data Absensi
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
                                     <i class="fas fa-school me-2"></i> Data Sekolah
                                 </a>
@@ -168,11 +173,36 @@
                                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                                 </a>
                             </li>
+
+                            <!-- Data Guru -->
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-users me-2"></i> Data Guru & Siswa
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.guru') ? 'active' : '' }}" href="{{ route('kepala-sekolah.guru.index') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i> Data Guru
                                 </a>
                             </li>
+
+                            <!-- Data Siswa -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.siswa') ? 'active' : '' }}" href="{{ route('kepala-sekolah.siswa.index') }}">
+                                    <i class="fas fa-user-graduate me-2"></i> Data Siswa
+                                </a>
+                            </li>
+
+                            <!-- Tahun Pelajaran & Semester -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.tahun-pelajaran') || str_contains(Route::currentRouteName(), 'kepala-sekolah.semester') ? 'active' : '' }}" href="{{ route('kepala-sekolah.tahun-pelajaran.index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Tahun Pelajaran
+                                </a>
+                            </li>
+
+                            <!-- Data Absensi -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.absensi') ? 'active' : '' }}" href="{{ route('kepala-sekolah.absensi.index') }}">
+                                    <i class="fas fa-clipboard-check me-2"></i> Data Absensi
+                                </a>
+                            </li>
+
+                            <!-- Data Sekolah -->
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
                                     <i class="fas fa-school me-2"></i> Data Sekolah

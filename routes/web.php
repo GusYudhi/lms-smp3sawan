@@ -117,11 +117,42 @@ Route::middleware(['auth'])->group(function () {
             'store' => 'admin.fixed-schedule.store',
             'destroy' => 'admin.fixed-schedule.destroy',
         ])->except(['create', 'edit', 'show', 'update']);
+
+        // Rekap Absensi routes
+        Route::get('/absensi', function () { return view('admin.absensi.index'); })->name('admin.absensi.index');
+        Route::get('/absensi/siswa', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexSiswa'])->name('admin.absensi.siswa.index');
+        Route::get('/absensi/siswa/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailSiswa'])->name('admin.absensi.siswa.detail');
+        // Route absensi guru dihapus - hanya tersedia untuk kepala sekolah
+        // Route::get('/absensi/guru', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexGuru'])->name('admin.absensi.guru.index');
+        // Route::get('/absensi/guru/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailGuru'])->name('admin.absensi.guru.detail');
     });
 
     // Kepala Sekolah routes
     Route::prefix('kepala-sekolah')->middleware('role:kepala_sekolah')->group(function () {
         Route::get('/kepala-sekolah/dashboard', [App\Http\Controllers\KepalaSekolah\DashboardController::class, 'index'])->name('kepala-sekolah.dashboard');
+
+        // Data Guru (Read Only)
+        Route::get('/data/guru', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'indexGuru'])->name('kepala-sekolah.guru.index');
+        Route::get('/data/guru/{id}', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'showGuru'])->name('kepala-sekolah.guru.show');
+
+        // Data Siswa (Read Only)
+        Route::get('/data/siswa', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'indexSiswa'])->name('kepala-sekolah.siswa.index');
+        Route::get('/data/siswa/{id}', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'showSiswa'])->name('kepala-sekolah.siswa.show');
+
+        // Data Tahun Pelajaran (Read Only)
+        Route::get('/data/tahun-pelajaran', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'indexTahunPelajaran'])->name('kepala-sekolah.tahun-pelajaran.index');
+        Route::get('/data/tahun-pelajaran/{id}', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'showTahunPelajaran'])->name('kepala-sekolah.tahun-pelajaran.show');
+
+        // Data Semester (Read Only)
+        Route::get('/data/tahun-pelajaran/{tahunPelajaranId}/semester', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'indexSemester'])->name('kepala-sekolah.semester.index');
+        Route::get('/data/semester/{id}', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'showSemester'])->name('kepala-sekolah.semester.show');
+
+        // Rekap Absensi routes (Read Only)
+        Route::get('/absensi', function () { return view('kepala-sekolah.absensi.index'); })->name('kepala-sekolah.absensi.index');
+        Route::get('/absensi/siswa', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexSiswa'])->name('kepala-sekolah.absensi.siswa.index');
+        Route::get('/absensi/siswa/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailSiswa'])->name('kepala-sekolah.absensi.siswa.detail');
+        Route::get('/absensi/guru', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexGuru'])->name('kepala-sekolah.absensi.guru.index');
+        Route::get('/absensi/guru/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailGuru'])->name('kepala-sekolah.absensi.guru.detail');
     });
 
     // Guru routes
