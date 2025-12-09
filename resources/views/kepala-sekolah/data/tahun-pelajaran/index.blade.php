@@ -64,7 +64,7 @@
                                     <td>{{ \Carbon\Carbon::parse($tp->tanggal_mulai)->format('d M Y') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($tp->tanggal_selesai)->format('d M Y') }}</td>
                                     <td class="text-center">
-                                        <span class="badge bg-primary">{{ $tp->semesters_count }} Semester</span>
+                                        <span class="badge bg-primary">{{ $tp->semester_count }} Semester</span>
                                     </td>
                                     <td class="text-center">
                                         @if($tp->is_active)

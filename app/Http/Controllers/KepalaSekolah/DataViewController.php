@@ -93,7 +93,7 @@ class DataViewController extends Controller
     // View Data Tahun Pelajaran
     public function indexTahunPelajaran()
     {
-        $tahunPelajaran = TahunPelajaran::withCount('semesters')
+        $tahunPelajaran = TahunPelajaran::withCount('semester')
             ->orderBy('is_active', 'desc')
             ->orderBy('tahun_mulai', 'desc')
             ->paginate(10);
@@ -103,7 +103,7 @@ class DataViewController extends Controller
 
     public function showTahunPelajaran($id)
     {
-        $tahunPelajaran = TahunPelajaran::with(['semesters'])->findOrFail($id);
+        $tahunPelajaran = TahunPelajaran::with(['semester'])->findOrFail($id);
 
         return view('kepala-sekolah.data.tahun-pelajaran.show', compact('tahunPelajaran'));
     }
@@ -113,7 +113,7 @@ class DataViewController extends Controller
     {
         $tahunPelajaran = TahunPelajaran::findOrFail($tahunPelajaranId);
         $semesters = Semester::where('tahun_pelajaran_id', $tahunPelajaranId)
-            ->orderBy('semester', 'asc')
+            ->orderBy('semester_ke', 'asc')
             ->paginate(10);
 
         return view('kepala-sekolah.data.semester.index', compact('tahunPelajaran', 'semesters'));

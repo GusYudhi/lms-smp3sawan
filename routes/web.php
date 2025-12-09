@@ -153,6 +153,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailSiswa'])->name('kepala-sekolah.absensi.siswa.detail');
         Route::get('/absensi/guru', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexGuru'])->name('kepala-sekolah.absensi.guru.index');
         Route::get('/absensi/guru/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailGuru'])->name('kepala-sekolah.absensi.guru.detail');
+
+        // Jadwal Pelajaran (Read Only)
+        Route::get('/jadwal-pelajaran', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'index'])->name('kepala-sekolah.jadwal-pelajaran.index');
+        Route::get('/jadwal-pelajaran/get-by-kelas/{kelasId}', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'getByKelas'])->name('kepala-sekolah.jadwal-pelajaran.get-by-kelas');
     });
 
     // Guru routes

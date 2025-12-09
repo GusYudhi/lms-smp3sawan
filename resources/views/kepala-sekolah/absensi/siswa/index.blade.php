@@ -13,12 +13,11 @@
                         <div class="col-md-8">
                             <h1 class="h3 mb-2 text-success">
                                 <i class="fas fa-clipboard-check me-2"></i>Rekap Absensi Siswa
-                                <span class="badge bg-info ms-2">Mode Lihat Saja</span>
                             </h1>
                             <p class="text-muted mb-0">Monitoring dan rekap kehadiran siswa</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <a href="{{ route('kepala-sekolah.dashboard') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('kepala-sekolah.absensi.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i>Kembali
                             </a>
                         </div>

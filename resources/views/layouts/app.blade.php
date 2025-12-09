@@ -202,25 +202,17 @@
                                 </a>
                             </li>
 
+                            <!-- Jadwal Pelajaran -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.jadwal-pelajaran') ? 'active' : '' }}" href="{{ route('kepala-sekolah.jadwal-pelajaran.index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Pelajaran
+                                </a>
+                            </li>
+
                             <!-- Data Sekolah -->
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
                                     <i class="fas fa-school me-2"></i> Data Sekolah
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-chart-line me-2"></i> Laporan Akademik
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Sekolah
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-dollar-sign me-2"></i> Keuangan
                                 </a>
                             </li>
                         @elseif(auth()->user()->isGuru())

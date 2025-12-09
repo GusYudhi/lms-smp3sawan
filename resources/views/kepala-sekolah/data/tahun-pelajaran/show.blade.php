@@ -88,9 +88,9 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    @if($tahunPelajaran->semesters->count() > 0)
+                    @if($tahunPelajaran->semester->count() > 0)
                     <div class="list-group list-group-flush">
-                        @foreach($tahunPelajaran->semesters as $semester)
+                        @foreach($tahunPelajaran->semester as $semester)
                         <div class="list-group-item px-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
