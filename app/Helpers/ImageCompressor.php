@@ -376,4 +376,85 @@ class ImageCompressor
             return null;
         }
     }
+
+    /**
+     * Compress base64 image and return compressed WebP binary data
+     *
+     * @param string $base64Image Base64 encoded image
+     * @param int $quality Quality of compression (0-100)
+     * @param int $maxWidth Maximum width of image
+     * @return string Binary WebP image data
+     */
+    public static function compressBase64Image($base64Image, $quality = 80, $maxWidth = 1200)
+    {
+        // Remove data URI prefix if present
+        if (strpos($base64Image, 'data:image') === 0) {
+            $base64Image = preg_replace('/^data:image\/\w+;base64,/', '', $base64Image);
+        }
+
+        // Decode base64
+        $imageData = base64_decode($base64Image);
+
+        if (!$imageData) {
+            throw new \Exception('Invalid base64 image data');
+        }
+
+        // Create image from string
+        $sourceImage = imagecreatefromstring($imageData);
+
+        if (!$sourceImage) {
+            throw new \Exception('Failed to create image from base64 data');
+        }
+
+        // Get original dimensions
+        $originalWidth = imagesx($sourceImage);
+        $originalHeight = imagesy($sourceImage);
+
+        // Calculate new dimensions
+        if ($originalWidth > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = intval(($originalHeight / $originalWidth) * $maxWidth);
+        } else {
+            $newWidth = $originalWidth;
+            $newHeight = $originalHeight;
+        }
+
+        // Create new image
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency
+        imagealphablending($newImage, false);
+        imagesavealpha($newImage, true);
+
+        // Resize
+        imagecopyresampled(
+            $newImage,
+            $sourceImage,
+            0, 0, 0, 0,
+            $newWidth,
+            $newHeight,
+            $originalWidth,
+            $originalHeight
+        );
+
+        // Start output buffering
+        ob_start();
+
+        // Convert to WebP
+        if (!imagewebp($newImage, null, $quality)) {
+            ob_end_clean();
+            imagedestroy($sourceImage);
+            imagedestroy($newImage);
+            throw new \Exception('Failed to convert image to WebP');
+        }
+
+        // Get the image data
+        $webpData = ob_get_clean();
+
+        // Free memory
+        imagedestroy($sourceImage);
+        imagedestroy($newImage);
+
+        return $webpData;
+    }
 }

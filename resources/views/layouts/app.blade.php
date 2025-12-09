@@ -200,21 +200,6 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-tasks me-2"></i> Manajemen Tugas
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-upload me-2"></i> Kelola Materi
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-check-square me-2"></i> Koreksi & Nilai
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'guru.absensi.siswa' ? 'active' : '' }}" href="{{ route('guru.absensi.siswa') }}">
                                     <i class="fas fa-user-check me-2"></i> Absensi Siswa
                                 </a>
@@ -230,8 +215,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-calendar-alt me-2"></i> Kalender Jadwal
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'guru.jurnal-mengajar') ? 'active' : '' }}" href="{{ route('guru.jurnal-mengajar.index') }}">
+                                    <i class="fas fa-book me-2"></i> Jurnal Mengajar
                                 </a>
                             </li>
                         @elseif(auth()->user()->isSiswa())

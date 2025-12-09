@@ -29,10 +29,13 @@ class DatabaseSeeder extends Seeder
 
         // Menjalankan seeder dengan urutan yang benar
         $this->call([
-            TahunPelajaranSeeder::class,  // Harus pertama karena dibutuhkan oleh Kelas
-            KelasSeeder::class,            // Kedua, karena dibutuhkan oleh Guru dan Siswa
-            GuruSeeder::class,             // Setelah kelas tersedia
-            SiswaSeeder::class,            // Setelah kelas tersedia
+            TahunPelajaranSeeder::class,    // Harus pertama karena dibutuhkan oleh Kelas
+            KelasSeeder::class,             // Kedua, karena dibutuhkan oleh Guru dan Siswa
+            GuruSeeder::class,              // Setelah kelas tersedia
+            SiswaSeeder::class,             // Setelah kelas tersedia
+            MataPelajaranSeeder::class,     // Setelah Semester tersedia
+            JamPelajaranSeeder::class,      // Setelah Semester tersedia
+            JadwalPelajaranSeeder::class,   // Terakhir, butuh Kelas, Mapel, Guru
         ]);
     }
 }

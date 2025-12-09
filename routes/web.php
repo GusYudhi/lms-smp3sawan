@@ -144,6 +144,16 @@ Route::middleware(['auth'])->group(function () {
         // Teaching Schedule routes
         Route::get('/jadwal-mengajar', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'index'])->name('guru.jadwal-mengajar');
         Route::get('/jadwal-mengajar/get-by-kelas/{kelasId}', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'getByKelas'])->name('guru.jadwal-mengajar.get-by-kelas');
+
+        // Jurnal Mengajar routes
+        Route::get('/jurnal-mengajar', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'index'])->name('guru.jurnal-mengajar.index');
+        Route::get('/jurnal-mengajar/create', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'create'])->name('guru.jurnal-mengajar.create');
+        Route::post('/jurnal-mengajar', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'store'])->name('guru.jurnal-mengajar.store');
+        Route::get('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'show'])->name('guru.jurnal-mengajar.show');
+        Route::get('/jurnal-mengajar/{id}/edit', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'edit'])->name('guru.jurnal-mengajar.edit');
+        Route::put('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'update'])->name('guru.jurnal-mengajar.update');
+        Route::delete('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'destroy'])->name('guru.jurnal-mengajar.destroy');
+        Route::post('/jurnal-mengajar/{id}/update-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateAbsensi'])->name('guru.jurnal-mengajar.update-absensi');
     });
 
     // Siswa routes
