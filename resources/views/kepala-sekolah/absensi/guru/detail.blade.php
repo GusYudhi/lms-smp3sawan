@@ -129,11 +129,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th width="15%">Tanggal</th>
+                                    <th width="12%">Tanggal</th>
                                     <th width="10%">Hari</th>
-                                    <th width="12%">Status</th>
-                                    <th width="15%">Waktu Absen</th>
-                                    <th width="43%">Keterangan</th>
+                                    <th width="10%">Status</th>
+                                    <th width="12%">Waktu Absen</th>
+                                    <th width="10%">Bukti</th>
+                                    <th width="41%">Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -163,6 +164,27 @@
                                         <span class="text-muted">-</span>
                                         @endif
                                     </td>
+                                    <td class="text-center">
+                                        @if($item->status == 'hadir' && $item->photo_path)
+                                        <!-- Tombol Foto Bukti Kehadiran -->
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#photoModal{{ $item->id }}"
+                                                title="Lihat Foto Bukti">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        @elseif(in_array($item->status, ['sakit', 'izin']) && $item->dokumen_path)
+                                        <!-- File Bukti Izin/Sakit -->
+                                        <a href="{{ asset('storage/' . $item->dokumen_path) }}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-info"
+                                           title="Unduh File Bukti">
+                                            <i class="fas fa-file-download"></i>
+                                        </a>
+                                        @else
+                                        <span class="text-muted small">-</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($item->keterangan)
                                         <small>{{ $item->keterangan }}</small>
@@ -173,7 +195,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-4">
                                         <i class="fas fa-inbox text-muted fs-1 mb-3 d-block"></i>
                                         <p class="text-muted mb-0">Tidak ada data absensi</p>
                                     </td>
@@ -217,6 +239,37 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Foto Bukti - Dipindahkan ke luar tabel untuk menghindari flickering -->
+@foreach($absensi as $item)
+    @if($item->status == 'hadir' && $item->photo_path)
+    <div class="modal fade" id="photoModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto Bukti Kehadiran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="photo-container">
+                        <img src="{{ asset('storage/' . $item->photo_path) }}"
+                             alt="Foto Bukti Kehadiran"
+                             class="photo-evidence">
+                    </div>
+                    <div class="mt-3 photo-info">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}
+                            <i class="fas fa-clock ms-2 me-1"></i>
+                            {{ \Carbon\Carbon::parse($item->waktu_absen)->format('H:i:s') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
 
 <style>
 .pagination-container {
@@ -273,6 +326,75 @@
     text-align: center;
 }
 
+/* Fix flickering issue on modal image */
+.photo-container {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.photo-evidence {
+    display: block;
+    max-width: 100%;
+    max-height: 500px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+
+    /* Anti-flickering properties */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+
+    -webkit-font-smoothing: subpixel-antialiased;
+
+    /* Prevent user interaction that might cause flickering */
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    /* Improve rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+
+    /* Smooth transitions */
+    will-change: auto;
+}
+
+.modal-body {
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-content {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+.photo-info {
+    pointer-events: auto;
+}
+
+/* Remove any hover effects that might cause flickering */
+.modal-body img:hover,
+.photo-evidence:hover {
+    transform: translate3d(0, 0, 0);
+}
+
 @media (max-width: 576px) {
     .pagination-container {
         flex-direction: column;
@@ -282,6 +404,14 @@
     .pagination-controls {
         width: 100%;
         justify-content: center;
+    }
+
+    .photo-container {
+        min-height: 200px;
+    }
+
+    .photo-evidence {
+        max-height: 350px;
     }
 }
 </style>

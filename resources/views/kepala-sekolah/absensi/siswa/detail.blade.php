@@ -13,7 +13,6 @@
                         <div class="col-md-8">
                             <h1 class="h3 mb-2 text-success">
                                 <i class="fas fa-user-graduate me-2"></i>Detail Absensi Siswa
-                                <span class="badge bg-info ms-2">Mode Lihat Saja</span>
                             </h1>
                             <p class="text-muted mb-0">Riwayat kehadiran siswa</p>
                         </div>
@@ -123,11 +122,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th width="20%">Tanggal</th>
-                                    <th width="15%">Hari</th>
-                                    <th width="15%">Status</th>
-                                    <th width="15%">Waktu</th>
-                                    <th width="30%">Catatan</th>
+                                    <th width="15%">Tanggal</th>
+                                    <th width="12%">Hari</th>
+                                    <th width="12%">Status</th>
+                                    <th width="12%">Waktu</th>
+                                    <th width="10%">Bukti</th>
+                                    <th width="34%">Catatan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -157,6 +157,9 @@
                                         <span class="text-muted">-</span>
                                         @endif
                                     </td>
+                                    <td class="text-center">
+                                        <span class="text-muted small">-</span>
+                                    </td>
                                     <td>
                                         @if($item->notes)
                                         <small>{{ $item->notes }}</small>
@@ -167,7 +170,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-4">
                                         <i class="fas fa-inbox text-muted fs-1 mb-3 d-block"></i>
                                         <p class="text-muted mb-0">Tidak ada data absensi</p>
                                     </td>

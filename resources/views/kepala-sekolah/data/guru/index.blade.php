@@ -202,12 +202,32 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white border-top">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted">
-                            Menampilkan {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            Menampilkan {{ $users->firstItem() ?? 0 }}-{{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data
                         </div>
-                        <div>
-                            {{ $users->links() }}
+                        <div class="pagination-controls">
+                            @if ($users->onFirstPage())
+                                <button class="btn btn-pagination" disabled>
+                                    <i class="fas fa-chevron-left"></i> Sebelumnya
+                                </button>
+                            @else
+                                <a href="{{ $users->previousPageUrl() }}" class="btn btn-pagination">
+                                    <i class="fas fa-chevron-left"></i> Sebelumnya
+                                </a>
+                            @endif
+
+                            <span class="pagination-current">{{ $users->currentPage() }}</span>
+
+                            @if ($users->hasMorePages())
+                                <a href="{{ $users->nextPageUrl() }}" class="btn btn-pagination">
+                                    Selanjutnya <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <button class="btn btn-pagination" disabled>
+                                    Selanjutnya <i class="fas fa-chevron-right"></i>
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -215,6 +235,73 @@
         </div>
     </div>
 </div>
+
+<style>
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-pagination {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-pagination:hover:not(:disabled) {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+.btn-pagination:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-current {
+    padding: 0.5rem 1rem;
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+@media (max-width: 576px) {
+    .pagination-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
 
 <style>
 .avatar-circle {

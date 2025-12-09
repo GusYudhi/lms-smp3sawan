@@ -180,12 +180,36 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white border-top">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted">
+                    <div class="pagination-container">
+                        <div class="pagination-info">
                             Menampilkan {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data
                         </div>
-                        <div>
-                            {{ $users->appends(['search' => $search, 'kelas' => $kelasFilter])->links() }}
+                        <div class="pagination-controls">
+                            @if ($users->onFirstPage())
+                                <span class="btn btn-pagination disabled">
+                                    <i class="fas fa-chevron-left me-1"></i> Sebelumnya
+                                </span>
+                            @else
+                                <a href="{{ $users->appends(['search' => $search, 'kelas' => $kelasFilter])->previousPageUrl() }}"
+                                   class="btn btn-pagination">
+                                    <i class="fas fa-chevron-left me-1"></i> Sebelumnya
+                                </a>
+                            @endif
+
+                            <span class="pagination-current">
+                                Halaman {{ $users->currentPage() }} dari {{ $users->lastPage() }}
+                            </span>
+
+                            @if ($users->hasMorePages())
+                                <a href="{{ $users->appends(['search' => $search, 'kelas' => $kelasFilter])->nextPageUrl() }}"
+                                   class="btn btn-pagination">
+                                    Selanjutnya <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            @else
+                                <span class="btn btn-pagination disabled">
+                                    Selanjutnya <i class="fas fa-chevron-right ms-1"></i>
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -215,6 +239,69 @@
 .card-stats:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     transform: translateY(-5px);
+}
+
+/* Custom Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-pagination {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-pagination:hover:not(.disabled) {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+.btn-pagination.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #e9ecef;
+}
+
+.pagination-current {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+@media (max-width: 576px) {
+    .pagination-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pagination-controls {
+        justify-content: center;
+    }
 }
 </style>
 @endsection
