@@ -15,7 +15,7 @@ class MataPelajaranSeeder extends Seeder
     public function run(): void
     {
         // Ambil semester aktif atau semester pertama
-        $semester = Semester::where('is_active', true)->first() 
+        $semester = Semester::where('is_active', true)->first()
                     ?? Semester::first();
 
         if (!$semester) {
@@ -32,12 +32,12 @@ class MataPelajaranSeeder extends Seeder
             ['nama_mapel' => 'Ilmu Pengetahuan Alam', 'kode_mapel' => 'IPA'],
             ['nama_mapel' => 'Ilmu Pengetahuan Sosial', 'kode_mapel' => 'IPS'],
             ['nama_mapel' => 'Bahasa Inggris', 'kode_mapel' => 'BING'],
-            
+
             // Kelompok B (Umum)
             ['nama_mapel' => 'Seni Budaya', 'kode_mapel' => 'SB'],
             ['nama_mapel' => 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 'kode_mapel' => 'PJOK'],
             ['nama_mapel' => 'Prakarya', 'kode_mapel' => 'PKK'],
-            
+
             // Muatan Lokal
             ['nama_mapel' => 'Bahasa Daerah (Bali)', 'kode_mapel' => 'BDAE'],
             ['nama_mapel' => 'Informatika', 'kode_mapel' => 'INF'],

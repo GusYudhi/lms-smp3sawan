@@ -17,7 +17,7 @@ class JadwalPelajaranSeeder extends Seeder
     public function run(): void
     {
         // Ambil semester aktif
-        $semester = Semester::where('is_active', true)->first() 
+        $semester = Semester::where('is_active', true)->first()
                     ?? Semester::first();
 
         if (!$semester) {
@@ -27,7 +27,7 @@ class JadwalPelajaranSeeder extends Seeder
 
         // Ambil semua kelas
         $kelasList = Kelas::all();
-        
+
         if ($kelasList->isEmpty()) {
             $this->command->error('Tidak ada kelas. Buat kelas terlebih dahulu.');
             return;
@@ -35,7 +35,7 @@ class JadwalPelajaranSeeder extends Seeder
 
         // Ambil mata pelajaran
         $mataPelajaran = MataPelajaran::where('semester_id', $semester->id)->get();
-        
+
         if ($mataPelajaran->isEmpty()) {
             $this->command->error('Tidak ada mata pelajaran. Jalankan MataPelajaranSeeder terlebih dahulu.');
             return;
@@ -43,7 +43,7 @@ class JadwalPelajaranSeeder extends Seeder
 
         // Ambil guru (role = guru)
         $guruList = User::where('role', 'guru')->get();
-        
+
         if ($guruList->isEmpty()) {
             $this->command->error('Tidak ada guru. Buat user guru terlebih dahulu.');
             return;
@@ -51,7 +51,7 @@ class JadwalPelajaranSeeder extends Seeder
 
         // Hari dalam seminggu
         $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        
+
         $totalJadwal = 0;
 
         // Loop untuk setiap kelas
@@ -68,7 +68,7 @@ class JadwalPelajaranSeeder extends Seeder
                     ['hari' => 'Senin', 'jam_ke' => 6, 'mapel' => 'MTK'],
                     ['hari' => 'Senin', 'jam_ke' => 7, 'mapel' => 'IPA'],
                     ['hari' => 'Senin', 'jam_ke' => 8, 'mapel' => 'IPA'],
-                    
+
                     // Selasa
                     ['hari' => 'Selasa', 'jam_ke' => 1, 'mapel' => 'PAI'],
                     ['hari' => 'Selasa', 'jam_ke' => 2, 'mapel' => 'PAI'],
@@ -78,7 +78,7 @@ class JadwalPelajaranSeeder extends Seeder
                     ['hari' => 'Selasa', 'jam_ke' => 6, 'mapel' => 'IPS'],
                     ['hari' => 'Selasa', 'jam_ke' => 7, 'mapel' => 'MTK'],
                     ['hari' => 'Selasa', 'jam_ke' => 8, 'mapel' => 'MTK'],
-                    
+
                     // Rabu
                     ['hari' => 'Rabu', 'jam_ke' => 1, 'mapel' => 'SB'],
                     ['hari' => 'Rabu', 'jam_ke' => 2, 'mapel' => 'SB'],
@@ -88,7 +88,7 @@ class JadwalPelajaranSeeder extends Seeder
                     ['hari' => 'Rabu', 'jam_ke' => 6, 'mapel' => 'BDAE'],
                     ['hari' => 'Rabu', 'jam_ke' => 7, 'mapel' => 'BDAE'],
                     ['hari' => 'Rabu', 'jam_ke' => 8, 'mapel' => 'INF'],
-                    
+
                     // Kamis
                     ['hari' => 'Kamis', 'jam_ke' => 1, 'mapel' => 'BIND'],
                     ['hari' => 'Kamis', 'jam_ke' => 2, 'mapel' => 'BIND'],
@@ -98,7 +98,7 @@ class JadwalPelajaranSeeder extends Seeder
                     ['hari' => 'Kamis', 'jam_ke' => 6, 'mapel' => 'IPA'],
                     ['hari' => 'Kamis', 'jam_ke' => 7, 'mapel' => 'PKK'],
                     ['hari' => 'Kamis', 'jam_ke' => 8, 'mapel' => 'PKK'],
-                    
+
                     // Jumat
                     ['hari' => 'Jumat', 'jam_ke' => 1, 'mapel' => 'IPS'],
                     ['hari' => 'Jumat', 'jam_ke' => 2, 'mapel' => 'IPS'],
@@ -110,7 +110,7 @@ class JadwalPelajaranSeeder extends Seeder
 
                 foreach ($jadwalKelas7 as $jadwal) {
                     $mapel = $mataPelajaran->where('kode_mapel', $jadwal['mapel'])->first();
-                    
+
                     if (!$mapel) {
                         continue;
                     }
@@ -134,7 +134,7 @@ class JadwalPelajaranSeeder extends Seeder
                     $totalJadwal++;
                 }
             }
-            
+
             // Untuk kelas 8 dan 9, buat jadwal sederhana (opsional)
             if ($kelas->tingkat == 8 || $kelas->tingkat == 9) {
                 // Buat jadwal sederhana untuk hari Senin saja sebagai contoh

@@ -14,7 +14,7 @@ class JamPelajaranSeeder extends Seeder
     public function run(): void
     {
         // Ambil semester aktif atau semester pertama
-        $semester = Semester::where('is_active', true)->first() 
+        $semester = Semester::where('is_active', true)->first()
                     ?? Semester::first();
 
         if (!$semester) {
