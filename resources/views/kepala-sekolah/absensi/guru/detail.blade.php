@@ -13,7 +13,6 @@
                         <div class="col-md-8">
                             <h1 class="h3 mb-2 text-success">
                                 <i class="fas fa-chalkboard-teacher me-2"></i>Detail Absensi Guru
-                                <span class="badge bg-info ms-2">Mode Lihat Saja</span>
                             </h1>
                             <p class="text-muted mb-0">Riwayat kehadiran guru</p>
                         </div>

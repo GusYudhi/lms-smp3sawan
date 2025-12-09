@@ -15,7 +15,6 @@
                                 <i class="fas fa-calendar-alt me-2"></i>Detail Tahun Pelajaran
                             </h1>
                             <p class="text-muted mb-0">Informasi lengkap tahun pelajaran</p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div>
                             <a href="{{ route('kepala-sekolah.tahun-pelajaran.index') }}" class="btn btn-secondary">

@@ -15,7 +15,6 @@
                                 <i class="fas fa-user-circle me-2"></i>Detail Siswa
                             </h1>
                             <p class="text-muted mb-0">Informasi lengkap data siswa</p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div>
                             <a href="{{ route('kepala-sekolah.siswa.index') }}" class="btn btn-secondary">

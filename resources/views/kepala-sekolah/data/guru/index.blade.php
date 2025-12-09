@@ -15,7 +15,6 @@
                                 <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Data Guru
                             </h1>
                             <p class="text-subtle mb-0 fw-medium">Lihat informasi data guru dan tenaga pendidik</p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div class="col-md-4 text-end">
                             <a href="{{ route('kepala-sekolah.dashboard') }}" class="btn btn-outline-secondary shadow-sm">

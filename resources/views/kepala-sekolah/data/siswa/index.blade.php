@@ -15,7 +15,6 @@
                                 <i class="fas fa-user-graduate text-success me-2"></i>Data Siswa
                             </h1>
                             <p class="text-subtle mb-0 fw-medium">Lihat informasi data siswa</p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div class="col-md-4 text-end">
                             <a href="{{ route('kepala-sekolah.dashboard') }}" class="btn btn-outline-secondary shadow-sm">
@@ -40,20 +39,6 @@
                     <h6 class="card-title text-muted">Total Siswa</h6>
                     <h2 class="text-success">{{ \App\Models\User::where('role', 'siswa')->count() }}</h2>
                     <small class="text-muted">Semua Siswa</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Siswa Kelas 7 -->
-        <div class="col-xl-4 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-info fs-1 mb-3">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Siswa Kelas 7</h6>
-                    <h2 class="text-info">{{ \App\Models\StudentProfile::whereHas('kelas', function($q) { $q->where('tingkat', 7); })->count() }}</h2>
-                    <small class="text-muted">Kelas VII</small>
                 </div>
             </div>
         </div>

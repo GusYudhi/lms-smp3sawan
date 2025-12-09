@@ -15,7 +15,6 @@
                                 <i class="fas fa-calendar me-2"></i>Detail Semester
                             </h1>
                             <p class="text-muted mb-0">Informasi lengkap semester</p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div>
                             <a href="{{ route('kepala-sekolah.semester.index', $semester->tahun_pelajaran_id) }}" class="btn btn-secondary">

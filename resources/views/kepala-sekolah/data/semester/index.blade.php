@@ -15,7 +15,6 @@
                                 <i class="fas fa-calendar me-2"></i>Data Semester
                             </h1>
                             <p class="text-muted mb-0">Tahun Pelajaran: <strong>{{ $tahunPelajaran->nama }}</strong></p>
-                            <span class="badge bg-info mt-2">Mode Lihat Saja</span>
                         </div>
                         <div class="col-md-4 text-end">
                             <a href="{{ route('kepala-sekolah.tahun-pelajaran.index') }}" class="btn btn-outline-secondary">
