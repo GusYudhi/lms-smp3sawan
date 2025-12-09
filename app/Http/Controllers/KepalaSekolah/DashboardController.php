@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Kelas;
 use App\Models\Attendance;
+use App\Models\GuruAttendance;
+use App\Models\TugasGuru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -102,6 +104,22 @@ class DashboardController extends Controller
             ->orderByDesc('attendance_rate')
             ->first();
 
+        // Data Absensi Guru Hari Ini
+        $totalGuruAbsenHariIni = GuruAttendance::whereDate('tanggal', $today)
+            ->where('status', 'hadir')
+            ->count();
+
+        $totalGuruTidakHadirHariIni = GuruAttendance::whereDate('tanggal', $today)
+            ->whereIn('status', ['sakit', 'izin', 'alpha'])
+            ->count();
+
+        // Data Tugas Guru
+        $totalTugasAktif = TugasGuru::where('status', 'aktif')->count();
+
+        $totalSubmissions = DB::table('tugas_guru_submissions')
+            ->where('status_pengumpulan', 'dikumpulkan')
+            ->count();
+
         return view('kepala-sekolah.dashboard', compact(
             'totalGuru',
             'totalSiswa',
@@ -112,7 +130,11 @@ class DashboardController extends Controller
             'attendanceWeekly',
             'siswaSeringAbsen',
             'rataRataKehadiranBulan',
-            'kelasTerbaik'
+            'kelasTerbaik',
+            'totalGuruAbsenHariIni',
+            'totalGuruTidakHadirHariIni',
+            'totalTugasAktif',
+            'totalSubmissions'
         ));
     }
 }

@@ -209,6 +209,13 @@
                                 </a>
                             </li>
 
+                            <!-- Tugas Guru -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.tugas-guru') ? 'active' : '' }}" href="{{ route('kepala-sekolah.tugas-guru.index') }}">
+                                    <i class="fas fa-tasks me-2"></i> Tugas Guru
+                                </a>
+                            </li>
+
                             <!-- Data Sekolah -->
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
@@ -239,6 +246,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'guru.jurnal-mengajar') ? 'active' : '' }}" href="{{ route('guru.jurnal-mengajar.index') }}">
                                     <i class="fas fa-book me-2"></i> Jurnal Mengajar
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'guru.tugas-guru') ? 'active' : '' }}" href="{{ route('guru.tugas-guru.index') }}">
+                                    <i class="fas fa-tasks me-2"></i> Tugas Guru
                                 </a>
                             </li>
                         @elseif(auth()->user()->isSiswa())

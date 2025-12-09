@@ -157,6 +157,18 @@ Route::middleware(['auth'])->group(function () {
         // Jadwal Pelajaran (Read Only)
         Route::get('/jadwal-pelajaran', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'index'])->name('kepala-sekolah.jadwal-pelajaran.index');
         Route::get('/jadwal-pelajaran/get-by-kelas/{kelasId}', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'getByKelas'])->name('kepala-sekolah.jadwal-pelajaran.get-by-kelas');
+
+        // Tugas Guru routes
+        Route::get('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'index'])->name('kepala-sekolah.tugas-guru.index');
+        Route::get('/tugas-guru/create', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'create'])->name('kepala-sekolah.tugas-guru.create');
+        Route::post('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'store'])->name('kepala-sekolah.tugas-guru.store');
+        Route::get('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'show'])->name('kepala-sekolah.tugas-guru.show');
+        Route::get('/tugas-guru/{id}/edit', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'edit'])->name('kepala-sekolah.tugas-guru.edit');
+        Route::put('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'update'])->name('kepala-sekolah.tugas-guru.update');
+        Route::delete('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'destroy'])->name('kepala-sekolah.tugas-guru.destroy');
+        Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'deleteFile'])->name('kepala-sekolah.tugas-guru.delete-file');
+        Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'showSubmission'])->name('kepala-sekolah.tugas-guru.show-submission');
+        Route::put('/tugas-guru/submission/{id}/feedback', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'updateFeedback'])->name('kepala-sekolah.tugas-guru.update-feedback');
     });
 
     // Guru routes
@@ -189,6 +201,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'update'])->name('guru.jurnal-mengajar.update');
         Route::delete('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'destroy'])->name('guru.jurnal-mengajar.destroy');
         Route::post('/jurnal-mengajar/{id}/update-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateAbsensi'])->name('guru.jurnal-mengajar.update-absensi');
+
+        // Tugas Guru routes
+        Route::get('/tugas-guru', [App\Http\Controllers\Guru\TugasGuruController::class, 'index'])->name('guru.tugas-guru.index');
+        Route::get('/tugas-guru/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'show'])->name('guru.tugas-guru.show');
+        Route::post('/tugas-guru/{id}/submit', [App\Http\Controllers\Guru\TugasGuruController::class, 'submit'])->name('guru.tugas-guru.submit');
+        Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'showSubmission'])->name('guru.tugas-guru.show-submission');
+        Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'deleteFile'])->name('guru.tugas-guru.delete-file');
+        Route::delete('/tugas-guru/submission/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'deleteSubmission'])->name('guru.tugas-guru.delete-submission');
     });
 
     // Siswa routes

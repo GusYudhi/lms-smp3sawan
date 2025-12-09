@@ -200,7 +200,7 @@
 
     <!-- Portal Grid -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-2 col-md-4 col-sm-6">
             <a href="{{ route('kepala-sekolah.guru.index') }}" class="text-decoration-none">
                 <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
@@ -215,7 +215,7 @@
             </a>
         </div>
 
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-2 col-md-4 col-sm-6">
             <a href="{{ route('kepala-sekolah.siswa.index') }}" class="text-decoration-none">
                 <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
@@ -230,22 +230,37 @@
             </a>
         </div>
 
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('kepala-sekolah.tahun-pelajaran.index') }}" class="text-decoration-none">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <a href="{{ route('kepala-sekolah.absensi.index') }}" class="text-decoration-none">
                 <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
                         <div class="text-info fs-1 mb-3">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i class="fas fa-clipboard-check"></i>
                         </div>
-                        <h5 class="card-title">Tahun Pelajaran</h5>
-                        <p class="card-text text-muted">Lihat tahun pelajaran dan semester</p>
+                        <h5 class="card-title">Data Absensi</h5>
+                        <p class="card-text text-muted">Monitoring kehadiran siswa</p>
                         <span class="badge bg-info">Lihat Saja</span>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <a href="{{ route('kepala-sekolah.tugas-guru.index') }}" class="text-decoration-none">
+                <div class="card card-stats h-100 hover-card">
+                    <div class="card-body text-center">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h5 class="card-title">Tugas Guru</h5>
+                        <p class="card-text text-muted">Kelola tugas untuk guru</p>
+                        <span class="badge bg-primary">Kelola</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
             <a href="{{ route('school.profile') }}" class="text-decoration-none">
                 <div class="card card-stats h-100 hover-card">
                     <div class="card-body text-center">
@@ -258,6 +273,65 @@
                     </div>
                 </div>
             </a>
+        </div>
+    </div>
+
+    <!-- Statistik Tambahan: Absensi Guru dan Tugas -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card card-stats">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Absensi Guru Hari Ini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="text-success fs-2 mb-2">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <h3 class="text-success">{{ $totalGuruAbsenHariIni }}</h3>
+                            <p class="text-muted mb-0">Guru Hadir</p>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-danger fs-2 mb-2">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                            <h3 class="text-danger">{{ $totalGuruTidakHadirHariIni }}</h3>
+                            <p class="text-muted mb-0">Tidak Hadir</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-stats">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>Statistik Tugas Guru
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="text-primary fs-2 mb-2">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3 class="text-primary">{{ $totalTugasAktif }}</h3>
+                            <p class="text-muted mb-0">Tugas Aktif</p>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-success fs-2 mb-2">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3 class="text-success">{{ $totalSubmissions }}</h3>
+                            <p class="text-muted mb-0">Total Submission</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
