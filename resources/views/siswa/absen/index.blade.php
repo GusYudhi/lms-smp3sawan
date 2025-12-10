@@ -175,37 +175,72 @@
             </div>
         </div>
 
-        <!-- Right Sidebar - Weekly Summary -->
+        <!-- Right Sidebar - Calendar Attendance -->
         <div class="col-lg-4">
-            <!-- Weekly Attendance Card -->
-            <div class="card border-0 shadow-sm mb-4">
+            <!-- Calendar Attendance Card -->
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-gradient bg-info text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-calendar-week me-2"></i>Absensi Minggu Ini
-                    </h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Riwayat Absensi
+                        </h6>
+                        <button class="btn btn-sm btn-light" id="btn-current-month" title="Kembali ke bulan ini">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-3">
-                    <div id="weekly-summary">
+                    <!-- Month Navigation -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h6 class="mb-0" id="calendar-month-year">{{ date('F Y') }}</h6>
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div id="calendar-container">
                         <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
+                            <div class="spinner-border text-primary spinner-border-sm" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Statistics Card -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient bg-success text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Statistik Absensi
-                    </h6>
-                </div>
-                <div class="card-body p-3">
-                    <div id="statistics-summary">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-success" role="status">
+                    <!-- Legend -->
+                    <div class="mt-3 pt-3 border-top">
+                        <small class="text-muted d-block mb-2"><strong>Keterangan:</strong></small>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #28a745;">
+                                    <small class="text-white fw-semibold">Hadir</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #ffc107;">
+                                    <small class="text-dark fw-semibold">Izin</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #0dcaf0;">
+                                    <small class="text-dark fw-semibold">Sakit</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #dc3545;">
+                                    <small class="text-white fw-semibold">Alpha</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Statistics -->
+                    <div class="mt-3 pt-3 border-top" id="monthly-statistics">
+                        <div class="text-center py-2">
+                            <div class="spinner-border text-success spinner-border-sm" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
@@ -301,6 +336,127 @@
         background-color: rgba(220, 53, 69, 0.1);
         border-left: 4px solid #dc3545;
     }
+
+    /* Calendar Styles */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .calendar-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.5rem 0.25rem;
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        border-radius: 0.25rem;
+        background-color: #fff;
+        border: 1px solid #e9ecef;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .calendar-day:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+
+    .calendar-day.empty {
+        background-color: #f8f9fa;
+        border: none;
+        cursor: default;
+    }
+
+    .calendar-day.empty:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .calendar-day.today {
+        border: 2px solid #0d6efd;
+        font-weight: bold;
+    }
+
+    .calendar-day.hadir {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+
+    .calendar-day.izin {
+        background-color: #ffc107;
+        color: #000;
+        border-color: #ffc107;
+    }
+
+    .calendar-day.sakit {
+        background-color: #0dcaf0;
+        color: #000;
+        border-color: #0dcaf0;
+    }
+
+    .calendar-day.alpha {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    .calendar-day.libur {
+        background-color: #6c757d;
+        color: white;
+        border-color: #6c757d;
+    }
+
+    .calendar-day .day-number {
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-mini {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .stat-mini:last-child {
+        margin-bottom: 0;
+    }
+
+    .stat-mini.hadir {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+
+    .stat-mini.izin {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #856404;
+    }
+
+    .stat-mini.sakit {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: #055160;
+    }
+
+    .stat-mini.alpha {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
 </style>
 
 @endsection
@@ -308,13 +464,41 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
     document.addEventListener('DOMContentLoaded', function() {
         // Update time every second
         updateTime();
         setInterval(updateTime, 1000);
 
-        // Load weekly attendance
-        loadWeeklyAttendance();
+        // Load calendar for current month
+        loadMonthlyCalendar(currentYear, currentMonth);
+
+        // Calendar navigation
+        document.getElementById('btn-prev-month').addEventListener('click', function() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
+
+        document.getElementById('btn-next-month').addEventListener('click', function() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
+
+        document.getElementById('btn-current-month').addEventListener('click', function() {
+            currentMonth = new Date().getMonth();
+            currentYear = new Date().getFullYear();
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
 
         // Form submissions
         const izinForm = document.getElementById('izin-form');
@@ -343,8 +527,23 @@
         document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
     }
 
-    function loadWeeklyAttendance() {
-        fetch('{{ route('siswa.absensi.weekly') }}', {
+    function loadMonthlyCalendar(year, month) {
+        // Update month-year display
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+
+        // Show loading
+        document.getElementById('calendar-container').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+
+        // Fetch monthly data
+        fetch(`{{ route('siswa.absensi.monthly') }}?year=${year}&month=${month + 1}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -352,104 +551,102 @@
             }
         })
         .then(response => {
-            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Weekly data:', data);
+            console.log('Monthly data:', data);
             if (data.success) {
-                displayWeeklyAttendance(data.data, data.week_range);
-                displayStatistics(data.statistics);
+                displayCalendar(year, month, data.data);
+                displayMonthlyStatistics(data.statistics);
             } else {
                 throw new Error(data.message || 'Gagal memuat data');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            document.getElementById('weekly-summary').innerHTML = `
+            document.getElementById('calendar-container').innerHTML = `
                 <div class="alert alert-danger mb-0 small">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat data: ${error.message}
-                </div>
-            `;
-            document.getElementById('statistics-summary').innerHTML = `
-                <div class="alert alert-danger mb-0 small">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat statistik
+                    <i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat kalender
                 </div>
             `;
         });
     }
 
-    function displayWeeklyAttendance(weekData, weekRange) {
-        let html = `
-            <div class="mb-3">
-                <small class="text-muted">
-                    <i class="fas fa-calendar-alt me-1"></i>${weekRange}
-                </small>
-            </div>
-        `;
+    function displayCalendar(year, month, attendanceData) {
+        const today = new Date();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
 
-        weekData.forEach(day => {
-            let statusClass = 'no-data';
-            let statusIcon = 'calendar';
+        let html = '<div class="calendar-grid">';
 
-            if (day.status === 'hadir') {
-                statusClass = 'present';
-                statusIcon = 'check';
-            } else if (day.status === 'izin') {
-                statusClass = 'izin';
-                statusIcon = 'file-medical';
-            } else if (day.status === 'sakit') {
-                statusClass = 'sakit';
-                statusIcon = 'notes-medical';
-            } else if (day.status === 'alpha') {
-                statusClass = 'absent';
-                statusIcon = 'times';
+        // Day headers
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        dayNames.forEach(day => {
+            html += `<div class="calendar-header">${day}</div>`;
+        });
+
+        // Empty cells before first day
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            html += '<div class="calendar-day empty"></div>';
+        }
+
+        // Days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const attendance = attendanceData[dateStr];
+
+            let classes = 'calendar-day';
+            let title = '';
+
+            // Check if today
+            if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                classes += ' today';
             }
 
-            html += `
-                <div class="day-box ${statusClass} mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="d-block" style="opacity: 0.9;">${day.hari}</small>
-                            <strong>${day.tanggal}</strong>
-                        </div>
-                        <i class="fas fa-${statusIcon}"></i>
-                    </div>
-                    ${day.keterangan ? `<small class="d-block mt-1" style="opacity: 0.8;">${day.keterangan}</small>` : ''}
-                </div>
-            `;
-        });
+            // Add status class
+            if (attendance) {
+                classes += ` ${attendance.status}`;
+                title = `${attendance.status_label}`;
+                if (attendance.notes) {
+                    title += `: ${attendance.notes}`;
+                }
+            }
 
-        document.getElementById('weekly-summary').innerHTML = html;
+            html += `<div class="${classes}" title="${title}">
+                        <span class="day-number">${day}</span>
+                     </div>`;
+        }
+
+        html += '</div>';
+        document.getElementById('calendar-container').innerHTML = html;
     }
 
-    function displayStatistics(stats) {
+    function displayMonthlyStatistics(stats) {
         const html = `
-            <div class="stat-item hadir">
-                <i class="fas fa-check-circle text-success"></i>
-                <div><strong class="h4 mb-0">${stats.hadir}</strong></div>
-                <small>Hadir</small>
+            <small class="text-muted d-block mb-2"><strong>Statistik Bulan Ini:</strong></small>
+            <div class="stat-mini hadir">
+                <span><i class="fas fa-check-circle me-1"></i>Hadir</span>
+                <strong>${stats.hadir || 0}</strong>
             </div>
-            <div class="stat-item izin">
-                <i class="fas fa-file-medical text-warning"></i>
-                <div><strong class="h4 mb-0">${stats.izin}</strong></div>
-                <small>Izin</small>
+            <div class="stat-mini izin">
+                <span><i class="fas fa-file-medical me-1"></i>Izin</span>
+                <strong>${stats.izin || 0}</strong>
             </div>
-            <div class="stat-item sakit">
-                <i class="fas fa-notes-medical text-info"></i>
-                <div><strong class="h4 mb-0">${stats.sakit}</strong></div>
-                <small>Sakit</small>
+            <div class="stat-mini sakit">
+                <span><i class="fas fa-notes-medical me-1"></i>Sakit</span>
+                <strong>${stats.sakit || 0}</strong>
             </div>
-            <div class="stat-item alpha">
-                <i class="fas fa-times-circle text-danger"></i>
-                <div><strong class="h4 mb-0">${stats.alpha}</strong></div>
-                <small>Alpha</small>
+            <div class="stat-mini alpha">
+                <span><i class="fas fa-times-circle me-1"></i>Alpha</span>
+                <strong>${stats.alpha || 0}</strong>
             </div>
         `;
-        document.getElementById('statistics-summary').innerHTML = html;
+        document.getElementById('monthly-statistics').innerHTML = html;
     }
 
     function submitAbsence(type, form) {

@@ -238,4 +238,94 @@ class AbsensiSiswaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get monthly attendance calendar for current user
+     */
+    public function monthly(Request $request)
+    {
+        try {
+            $year = $request->input('year', date('Y'));
+            $month = $request->input('month', date('m'));
+
+            Log::info('Monthly attendance request', [
+                'user_id' => auth()->id(),
+                'year' => $year,
+                'month' => $month
+            ]);
+
+            // Get first and last day of the month
+            $firstDay = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $lastDay = $firstDay->copy()->endOfMonth();
+
+            Log::info('Date range', [
+                'first_day' => $firstDay->format('Y-m-d'),
+                'last_day' => $lastDay->format('Y-m-d')
+            ]);
+
+            // Get all attendance records for this month
+            $attendances = Attendance::where('user_id', auth()->id())
+                ->whereBetween('date', [$firstDay, $lastDay])
+                ->orderBy('date')
+                ->get();
+
+            Log::info('Found attendances', [
+                'count' => $attendances->count()
+            ]);
+
+            // Map attendance data by date
+            $attendanceByDate = [];
+            foreach ($attendances as $attendance) {
+                $dateKey = $attendance->date->format('Y-m-d');
+
+                $statusLabel = match($attendance->status) {
+                    'hadir' => 'Hadir',
+                    'izin' => 'Izin',
+                    'sakit' => 'Sakit',
+                    'alpha' => 'Alpha',
+                    default => ucfirst($attendance->status)
+                };
+
+                $attendanceByDate[$dateKey] = [
+                    'status' => $attendance->status,
+                    'status_label' => $statusLabel,
+                    'time' => $attendance->time ? $attendance->time->format('H:i') : null,
+                    'notes' => $attendance->notes
+                ];
+            }
+
+            // Calculate statistics for the month
+            $statistics = [
+                'hadir' => $attendances->where('status', 'hadir')->count(),
+                'izin' => $attendances->where('status', 'izin')->count(),
+                'sakit' => $attendances->where('status', 'sakit')->count(),
+                'alpha' => $attendances->where('status', 'alpha')->count(),
+                'total' => $attendances->count()
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendanceByDate,
+                'statistics' => $statistics,
+                'month_info' => [
+                    'year' => (int)$year,
+                    'month' => (int)$month,
+                    'first_day' => $firstDay->format('Y-m-d'),
+                    'last_day' => $lastDay->format('Y-m-d'),
+                    'days_in_month' => $lastDay->day
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Monthly attendance error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

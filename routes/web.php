@@ -219,6 +219,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'index'])->name('siswa.absensi.index');
         Route::post('/absensi/store', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'store'])->name('siswa.absensi.store');
         Route::get('/absensi/weekly', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'weekly'])->name('siswa.absensi.weekly');
+        Route::get('/absensi/monthly', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'monthly'])->name('siswa.absensi.monthly');
 
         // Jadwal Pelajaran routes
         Route::get('/jadwal-pelajaran', [App\Http\Controllers\Siswa\JadwalPelajaranController::class, 'index'])->name('siswa.jadwal-pelajaran.index');
