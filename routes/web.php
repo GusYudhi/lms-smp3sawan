@@ -213,7 +213,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Siswa routes
     Route::prefix('siswa')->middleware('role:siswa')->group(function () {
-        Route::get('/siswa/dashboard', [App\Http\Controllers\Siswa\DashboardController::class, 'index'])->name('siswa.dashboard');
+        Route::get('/dashboard', [App\Http\Controllers\Siswa\DashboardController::class, 'index'])->name('siswa.dashboard');
+
+        // Absensi routes
+        Route::get('/absensi', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'index'])->name('siswa.absensi.index');
+        Route::post('/absensi/store', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'store'])->name('siswa.absensi.store');
+        Route::get('/absensi/weekly', [App\Http\Controllers\Siswa\AbsensiSiswaController::class, 'weekly'])->name('siswa.absensi.weekly');
     });
 
     Route::prefix('/')->middleware('role:all')->group(function () {

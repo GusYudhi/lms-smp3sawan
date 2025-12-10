@@ -20,7 +20,22 @@
 
     <!-- Student Overview -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
+            <div class="card card-stats h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-user-check text-info fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-high-contrast fw-semibold">Absensi</h5>
+                    <p class="text-subtle mb-3">Lapor izin/sakit dari rumah</p>
+                    <a href="{{ route('siswa.absensi.index') }}" class="btn btn-outline-info">
+                        <i class="fas fa-clipboard-check me-2"></i>Buka Absensi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
             <div class="card card-stats h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3">
@@ -35,7 +50,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
             <div class="card card-stats h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3">
@@ -50,7 +65,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
             <div class="card card-stats h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3">

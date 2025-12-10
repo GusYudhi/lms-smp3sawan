@@ -260,6 +260,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'siswa.absensi') ? 'active' : '' }}" href="{{ route('siswa.absensi.index') }}">
+                                    <i class="fas fa-user-check me-2"></i> Absensi
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="#">
                                     <i class="fas fa-book me-2"></i> Materi Pelajaran
                                 </a>
