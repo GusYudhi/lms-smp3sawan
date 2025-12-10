@@ -112,97 +112,65 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>Riwayat Absensi
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="5%">No</th>
-                                    <th width="20%">Tanggal</th>
-                                    <th width="15%">Hari</th>
-                                    <th width="15%">Status</th>
-                                    <th width="15%">Waktu</th>
-                                    <th width="30%">Catatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($absensi as $index => $item)
-                                <tr>
-                                    <td>{{ $absensi->firstItem() + $index }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->date)->format('d/m/Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->date)->locale('id')->isoFormat('dddd') }}</td>
-                                    <td>
-                                        @if($item->status == 'hadir')
-                                        <span class="badge bg-success">Hadir</span>
-                                        @elseif($item->status == 'sakit')
-                                        <span class="badge bg-warning">Sakit</span>
-                                        @elseif($item->status == 'izin')
-                                        <span class="badge bg-info">Izin</span>
-                                        @elseif($item->status == 'alpha')
-                                        <span class="badge bg-danger">Alpha</span>
-                                        @elseif($item->status == 'terlambat')
-                                        <span class="badge bg-secondary">Terlambat</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($item->time)
-                                        <i class="fas fa-clock text-primary me-1"></i>
-                                        {{ \Carbon\Carbon::parse($item->time)->format('H:i') }}
-                                        @else
-                                        <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($item->notes)
-                                        <small>{{ $item->notes }}</small>
-                                        @else
-                                        <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-4">
-                                        <i class="fas fa-inbox text-muted fs-1 mb-3 d-block"></i>
-                                        <p class="text-muted mb-0">Tidak ada data absensi</p>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Riwayat Absensi
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" id="btn-current-month" title="Kembali ke bulan ini">
+                            <i class="fas fa-redo"></i> Bulan Ini
+                        </button>
                     </div>
                 </div>
-                <div class="card-footer bg-light border-top-0 py-3">
-                    <div class="pagination-container">
-                        <div class="pagination-info">
-                            Menampilkan {{ $absensi->firstItem() ?? 0 }}-{{ $absensi->lastItem() ?? 0 }} dari {{ $absensi->total() }} data
+                <div class="card-body">
+                    <!-- Month Navigation -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button class="btn btn-outline-secondary" id="btn-prev-month">
+                            <i class="fas fa-chevron-left"></i> Sebelumnya
+                        </button>
+                        <h5 class="mb-0" id="calendar-month-year">{{ date('F Y') }}</h5>
+                        <button class="btn btn-outline-secondary" id="btn-next-month">
+                            Selanjutnya <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div id="calendar-container">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            @if ($absensi->onFirstPage())
-                                <button class="btn btn-pagination" disabled>
-                                    <i class="fas fa-chevron-left"></i> Sebelumnya
-                                </button>
-                            @else
-                                <a href="{{ $absensi->appends(['filter' => request('filter'), 'start_date' => request('start_date'), 'end_date' => request('end_date')])->previousPageUrl() }}" class="btn btn-pagination">
-                                    <i class="fas fa-chevron-left"></i> Sebelumnya
-                                </a>
-                            @endif
+                    </div>
 
-                            <span class="pagination-current">{{ $absensi->currentPage() }}</span>
-
-                            @if ($absensi->hasMorePages())
-                                <a href="{{ $absensi->appends(['filter' => request('filter'), 'start_date' => request('start_date'), 'end_date' => request('end_date')])->nextPageUrl() }}" class="btn btn-pagination">
-                                    Selanjutnya <i class="fas fa-chevron-right"></i>
-                                </a>
-                            @else
-                                <button class="btn btn-pagination" disabled>
-                                    Selanjutnya <i class="fas fa-chevron-right"></i>
-                                </button>
-                            @endif
+                    <!-- Legend -->
+                    <div class="mt-4 pt-3 border-top">
+                        <small class="text-muted d-block mb-2"><strong>Keterangan:</strong></small>
+                        <div class="row g-2">
+                            <div class="col-md-2 col-4">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #28a745;">
+                                    <small class="text-white fw-semibold">Hadir</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #ffc107;">
+                                    <small class="text-dark fw-semibold">Izin</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #0dcaf0;">
+                                    <small class="text-dark fw-semibold">Sakit</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #dc3545;">
+                                    <small class="text-white fw-semibold">Alpha</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <div class="d-flex align-items-center p-2 rounded" style="background-color: #6c757d;">
+                                    <small class="text-white fw-semibold">Terlambat</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -211,14 +179,233 @@
     </div>
 </div>
 
+@push('scripts')
+<script>
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    const userId = {{ $siswa->id }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMonthlyCalendar(currentYear, currentMonth);
+
+        document.getElementById('btn-prev-month').addEventListener('click', function() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
+
+        document.getElementById('btn-next-month').addEventListener('click', function() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
+
+        document.getElementById('btn-current-month').addEventListener('click', function() {
+            currentMonth = new Date().getMonth();
+            currentYear = new Date().getFullYear();
+            loadMonthlyCalendar(currentYear, currentMonth);
+        });
+    });
+
+    function loadMonthlyCalendar(year, month) {
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+
+        document.getElementById('calendar-container').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+
+        fetch(`/admin/absensi/siswa/${userId}/monthly?year=${year}&month=${month + 1}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayCalendar(year, month, data.data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('calendar-container').innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat kalender
+                </div>
+            `;
+        });
+    }
+
+    function displayCalendar(year, month, attendanceData) {
+        const today = new Date();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+
+        let html = '<div class="calendar-grid">';
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        dayNames.forEach(day => {
+            html += `<div class="calendar-header">${day}</div>`;
+        });
+
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            html += '<div class="calendar-day empty"></div>';
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const attendance = attendanceData[dateStr];
+            let classes = 'calendar-day';
+            let title = '';
+
+            if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                classes += ' today';
+            }
+
+            if (attendance) {
+                classes += ` ${attendance.status}`;
+                title = `${attendance.status_label}`;
+                if (attendance.waktu) title += ` - ${attendance.waktu}`;
+                if (attendance.notes) title += `: ${attendance.notes}`;
+            }
+
+            html += `<div class="${classes}" title="${title}">
+                        <span class="day-number">${day}</span>
+                     </div>`;
+        }
+
+        html += '</div>';
+        document.getElementById('calendar-container').innerHTML = html;
+    }
+</script>
+@endpush
+
 <style>
-.pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
+
+.calendar-header {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.2rem;
+    background-color: #f8f9fa;
+    color: #495057;
+    border-radius: 0.25rem;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    min-height: 35px;
+    max-height: 50px;
+}
+
+.calendar-day:hover:not(.empty) {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1;
+}
+
+.calendar-day.empty {
+    background-color: #f8f9fa;
+    border: none;
+    cursor: default;
+}
+
+.calendar-day.empty:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.calendar-day.today {
+    border: 2px solid #0d6efd;
+    font-weight: bold;
+}
+
+.calendar-day.hadir {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.calendar-day.izin {
+    background-color: #0dcaf0;
+    color: #000;
+    border-color: #0dcaf0;
+}
+
+.calendar-day.sakit {
+    background-color: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+}
+
+.calendar-day.alpha {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.calendar-day.terlambat {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+.calendar-day .day-number {
+    position: relative;
+    z-index: 1;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .calendar-grid {
+        max-width: 100%;
+    }
+
+    .calendar-day {
+        min-height: 32px;
+        max-height: 40px;
+        font-size: 0.7rem;
+    }
+
+    .calendar-header {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.15rem;
+    }
+}
+</style>
 
 .pagination-info {
     color: #6c757d;

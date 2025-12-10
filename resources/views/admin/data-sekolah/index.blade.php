@@ -27,11 +27,16 @@
                                     <i class="fas fa-tachometer-alt me-1"></i>
                                     Dashboard
                                 </a>
-                                @if(auth()->user()->isAdmin() || auth()->user()->isKepalaSekolah())
+                                @if(auth()->user()->isAdmin())
                                     <a href="{{ route('school.edit') }}" class="btn btn-primary shadow-sm">
                                         <i class="fas fa-edit me-1"></i>
                                         Edit Data
                                     </a>
+                                @elseif(auth()->user()->isKepalaSekolah())
+                                    <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#noAccessModal">
+                                        <i class="fas fa-edit me-1"></i>
+                                        Edit Data
+                                    </button>
                                 @endif
                             @else
                                 <a href="{{ route('login') }}" class="btn btn-primary shadow-sm">
@@ -305,6 +310,34 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: No Access for Kepala Sekolah -->
+<div class="modal fade" id="noAccessModal" tabindex="-1" aria-labelledby="noAccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning bg-opacity-10 border-bottom-0">
+                <h5 class="modal-title text-dark" id="noAccessModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Akses Terbatas
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-lock text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <h6 class="fw-bold mb-3">Edit Data Hanya Bisa Melalui Akun Admin</h6>
+                <p class="text-muted mb-0">
+                    Silahkan hubungi administrator untuk mengubah data sekolah ini.
+                </p>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center">
+                <button type="button" class="btn btn-primary shadow-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-1"></i>Mengerti
+                </button>
             </div>
         </div>
     </div>

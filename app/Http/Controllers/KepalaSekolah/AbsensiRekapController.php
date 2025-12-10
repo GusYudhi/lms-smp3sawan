@@ -99,6 +99,49 @@ class AbsensiRekapController extends AdminAbsensiRekapController
         ));
     }
 
+    /**
+     * Get monthly attendance data for siswa calendar view
+     */
+    public function monthlySiswa($userId, Request $request)
+    {
+        try {
+            $year = $request->input('year', date('Y'));
+            $month = $request->input('month', date('m'));
+
+            // Get first and last day of the month
+            $firstDay = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $lastDay = $firstDay->copy()->endOfMonth();
+
+            // Get all attendance records for this month
+            $attendances = Attendance::where('user_id', $userId)
+                ->whereBetween('date', [$firstDay, $lastDay])
+                ->get();
+
+            // Map attendance by date
+            $attendanceByDate = [];
+            foreach ($attendances as $attendance) {
+                $date = $attendance->date->format('Y-m-d');
+                $attendanceByDate[$date] = [
+                    'status' => $attendance->status,
+                    'status_label' => ucfirst($attendance->status),
+                    'waktu' => $attendance->time ? $attendance->time->format('H:i') : null,
+                    'notes' => $attendance->notes
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendanceByDate
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     // Override indexGuru to return kepala-sekolah view
     public function indexGuru(Request $request)
     {
@@ -174,5 +217,48 @@ class AbsensiRekapController extends AdminAbsensiRekapController
             'endDate',
             'dateRange'
         ));
+    }
+
+    /**
+     * Get monthly attendance data for guru calendar view
+     */
+    public function monthlyGuru($userId, Request $request)
+    {
+        try {
+            $year = $request->input('year', date('Y'));
+            $month = $request->input('month', date('m'));
+
+            // Get first and last day of the month
+            $firstDay = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $lastDay = $firstDay->copy()->endOfMonth();
+
+            // Get all attendance records for this month
+            $attendances = GuruAttendance::where('user_id', $userId)
+                ->whereBetween('tanggal', [$firstDay, $lastDay])
+                ->get();
+
+            // Map attendance by date
+            $attendanceByDate = [];
+            foreach ($attendances as $attendance) {
+                $date = $attendance->tanggal->format('Y-m-d');
+                $attendanceByDate[$date] = [
+                    'status' => $attendance->status,
+                    'status_label' => ucfirst($attendance->status),
+                    'waktu' => $attendance->waktu_absen ? $attendance->waktu_absen->format('H:i') : null,
+                    'notes' => $attendance->keterangan
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendanceByDate
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

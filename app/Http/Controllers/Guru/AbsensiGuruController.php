@@ -244,6 +244,76 @@ class AbsensiGuruController extends Controller
     }
 
     /**
+     * Get monthly attendance for calendar view
+     */
+    public function monthly(Request $request)
+    {
+        try {
+            $year = $request->input('year', date('Y'));
+            $month = $request->input('month', date('m'));
+
+            // Get first and last day of the month
+            $firstDay = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $lastDay = $firstDay->copy()->endOfMonth();
+
+            // Get all attendance records for this month
+            $attendances = GuruAttendance::where('user_id', auth()->id())
+                ->whereBetween('tanggal', [$firstDay, $lastDay])
+                ->get();
+
+            // Map attendance by date
+            $attendanceByDate = [];
+            foreach ($attendances as $attendance) {
+                $date = $attendance->tanggal->format('Y-m-d');
+                $attendanceByDate[$date] = [
+                    'status' => $attendance->status,
+                    'status_label' => ucfirst($attendance->status),
+                    'waktu' => $attendance->waktu_absen ? $attendance->waktu_absen->format('H:i') : null,
+                    'notes' => $attendance->keterangan,
+                    'has_document' => $attendance->dokumen_path ? true : false
+                ];
+            }
+
+            // Calculate statistics for the month
+            $statistics = [
+                'hadir' => $attendances->where('status', 'hadir')->count(),
+                'terlambat' => $attendances->where('status', 'terlambat')->count(),
+                'izin' => $attendances->where('status', 'izin')->count(),
+                'sakit' => $attendances->where('status', 'sakit')->count(),
+                'alpha' => 0
+            ];
+
+            // Calculate alpha (working days without attendance)
+            $workingDays = $this->getWorkingDaysCount($firstDay, $lastDay);
+            $totalAttendance = $statistics['hadir'] + $statistics['terlambat'] + $statistics['izin'] + $statistics['sakit'];
+            $statistics['alpha'] = max(0, $workingDays - $totalAttendance);
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendanceByDate,
+                'statistics' => $statistics,
+                'month_info' => [
+                    'year' => $year,
+                    'month' => $month,
+                    'month_name' => $firstDay->format('F Y'),
+                    'working_days' => $workingDays
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            logger()->error('Monthly Attendance Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Store non-attendance (izin/sakit) with optional document
      */
     public function storeNonHadir(Request $request)
