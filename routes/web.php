@@ -214,6 +214,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'showSubmission'])->name('guru.tugas-guru.show-submission');
         Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'deleteFile'])->name('guru.tugas-guru.delete-file');
         Route::delete('/tugas-guru/submission/{id}', [App\Http\Controllers\Guru\TugasGuruController::class, 'deleteSubmission'])->name('guru.tugas-guru.delete-submission');
+
+        // Agenda Guru routes
+        Route::get('/agenda', [App\Http\Controllers\Guru\AgendaGuruController::class, 'index'])->name('guru.agenda');
+        Route::post('/agenda', [App\Http\Controllers\Guru\AgendaGuruController::class, 'store'])->name('guru.agenda.store');
+        Route::put('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'update'])->name('guru.agenda.update');
+        Route::delete('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'destroy'])->name('guru.agenda.destroy');
     });
 
     // Siswa routes

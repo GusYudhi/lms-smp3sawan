@@ -249,6 +249,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'guru.agenda') ? 'active' : '' }}" href="{{ route('guru.agenda') }}">
+                                    <i class="fas fa-clipboard-list me-2"></i> Agenda Guru
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ str_contains(Route::currentRouteName(), 'guru.tugas-guru') ? 'active' : '' }}" href="{{ route('guru.tugas-guru.index') }}">
                                     <i class="fas fa-tasks me-2"></i> Tugas Guru
                                 </a>

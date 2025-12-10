@@ -188,20 +188,6 @@
             font-size: 1rem;
         }
     }
-
-    // Hide less important columns on mobile
-    .table-responsive table {
-        th:nth-child(4),  // NIS duplicate
-        th:nth-child(5),  // NISN
-        th:nth-child(8),  // Telp. Ortu
-        th:nth-child(9),  // Tanggal Lahir
-        td:nth-child(4),
-        td:nth-child(5),
-        td:nth-child(8),
-        td:nth-child(9) {
-            display: none;
-        }
-    }
 }
 
 @media (max-width: 576px) {
@@ -212,16 +198,6 @@
 
         .default-avatar {
             font-size: 0.9rem;
-        }
-    }
-
-    // Hide even more columns on very small screens
-    .table-responsive table {
-        th:nth-child(7),  // Kelas
-        th:nth-child(10), // Email
-        td:nth-child(7),
-        td:nth-child(10) {
-            display: none;
         }
     }
 }

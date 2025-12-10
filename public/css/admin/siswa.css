@@ -72,12 +72,6 @@
     margin-bottom: 0;
 }
 
-/* Table responsive improvements */
-.table-responsive {
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
 /* Badge improvements */
 .badge {
     font-size: 0.75rem;
