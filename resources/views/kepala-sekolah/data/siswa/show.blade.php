@@ -72,7 +72,17 @@
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Status</span>
-                                        <span class="badge bg-success mt-1 align-self-start">Aktif</span>
+                                        @if($user->studentProfile && $user->studentProfile->status)
+                                            @if($user->studentProfile->status === 'AKTIF')
+                                                <span class="badge bg-success mt-1 align-self-start">Aktif</span>
+                                            @elseif($user->studentProfile->status === 'LULUS')
+                                                <span class="badge bg-primary mt-1 align-self-start">Lulus</span>
+                                            @else
+                                                <span class="badge bg-secondary mt-1 align-self-start">Tidak Aktif</span>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-success mt-1 align-self-start">Aktif</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -131,17 +141,12 @@
                             <td>:</td>
                             <td class="fw-semibold">
                                 @if($user->studentProfile)
-                                    {{ $user->studentProfile->tempat_lahir ?? '-' }},
-                                    {{ $user->studentProfile->tanggal_lahir ? \Carbon\Carbon::parse($user->studentProfile->tanggal_lahir)->format('d F Y') : '-' }}
+                                    {{ $user->studentProfile->tempat_lahir ?? '-' }}@if($user->studentProfile->tempat_lahir && $user->studentProfile->tanggal_lahir),@endif
+                                    {{ $user->studentProfile->tanggal_lahir ? \Carbon\Carbon::parse($user->studentProfile->tanggal_lahir)->format('d F Y') : ($user->studentProfile->tempat_lahir ? '' : '-') }}
                                 @else
                                     -
                                 @endif
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Agama</td>
-                            <td>:</td>
-                            <td class="fw-semibold">{{ $user->studentProfile->agama ?? '-' }}</td>
                         </tr>
                     </table>
                 </div>
@@ -172,52 +177,36 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Tahun Masuk</td>
+                            <td class="text-muted">Tahun Angkatan</td>
                             <td>:</td>
-                            <td class="fw-semibold">{{ $user->studentProfile->tahun_masuk ?? '-' }}</td>
+                            <td class="fw-semibold">{{ $user->studentProfile->tahun_angkatan ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Status</td>
                             <td>:</td>
-                            <td><span class="badge bg-success">Aktif</span></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Nama Ayah</td>
-                            <td>:</td>
-                            <td class="fw-semibold">{{ $user->studentProfile->nama_ayah ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Nama Ibu</td>
-                            <td>:</td>
-                            <td class="fw-semibold">{{ $user->studentProfile->nama_ibu ?? '-' }}</td>
+                            <td>
+                                @if($user->studentProfile && $user->studentProfile->status)
+                                    @if($user->studentProfile->status === 'AKTIF')
+                                        <span class="badge bg-success">Aktif</span>
+                                    @elseif($user->studentProfile->status === 'LULUS')
+                                        <span class="badge bg-primary">Lulus</span>
+                                    @else
+                                        <span class="badge bg-secondary">Tidak Aktif</span>
+                                    @endif
+                                @else
+                                    <span class="badge bg-success">Aktif</span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td class="text-muted">No. Telp Orang Tua</td>
                             <td>:</td>
-                            <td class="fw-semibold">{{ $user->studentProfile->nomor_telepon_ortu ?? '-' }}</td>
+                            <td class="fw-semibold">{{ $user->studentProfile->nomor_telepon_orangtua ?? '-' }}</td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-    @if($user->studentProfile && $user->studentProfile->alamat)
-    <!-- Address Information -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0 fw-semibold text-success">
-                        <i class="fas fa-map-marker-alt me-2"></i>Alamat
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0">{{ $user->studentProfile->alamat }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
 @endsection
