@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TeachersImport;
 use App\Exports\TeachersTemplateExport;
+use App\Exports\TeachersExport;
 
 class AdminController extends Controller
 {
@@ -200,73 +201,32 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Export teachers (XLSX)
+     */
     public function exportGuru()
     {
         try {
-            // Create simple CSV export
-            $teachers = User::whereIn('role', ['guru', 'kepala_sekolah'])
-                          ->with(['guruProfile.kelas'])
-                          ->orderBy('name', 'asc')
-                          ->get();
+            Log::info('Starting teacher export');
 
-            $filename = 'data_guru_' . date('Y-m-d_H-i-s') . '.csv';
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ];
+            $filename = 'data_guru_' . date('Ymd_His') . '.xlsx';
 
-            $callback = function() use ($teachers) {
-                $file = fopen('php://output', 'w');
+            Log::info('Export filename generated', ['filename' => $filename]);
 
-                // Add BOM for Excel UTF-8 support
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            $export = new TeachersExport();
 
-                // Header row
-                fputcsv($file, [
-                    'No',
-                    'Nama Lengkap',
-                    'NIP/NIK',
-                    'Email',
-                    'No. Telepon',
-                    'Jenis Kelamin',
-                    'Tempat Lahir',
-                    'Tanggal Lahir',
-                    'Status Kepegawaian',
-                    'Golongan',
-                    'Mata Pelajaran',
-                    'Wali Kelas',
-                    'Status Akun'
-                ]);
+            Log::info('TeachersExport instance created');
 
-                // Data rows
-                $no = 1;
-                foreach ($teachers as $teacher) {
-                    $profile = $teacher->guruProfile;
-                    fputcsv($file, [
-                        $no++,
-                        $teacher->name ?? '-',
-                        $profile->nip ?? '-',
-                        $teacher->email ?? '-',
-                        $profile->nomor_telepon ?? '-',
-                        $profile->jenis_kelamin ?? '-',
-                        $profile->tempat_lahir ?? '-',
-                        $profile->tanggal_lahir ? $profile->tanggal_lahir->format('Y-m-d') : '-',
-                        $profile->status_kepegawaian ?? '-',
-                        $profile->golongan ?? '-',
-                        $profile->subjects_string ?? '-',
-                        ($profile->kelas ? $profile->kelas->tingkat . ' ' . $profile->kelas->nama_kelas : '-'),
-                        ($profile && $profile->is_active) ? 'Aktif' : 'Tidak Aktif'
-                    ]);
-                }
-
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, $headers);
+            return Excel::download($export, $filename);
 
         } catch (\Exception $e) {
-            Log::error('Error exporting teachers', ['error' => $e->getMessage()]);
-            return back()->with('error', 'Terjadi kesalahan saat mengekspor data guru.');
+            Log::error('Error exporting teachers', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+            return back()->with('error', 'Terjadi kesalahan saat mengekspor data guru: ' . $e->getMessage());
         }
     }
 

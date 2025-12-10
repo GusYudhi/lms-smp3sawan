@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\UserManagementService;
 use App\Imports\StudentsImport;
 use App\Exports\StudentsTemplateExport;
+use App\Exports\StudentsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -227,68 +228,16 @@ class SiswaController extends Controller
     }
 
     /**
-     * Export students (CSV)
+     * Export students (XLSX)
      */
     public function export(Request $request)
     {
         $search = $request->input('search');
         $filters = $request->only(['jenis_kelamin', 'kelas']);
 
-        $students = User::with('studentProfile')
-            ->where('role', 'siswa')
-            ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhereHas('studentProfile', function ($sub) use ($search) {
-                          $sub->where('nis', 'like', "%{$search}%")
-                              ->orWhere('nisn', 'like', "%{$search}%");
-                      });
-                });
-            })
-            ->when(isset($filters['jenis_kelamin']), function ($query) use ($filters) {
-                return $query->where('jenis_kelamin', $filters['jenis_kelamin']);
-            })
-            ->when(isset($filters['kelas']), function ($query) use ($filters) {
-                return $query->whereHas('studentProfile', function ($q) use ($filters) {
-                    $q->where('kelas', $filters['kelas']);
-                });
-            })
-            ->orderBy('name')
-            ->get();
+        $filename = 'data_siswa_' . now()->format('Ymd_His') . '.xlsx';
 
-        $filename = 'students_export_' . now()->format('Ymd_His') . '.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $columns = ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Kelas', 'Nomor Telepon Orang Tua', 'Tanggal Lahir', 'Email'];
-
-        $callback = function() use ($students, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($students as $student) {
-                $profile = $student->studentProfile;
-                $gender = $profile->jenis_kelamin === 'L' ? 'Laki-laki' : ($profile->jenis_kelamin === 'P' ? 'Perempuan' : '');
-
-                fputcsv($file, [
-                    $student->name,
-                    $profile->nis ?? '',
-                    $profile->nisn ?? '',
-                    $gender,
-                    $profile->kelas ? $profile->kelas->full_name : '',
-                    $profile->nomor_telepon_orangtua ?? '',
-                    $profile->tanggal_lahir ?? '',
-                    $student->email ?? '',
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new StudentsExport($search, $filters), $filename);
     }
 
     /**
