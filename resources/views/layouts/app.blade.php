@@ -265,28 +265,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-book me-2"></i> Materi Pelajaran
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-tasks me-2"></i> Tugas Saya
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-chart-bar me-2"></i> Nilai
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Kelas
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-comments me-2"></i> Diskusi
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'siswa.jadwal-pelajaran') ? 'active' : '' }}" href="{{ route('siswa.jadwal-pelajaran.index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Pelajaran
                                 </a>
                             </li>
                         @endif
