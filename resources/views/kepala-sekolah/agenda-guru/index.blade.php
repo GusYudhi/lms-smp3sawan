@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const customDateRange2 = document.getElementById('customDateRange2');
     const autoSubmitElements = document.querySelectorAll('.auto-submit');
     const autoSubmitDateElements = document.querySelectorAll('.auto-submit-date');
-    
+
     // Toggle custom date range
     filterPeriode.addEventListener('change', function() {
         if (this.value === 'custom') {
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filterForm.submit();
         }
     });
-    
+
     // Auto-submit untuk dropdown
     autoSubmitElements.forEach(element => {
         element.addEventListener('change', function() {
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Auto-submit untuk date input dengan debounce
     let dateTimeout;
     autoSubmitDateElements.forEach(element => {

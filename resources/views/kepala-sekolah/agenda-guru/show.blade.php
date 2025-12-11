@@ -32,7 +32,7 @@
                             <th>Waktu</th>
                             <td>
                                 @if($agenda->jamMulai && $agenda->jamSelesai)
-                                    {{ \Carbon\Carbon::parse($agenda->jamMulai->jam_mulai)->format('H:i') }} - 
+                                    {{ \Carbon\Carbon::parse($agenda->jamMulai->jam_mulai)->format('H:i') }} -
                                     {{ \Carbon\Carbon::parse($agenda->jamSelesai->jam_selesai)->format('H:i') }}
                                 @else
                                     -
