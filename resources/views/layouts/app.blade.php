@@ -23,6 +23,9 @@
     <!-- QRCode.js for QR code generation - Multiple CDN fallbacks -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.4.4/qrcode.js" integrity="sha512-oxrVyBhqnzQ0BzuM0A/6dEIk0alz0p4SpDRaWvtuUoarIc8rnL5lVniHG5Dp21MRFojcQcmKHjaskNXhSaUPPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+    {{-- link favicon --}}
+    <link rel="icon" type="image/png" href="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}">
+
     <style>
         .sidebar {
             min-height: 100vh;
