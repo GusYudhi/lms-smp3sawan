@@ -1060,6 +1060,133 @@
 
                     callback(compressedData);
                 };
+                img.onerror = function() {
+                    console.error('Failed to load image');
+                    callback(null);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Helper functions for loading overlay
+        function showLoadingOverlay(title, message) {
+            let overlay = document.getElementById('profile-loading-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'profile-loading-overlay';
+                overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+                overlay.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 id="profile-loading-title">${title}</h5>
+                        <p id="profile-loading-message">${message}</p>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            } else {
+                overlay.style.display = 'flex';
+                document.getElementById('profile-loading-title').textContent = title;
+                document.getElementById('profile-loading-message').textContent = message;
+            }
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('profile-loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Convert HEIC to JPG via server for profile photo
+        function convertHeicForProfile(file, callback) {
+            showLoadingOverlay('Memproses foto HEIC...', 'Mohon tunggu, foto sedang dikonversi');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            fetch('{{ route("convert-heic") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingOverlay();
+                if (data.success && data.image) {
+                    // Convert base64 to Blob
+                    fetch(data.image)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            // Create new File object from blob
+                            const convertedFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+                                type: 'image/jpeg'
+                            });
+                            callback(convertedFile, data.image); // Pass both file and base64 for preview
+                        });
+                } else {
+                    showAlert(data.message || 'Gagal mengkonversi foto HEIC.', 'danger');
+                }
+            })
+            .catch(error => {
+                hideLoadingOverlay();
+                console.error('Error converting HEIC:', error);
+                showAlert('Terjadi kesalahan saat mengkonversi foto HEIC.', 'danger');
+            });
+        }
+
+        // Helper function to compress and convert to blob for upload
+        function compressImageForUpload(file, callback, maxWidth = 1200, quality = 0.6) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Calculate new dimensions
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const context = canvas.getContext('2d');
+                    context.drawImage(img, 0, 0, width, height);
+
+                    // Convert to blob with WebP format for best compression
+                    canvas.toBlob(function(blob) {
+                        if (blob) {
+                            // Create a new File object from blob
+                            const compressedFile = new File([blob], file.name.replace(/\.(jpg|jpeg|png|heic|heif)$/i, '.webp'), {
+                                type: 'image/webp',
+                                lastModified: Date.now()
+                            });
+                            callback(compressedFile);
+                        } else {
+                            // Fallback to JPEG if WebP not supported
+                            canvas.toBlob(function(jpegBlob) {
+                                const compressedFile = new File([jpegBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                callback(compressedFile);
+                            }, 'image/jpeg', quality);
+                        }
+                    }, 'image/webp', quality);
+                };
+                img.onerror = function() {
+                    console.error('Failed to load image for compression');
+                    callback(file); // Return original if compression fails
+                };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
@@ -1067,38 +1194,95 @@
 
         function previewPhotoQuick(input) {
             if (input.files && input.files[0]) {
-                // Use compressed version for preview only
-                compressImageForPreview(input.files[0], function(compressedData) {
-                    document.getElementById('profile-photo-preview').src = compressedData;
-                });
+                const file = input.files[0];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const isHEIC = fileExtension === 'heic' || fileExtension === 'heif';
 
-                // Auto-upload the photo when selected
-                uploadProfilePhoto(input.files[0]);
+                if (isHEIC) {
+                    // Convert HEIC first, then compress and upload
+                    convertHeicForProfile(file, function(convertedFile, base64Preview) {
+                        // Show preview from base64
+                        document.getElementById('profile-photo-preview').src = base64Preview;
+                        // Compress converted file then upload
+                        compressImageForUpload(convertedFile, function(compressedFile) {
+                            uploadProfilePhoto(compressedFile);
+                        });
+                    });
+                } else {
+                    // Compress and upload for JPG/PNG/WebP
+                    compressImageForUpload(file, function(compressedFile) {
+                        // Show preview
+                        compressImageForPreview(compressedFile, function(compressedData) {
+                            if (compressedData) {
+                                document.getElementById('profile-photo-preview').src = compressedData;
+                            }
+                        });
+                        // Upload compressed file
+                        uploadProfilePhoto(compressedFile);
+                    });
+                }
             }
         }
 
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
-                // Use compressed version for preview only
-                compressImageForPreview(input.files[0], function(compressedData) {
-                    document.getElementById('profile-photo-preview').src = compressedData;
-                });
+                const file = input.files[0];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const isHEIC = fileExtension === 'heic' || fileExtension === 'heif';
 
-                // Auto-submit the photo when selected
-                uploadProfilePhoto(input.files[0]);
+                if (isHEIC) {
+                    // Convert HEIC first, then compress and upload
+                    convertHeicForProfile(file, function(convertedFile, base64Preview) {
+                        // Show preview from base64
+                        document.getElementById('profile-photo-preview').src = base64Preview;
+                        // Compress converted file then upload
+                        compressImageForUpload(convertedFile, function(compressedFile) {
+                            uploadProfilePhoto(compressedFile);
+                        });
+                    });
+                } else {
+                    // Compress and upload for JPG/PNG/WebP
+                    compressImageForUpload(file, function(compressedFile) {
+                        // Show preview
+                        compressImageForPreview(compressedFile, function(compressedData) {
+                            if (compressedData) {
+                                document.getElementById('profile-photo-preview').src = compressedData;
+                            }
+                        });
+                        // Upload compressed file
+                        uploadProfilePhoto(compressedFile);
+                    });
+                }
             }
         }
 
         function previewPhotoInForm(input) {
             if (input.files && input.files[0]) {
+                const file = input.files[0];
                 const previewContainer = document.getElementById('photo-preview-container');
                 const previewImg = document.getElementById('photo-preview');
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const isHEIC = fileExtension === 'heic' || fileExtension === 'heif';
 
-                // Use compressed version for preview only
-                compressImageForPreview(input.files[0], function(compressedData) {
-                    previewImg.src = compressedData;
-                    previewContainer.classList.remove('d-none');
-                });
+                if (isHEIC) {
+                    // Convert HEIC first, then compress and show preview
+                    convertHeicForProfile(file, function(convertedFile, base64Preview) {
+                        previewImg.src = base64Preview;
+                        previewContainer.classList.remove('d-none');
+                        // Note: The compressed file will be uploaded on form submit
+                        // For now we just show the preview
+                    });
+                } else {
+                    // Compress and show preview
+                    compressImageForUpload(file, function(compressedFile) {
+                        compressImageForPreview(compressedFile, function(compressedData) {
+                            if (compressedData) {
+                                previewImg.src = compressedData;
+                                previewContainer.classList.remove('d-none');
+                            }
+                        });
+                    });
+                }
             } else {
                 document.getElementById('photo-preview-container').classList.add('d-none');
             }
