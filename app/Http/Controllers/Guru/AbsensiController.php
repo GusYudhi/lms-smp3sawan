@@ -35,11 +35,12 @@ class AbsensiController extends Controller
         $attendanceRecords = DB::table('attendance')
             ->join('users', 'attendance.user_id', '=', 'users.id')
             ->join('student_profiles', 'users.id', '=', 'student_profiles.user_id')
+            ->leftJoin('kelas', 'student_profiles.kelas_id', '=', 'kelas.id')
             ->where('attendance.date', $today)
             ->select(
                 'users.name',
                 'student_profiles.nisn',
-                'student_profiles.kelas',
+                DB::raw("CONCAT(kelas.tingkat, ' ', kelas.nama_kelas) as class"),
                 'attendance.status',
                 'attendance.time'
             )
@@ -78,7 +79,7 @@ class AbsensiController extends Controller
                         $query->where('nisn', $nisn);
                     })
                     ->where('role', 'siswa')
-                    ->with('studentProfile')
+                    ->with('studentProfile.kelas')
                     ->first();
 
         if (!$student) {
@@ -123,7 +124,7 @@ class AbsensiController extends Controller
                 'data' => [
                     'name' => $student->name,
                     'nisn' => $student->studentProfile->nisn,
-                    'class' => $student->studentProfile->kelas ?? '-',
+                    'class' => $student->studentProfile->kelas ? $student->studentProfile->kelas->full_name : '-',
                     'status' => $status,
                     'time' => $currentTime->format('H:i:s')
                 ],

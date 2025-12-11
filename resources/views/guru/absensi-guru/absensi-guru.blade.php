@@ -553,10 +553,27 @@ async function capturePhoto() {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0);
 
-        // Convert to blob
-        canvas.toBlob((blob) => {
+        // Compress and resize the image
+        const maxWidth = 1200;
+        let width = canvas.width;
+        let height = canvas.height;
+
+        if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+        }
+
+        // Create compressed canvas
+        const compressedCanvas = document.createElement('canvas');
+        compressedCanvas.width = width;
+        compressedCanvas.height = height;
+        const compressedCtx = compressedCanvas.getContext('2d');
+        compressedCtx.drawImage(canvas, 0, 0, width, height);
+
+        // Convert to blob with compression (60% quality, WebP format)
+        compressedCanvas.toBlob((blob) => {
             capturedPhoto = blob;
-        }, 'image/jpeg', 0.95);
+        }, 'image/webp', 0.6);
 
         // Stop camera
         if (videoStream) {

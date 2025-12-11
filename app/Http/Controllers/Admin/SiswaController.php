@@ -141,10 +141,20 @@ class SiswaController extends Controller
             'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
-        // Handle profile photo upload
+        // Handle profile photo upload with compression
         if ($request->hasFile('profile_photo')) {
-            $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $profileData['foto_profil'] = $path;
+            $photo = $request->file('profile_photo');
+
+            // Compress and store as WebP with quality 60%
+            $photoPath = \App\Helpers\ImageCompressor::compressAndStore(
+                $photo,
+                'profile_photos',
+                time() . '_siswa_' . uniqid(),
+                60,  // Quality 60%
+                1200 // Max width 1200px
+            );
+
+            $profileData['foto_profil'] = basename($photoPath);
         }
 
         $student = $this->userService->createStudent($userData, $profileData);
@@ -204,10 +214,25 @@ class SiswaController extends Controller
             'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
 
-        // Handle profile photo upload
+        // Handle profile photo upload with compression
         if ($request->hasFile('profile_photo')) {
-            $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $profileData['foto_profil'] = $path;
+            $photo = $request->file('profile_photo');
+
+            // Delete old photo if exists
+            if ($student->studentProfile && $student->studentProfile->foto_profil) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete('profile_photos/' . $student->studentProfile->foto_profil);
+            }
+
+            // Compress and store as WebP with quality 60%
+            $photoPath = \App\Helpers\ImageCompressor::compressAndStore(
+                $photo,
+                'profile_photos',
+                time() . '_siswa_' . $student->id . '_' . uniqid(),
+                60,  // Quality 60%
+                1200 // Max width 1200px
+            );
+
+            $profileData['foto_profil'] = basename($photoPath);
         }
 
         $student = $this->userService->updateStudent($student, $userData, $profileData);

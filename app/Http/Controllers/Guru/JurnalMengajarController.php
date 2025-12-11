@@ -272,8 +272,12 @@ class JurnalMengajarController extends Controller
         $fotoPath = null;
         if ($request->has('foto_bukti') && $request->foto_bukti) {
             try {
-                // Compress and save image
-                $compressedImage = ImageCompressor::compressBase64Image($request->foto_bukti, 80);
+                // Compress and save image with explicit parameters
+                $compressedImage = ImageCompressor::compressBase64Image(
+                    $request->foto_bukti,
+                    60,   // Quality 60%
+                    1200  // Max width 1200px - MUST resize!
+                );
 
                 // Generate unique filename
                 $filename = 'jurnal_' . Auth::id() . '_' . time() . '.webp';
@@ -501,6 +505,69 @@ class JurnalMengajarController extends Controller
         }
 
         return back()->with('success', 'Absensi siswa berhasil diperbarui!');
+    }
+
+    /**
+     * Convert HEIC image to JPG for client-side compression
+     */
+    public function convertHeic(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|max:10240', // max 10MB
+            ]);
+
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            // Verify it's a HEIC file
+            if (!in_array($extension, ['heic', 'heif'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File must be HEIC or HEIF format'
+                ], 400);
+            }
+
+            // Convert HEIC to JPG and store temporarily
+            $convertedPath = ImageCompressor::convertHeicToJpgTemp($file);
+
+            if (!$convertedPath) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to convert HEIC file'
+                ], 500);
+            }
+
+            // Read the converted JPG file and return as base64
+            $fullPath = storage_path('app/' . $convertedPath);
+
+            if (!file_exists($fullPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Converted file not found'
+                ], 500);
+            }
+
+            $imageData = file_get_contents($fullPath);
+            $base64 = 'data:image/jpeg;base64,' . base64_encode($imageData);
+
+            // Clean up temporary converted file
+            Storage::delete($convertedPath);
+
+            return response()->json([
+                'success' => true,
+                'image' => $base64,
+                'message' => 'HEIC converted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('HEIC Conversion Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error converting HEIC: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 

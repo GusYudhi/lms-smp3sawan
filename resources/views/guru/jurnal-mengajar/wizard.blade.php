@@ -330,9 +330,17 @@
         document.getElementById('step-1').style.display = 'none';
         document.getElementById('step-2').style.display = 'block';
 
-        document.getElementById('step-indicator-1').classList.remove('active');
-        document.getElementById('step-indicator-1').classList.add('completed');
-        document.getElementById('step-indicator-2').classList.add('active');
+        // Safely update step indicators if they exist
+        const indicator1 = document.getElementById('step-indicator-1');
+        const indicator2 = document.getElementById('step-indicator-2');
+
+        if (indicator1) {
+            indicator1.classList.remove('active');
+            indicator1.classList.add('completed');
+        }
+        if (indicator2) {
+            indicator2.classList.add('active');
+        }
 
         window.scrollTo(0, 0);
     }
@@ -341,9 +349,17 @@
         document.getElementById('step-2').style.display = 'none';
         document.getElementById('step-1').style.display = 'block';
 
-        document.getElementById('step-indicator-2').classList.remove('active');
-        document.getElementById('step-indicator-1').classList.remove('completed');
-        document.getElementById('step-indicator-1').classList.add('active');
+        // Safely update step indicators if they exist
+        const indicator1 = document.getElementById('step-indicator-1');
+        const indicator2 = document.getElementById('step-indicator-2');
+
+        if (indicator2) {
+            indicator2.classList.remove('active');
+        }
+        if (indicator1) {
+            indicator1.classList.remove('completed');
+            indicator1.classList.add('active');
+        }
 
         window.scrollTo(0, 0);
     }
@@ -376,16 +392,50 @@
         });
     }
 
+    // Helper function to compress and resize image
+    function compressImage(sourceCanvas, maxWidth = 1200, quality = 0.6) {
+        const context = sourceCanvas.getContext('2d');
+        let width = sourceCanvas.width;
+        let height = sourceCanvas.height;
+
+        // Calculate new dimensions
+        if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+        }
+
+        // Create new canvas with target dimensions
+        const compressCanvas = document.createElement('canvas');
+        compressCanvas.width = width;
+        compressCanvas.height = height;
+        const compressContext = compressCanvas.getContext('2d');
+
+        // Draw resized image
+        compressContext.drawImage(sourceCanvas, 0, 0, width, height);
+
+        // Try WebP first (better compression), fallback to JPEG
+        let compressedData = compressCanvas.toDataURL('image/webp', quality);
+
+        // If WebP not supported or larger than JPEG, use JPEG
+        if (!compressedData.startsWith('data:image/webp')) {
+            compressedData = compressCanvas.toDataURL('image/jpeg', quality);
+        }
+
+        return compressedData;
+    }
+
     function capturePhoto() {
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
 
+        // Capture at original resolution first
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
+        // Compress and resize the captured image
+        capturedImageData = compressImage(canvas, 1200, 0.6);
 
         document.getElementById('captured-img').src = capturedImageData;
         video.style.display = 'none';
@@ -439,15 +489,163 @@
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imageData = e.target.result;
-                document.getElementById('foto_bukti').value = imageData;
-                document.getElementById('preview_foto').src = imageData;
+            // Check if file is HEIC/HEIF - needs server-side conversion first
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            const isHEIC = fileExtension === 'heic' || fileExtension === 'heif';
+
+            if (isHEIC) {
+                // Show loading indicator with Bootstrap
+                showLoadingMessage('Memproses foto HEIC...', 'Mohon tunggu, foto sedang dikonversi dan dikompress');
+
+                // Convert HEIC to JPG via server, then compress
+                convertAndCompressHEIC(file);
+            } else {
+                // For JPG, PNG, WebP - compress directly in browser
+                compressImageFile(file);
+            }
+        }
+    }
+
+    function compressImageFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Create canvas to draw and compress image
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions (max 1200px width)
+                const maxWidth = 1200;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d');
+                context.drawImage(img, 0, 0, width, height);
+
+                // Try WebP first for better compression
+                let compressedData = canvas.toDataURL('image/webp', 0.6);
+
+                // If WebP not supported, use JPEG
+                if (!compressedData.startsWith('data:image/webp')) {
+                    compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                }
+
+                document.getElementById('foto_bukti').value = compressedData;
+                document.getElementById('preview_foto').src = compressedData;
                 document.getElementById('preview_container').style.display = 'block';
             };
-            reader.readAsDataURL(file);
+            img.onerror = function() {
+                alert('Gagal memuat foto. Pastikan format file didukung.');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Helper functions for loading messages
+    function showLoadingMessage(title, message) {
+        // Create loading overlay if not exists
+        let overlay = document.getElementById('heic-loading-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'heic-loading-overlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+            overlay.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px;">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 id="loading-title">${title}</h5>
+                    <p id="loading-message">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        } else {
+            overlay.style.display = 'flex';
+            document.getElementById('loading-title').textContent = title;
+            document.getElementById('loading-message').textContent = message;
         }
+    }
+
+    function hideLoadingMessage() {
+        const overlay = document.getElementById('heic-loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    function showErrorMessage(message) {
+        hideLoadingMessage();
+        alert(message);
+    }
+
+    function convertAndCompressHEIC(file) {
+        // Create FormData to send HEIC file to server
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        // Send to server for HEIC -> JPG conversion
+        fetch('{{ route("convert-heic") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.image) {
+                // Server returned base64 JPG, now compress it client-side
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Calculate new dimensions (max 1200px width)
+                    const maxWidth = 1200;
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const context = canvas.getContext('2d');
+                    context.drawImage(img, 0, 0, width, height);
+
+                    // Compress to WebP
+                    let compressedData = canvas.toDataURL('image/webp', 0.6);
+                    if (!compressedData.startsWith('data:image/webp')) {
+                        compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    }
+
+                    document.getElementById('foto_bukti').value = compressedData;
+                    document.getElementById('preview_foto').src = compressedData;
+                    document.getElementById('preview_container').style.display = 'block';
+
+                    hideLoadingMessage();
+                };
+                img.onerror = function() {
+                    showErrorMessage('Gagal memproses foto hasil konversi.');
+                };
+                img.src = data.image;
+            } else {
+                showErrorMessage(data.message || 'Gagal mengkonversi foto HEIC.');
+            }
+        })
+        .catch(error => {
+            console.error('Error converting HEIC:', error);
+            showErrorMessage('Terjadi kesalahan saat mengkonversi foto HEIC.');
+        });
     }
 
     function resetFoto() {

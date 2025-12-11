@@ -100,12 +100,14 @@ class AbsensiGuruController extends Controller
                 ], 400);
             }
 
-            // Store and compress photo to WebP
+            // Store and compress photo to WebP with quality 60%
             $photo = $request->file('photo');
             $photoPath = ImageCompressor::compressAndStore(
                 $photo,
                 'attendance/guru',
-                'guru_' . auth()->id() . '_' . time()
+                'guru_' . auth()->id() . '_' . time(),
+                60,  // Quality 60%
+                1200 // Max width 1200px
             );
 
             // Determine attendance status based on time

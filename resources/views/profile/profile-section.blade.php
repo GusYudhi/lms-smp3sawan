@@ -54,8 +54,8 @@
                     </div>
                     <input type="file" id="profile-photo-input" accept="image/*" class="d-none" onchange="previewPhotoQuick(this)">
                     <p class="text-subtle small mb-0">Klik ikon kamera untuk mengubah foto</p>
-                    <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB)<br>
-                    <strong>Catatan:</strong> Foto akan langsung tersimpan setelah dipilih</small>
+                    <small class="text-muted">Format: JPG, PNG, WebP, HEIC (Maks. 5MB)<br>
+                    <strong>Catatan:</strong> Foto akan otomatis dikompress ke format WebP dan langsung tersimpan setelah dipilih. File HEIC dari iPhone otomatis dikonversi.</small>
                 </div>
             </div>
 
@@ -307,7 +307,7 @@
                                 <!-- Nomor Induk/NIP -->
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="nomor_induk" class="form-label fw-medium text-high-contrast">
+                                        <label for="nip" class="form-label fw-medium text-high-contrast">
                                             {{ $user->getNomorIndukLabel() }}
                                         </label>
                                         <div class="input-group">
@@ -315,11 +315,11 @@
                                                 <i class="fas fa-id-badge text-muted"></i>
                                             </span>
                                             <input type="text"
-                                                   id="nomor_induk"
-                                                   name="nomor_induk"
+                                                   id="nip"
+                                                   name="nip"
                                                    class="form-control bg-light"
                                                    placeholder="Masukkan {{ strtolower($user->getNomorIndukLabel()) }}"
-                                                   value="{{ old('nomor_induk', $profile->nip ?? '') }}"
+                                                   value="{{ old('nip', $profile->nip ?? '') }}"
                                                    readonly>
                                         </div>
                                         <small class="text-muted">Data ini tidak dapat diubah</small>
@@ -460,42 +460,29 @@
                                     <!-- Wali Kelas -->
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="wali_kelas" class="form-label fw-medium text-high-contrast">
+                                            <label for="kelas_id" class="form-label fw-medium text-high-contrast">
                                                 Wali Kelas
                                             </label>
                                             <div class="input-group">
                                                 <span class="input-group-text">
                                                     <i class="fas fa-chalkboard-teacher text-muted"></i>
                                                 </span>
-                                                <input type="text"
-                                                       id="wali_kelas"
-                                                       name="wali_kelas"
-                                                       class="form-control"
-                                                       placeholder="Contoh: 7-A"
-                                                       value="{{ old('wali_kelas', $profile->wali_kelas ?? '') }}">
+                                                <select id="kelas_id" name="kelas_id" class="form-select">
+                                                    <option value="">Tidak menjadi wali kelas</option>
+                                                    @if(isset($kelasList))
+                                                        @foreach($kelasList as $kelas)
+                                                            <option value="{{ $kelas->id }}"
+                                                                {{ old('kelas_id', $profile->kelas_id ?? '') == $kelas->id ? 'selected' : '' }}>
+                                                                {{ $kelas->full_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
                                             </div>
+                                            <small class="text-muted">Pilih kelas jika Anda menjadi wali kelas</small>
                                         </div>
                                     </div>
                                 @endif
-
-                                <!-- Foto Profil untuk Guru/Admin -->
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label for="profile_photo" class="form-label fw-medium text-high-contrast">
-                                            Ganti Foto Profil
-                                        </label>
-                                        <input type="file"
-                                               id="profile_photo"
-                                               name="profile_photo"
-                                               class="form-control"
-                                               accept="image/*"
-                                               onchange="previewPhotoInForm(this)">
-                                        <small class="text-muted">Format: JPG, PNG, WebP (Maks. 2MB). Kosongkan jika tidak ingin mengubah foto.</small>
-                                        <div id="photo-preview-container" class="mt-2 d-none">
-                                            <img id="photo-preview" src="" alt="Preview" class="rounded" style="max-width: 150px; max-height: 150px; object-fit: cover;">
-                                        </div>
-                                    </div>
-                                </div>
                             @endif
                         </div>
 
@@ -1044,13 +1031,46 @@
             }
         }
 
+        // Helper function to compress image for preview
+        function compressImageForPreview(file, callback, maxWidth = 1200, quality = 0.6) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Calculate new dimensions
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const context = canvas.getContext('2d');
+                    context.drawImage(img, 0, 0, width, height);
+
+                    // Use WebP for preview if supported
+                    let compressedData = canvas.toDataURL('image/webp', quality);
+                    if (!compressedData.startsWith('data:image/webp')) {
+                        compressedData = canvas.toDataURL('image/jpeg', quality);
+                    }
+
+                    callback(compressedData);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function previewPhotoQuick(input) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('profile-photo-preview').src = e.target.result;
-                }
-                reader.readAsDataURL(input.files[0]);
+                // Use compressed version for preview only
+                compressImageForPreview(input.files[0], function(compressedData) {
+                    document.getElementById('profile-photo-preview').src = compressedData;
+                });
 
                 // Auto-upload the photo when selected
                 uploadProfilePhoto(input.files[0]);
@@ -1059,11 +1079,10 @@
 
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('profile-photo-preview').src = e.target.result;
-                }
-                reader.readAsDataURL(input.files[0]);
+                // Use compressed version for preview only
+                compressImageForPreview(input.files[0], function(compressedData) {
+                    document.getElementById('profile-photo-preview').src = compressedData;
+                });
 
                 // Auto-submit the photo when selected
                 uploadProfilePhoto(input.files[0]);
@@ -1072,15 +1091,14 @@
 
         function previewPhotoInForm(input) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
                 const previewContainer = document.getElementById('photo-preview-container');
                 const previewImg = document.getElementById('photo-preview');
 
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
+                // Use compressed version for preview only
+                compressImageForPreview(input.files[0], function(compressedData) {
+                    previewImg.src = compressedData;
                     previewContainer.classList.remove('d-none');
-                }
-                reader.readAsDataURL(input.files[0]);
+                });
             } else {
                 document.getElementById('photo-preview-container').classList.add('d-none');
             }
@@ -1097,19 +1115,20 @@
             });
 
             // Client side validation
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-            const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-            const maxSize = 2048 * 1024; // 2MB in bytes
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/octet-stream'];
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+            const maxSize = 5242880; // maksimal 5MB
 
             const extension = file.name.split('.').pop().toLowerCase();
 
-            if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
-                showAlert('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.', 'danger');
+            // Check extension first (more reliable for HEIC)
+            if (!allowedExtensions.includes(extension)) {
+                showAlert('Format file tidak didukung. Gunakan JPG, PNG, WebP, atau HEIC.', 'danger');
                 return;
             }
 
             if (file.size > maxSize) {
-                showAlert('Ukuran file terlalu besar. Maksimal 2MB.', 'danger');
+                showAlert('Ukuran file terlalu besar. Maksimal 5MB.', 'danger');
                 return;
             }
 

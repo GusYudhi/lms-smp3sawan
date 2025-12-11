@@ -25,10 +25,15 @@ class ProfileController extends Controller
         if ($user->role === 'siswa') {
             $user->load('studentProfile.kelas');
         } elseif (in_array($user->role, ['guru', 'kepala_sekolah'])) {
-            $user->load('guruProfile');
+            $user->load('guruProfile.kelas');
         }
 
-        return view('profile.profile-section', compact('user'));
+        // Get all kelas for wali kelas selection
+        $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
+            ->orderBy('nama_kelas', 'asc')
+            ->get();
+
+        return view('profile.profile-section', compact('user', 'kelasList'));
     }
 
     /**
@@ -82,11 +87,14 @@ class ProfileController extends Controller
                 );
 
             } else {
+                // Get current guru profile ID if exists
+                $guruProfileId = $user->guruProfile ? $user->guruProfile->id : null;
+
                 // Validation rules for teachers, admin, etc.
                 $validated = $request->validate([
                     'name' => 'required|string|max:255',
                     'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-                    'nomor_induk' => 'nullable|string|max:50|unique:users,nomor_induk,' . $user->id,
+                    'nip' => 'nullable|string|max:50' . ($guruProfileId ? '|unique:guru_profiles,nip,' . $guruProfileId : '|unique:guru_profiles,nip'),
                     'nomor_telepon' => 'nullable|string|max:20',
                     'jenis_kelamin' => 'nullable|in:L,P',
                     'tempat_lahir' => 'nullable|string|max:100',
@@ -95,15 +103,15 @@ class ProfileController extends Controller
                     'golongan' => 'nullable|string|max:20',
                     'mata_pelajaran' => 'nullable|string|max:100',
                     'kelas_id' => 'nullable|exists:kelas,id',
-                    'profile_photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+                    'profile_photo' => 'nullable|file|mimes:jpeg,jpg,png,webp,heic,heif|max:5120', // 5MB
                 ], [
                     'name.required' => 'Nama lengkap wajib diisi',
                     'name.max' => 'Nama lengkap maksimal 255 karakter',
                     'email.required' => 'Email wajib diisi',
                     'email.email' => 'Format email tidak valid',
                     'email.unique' => 'Email sudah digunakan oleh pengguna lain',
-                    'nomor_induk.unique' => 'Nomor induk sudah digunakan oleh pengguna lain',
-                    'nomor_induk.max' => 'Nomor induk maksimal 50 karakter',
+                    'nip.unique' => 'NIP sudah digunakan oleh guru lain',
+                    'nip.max' => 'NIP maksimal 50 karakter',
                     'nomor_telepon.max' => 'Nomor telepon maksimal 20 karakter',
                     'jenis_kelamin.in' => 'Jenis kelamin harus L atau P',
                     'tempat_lahir.max' => 'Tempat lahir maksimal 100 karakter',
@@ -113,12 +121,39 @@ class ProfileController extends Controller
                     'golongan.max' => 'Golongan maksimal 20 karakter',
                     'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
                     'kelas_id.exists' => 'Kelas tidak valid',
-                    'profile_photo.image' => 'File harus berupa gambar',
-                    'profile_photo.mimes' => 'Format foto harus JPG, PNG, atau WebP',
-                    'profile_photo.max' => 'Ukuran foto maksimal 2MB',
-                    'golongan.max' => 'Golongan maksimal 20 karakter',
-                    'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
                 ]);
+
+                // Custom validation for HEIC/HEIF files
+                if ($request->hasFile('profile_photo')) {
+                    $file = $request->file('profile_photo');
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $mimeType = $file->getMimeType();
+
+                    // Allowed extensions
+                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+
+                    // Check extension
+                    if (!in_array($extension, $allowedExtensions)) {
+                        Log::error('Invalid file extension in profile update', [
+                            'extension' => $extension,
+                            'mime_type' => $mimeType,
+                            'allowed' => $allowedExtensions
+                        ]);
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Format file tidak didukung. Gunakan JPG, PNG, WebP, atau HEIC',
+                        ], 422);
+                    }
+
+                    // Check file size (5MB = 5120 KB = 5242880 bytes)
+                    if ($file->getSize() > 5242880) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Ukuran file maksimal 5MB',
+                        ], 422);
+                    }
+                }
 
                 // Handle profile photo upload for teachers
                 if ($request->hasFile('profile_photo')) {
@@ -129,16 +164,19 @@ class ProfileController extends Controller
                         Storage::disk('public')->delete('profile_photos/' . $user->guruProfile->foto_profil);
                     }
 
-                    // Compress and store the photo as WebP
+                    // Compress and store the photo as WebP with quality 60%
                     $photoPath = ImageCompressor::compressAndStore(
                         $photo,
                         'profile_photos',
-                        time() . '_' . $user->id . '_' . uniqid()
+                        time() . '_' . $user->id . '_' . uniqid(),
+                        60,  // Quality 60% for better compression
+                        1200 // Max width 1200px
                     );
 
                     // Store photo to guru profile (not user table)
                     $validated['foto_profil'] = basename($photoPath);
                 }
+
 
                 // Update user basic data
                 $user->name = $validated['name'];
@@ -149,6 +187,7 @@ class ProfileController extends Controller
                 if ($user->role === 'guru' || $user->role === 'kepala_sekolah') {
                     $profileData = [
                         'nama' => $validated['name'],
+                        'nip' => $validated['nip'] ?? null,
                         'email' => $validated['email'],
                         'nomor_telepon' => $validated['nomor_telepon'] ?? null,
                         'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
@@ -306,14 +345,43 @@ class ProfileController extends Controller
                 ] : null
             ]);
 
+            // Custom validation for HEIC/HEIF files
+            if ($request->hasFile('profile_photo')) {
+                $file = $request->file('profile_photo');
+                $extension = strtolower($file->getClientOriginalExtension());
+                $mimeType = $file->getMimeType();
+
+                // Allowed extensions
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+                // Check extension
+                if (!in_array($extension, $allowedExtensions)) {
+                    Log::error('Invalid file extension', [
+                        'extension' => $extension,
+                        'mime_type' => $mimeType,
+                        'allowed' => $allowedExtensions
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format file tidak didukung. Gunakan JPG, PNG, WebP, atau HEIC',
+                    ], 422);
+                }
+
+                // Check file size (5MB = 5120 KB = 5242880 bytes)
+                if ($file->getSize() > 5242880) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Ukuran file maksimal 5MB',
+                    ], 422);
+                }
+            }
+
             // Validate the request
             $validated = $request->validate([
                 'profile_photo' => [
                     'required',
                     'file',
-                    'image',
-                    'mimes:jpeg,jpg,png,webp',
-                    'max:2048',
+                    'max:5120', // 5MB = 5120 KB
                 ]
             ]);
 
@@ -352,11 +420,13 @@ class ProfileController extends Controller
                     Log::info('Old guru photo deleted', ['old_photo' => $user->guruProfile->foto_profil]);
                 }
 
-                // Compress and store the photo as WebP
+                // Compress and store the photo as WebP with maximum compression
                 $photoPath = ImageCompressor::compressAndStore(
                     $photo,
                     'profile_photos',
-                    time() . '_' . $user->id . '_' . uniqid()
+                    time() . '_' . $user->id . '_' . uniqid(),
+                    60,  // Quality 60% for better compression while maintaining acceptable quality
+                    1200 // Max width 1200px
                 );
 
                 Log::info('Photo compressed and stored', [
@@ -438,11 +508,22 @@ class ProfileController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Load profile based on role
+        if ($user->role === 'guru' || $user->role === 'kepala_sekolah') {
+            $user->load('guruProfile');
+            $profile = $user->guruProfile;
+        } elseif ($user->role === 'siswa') {
+            $user->load('studentProfile');
+            $profile = $user->studentProfile;
+        } else {
+            $profile = null;
+        }
+
         return response()->json([
             'name' => $user->name,
             'email' => $user->email,
-            'nomor_induk' => $user->nomor_induk,
-            'nomor_telepon' => $user->nomor_telepon,
+            'nomor_induk' => $profile ? ($profile->nip ?? $profile->nisn ?? null) : null,
+            'nomor_telepon' => $profile ? $profile->nomor_telepon : null,
             'nomor_induk_label' => $user->getNomorIndukLabel(),
             'role_display' => $user->getRoleDisplayName(),
             'profile_photo_url' => $user->getProfilePhotoUrl()
