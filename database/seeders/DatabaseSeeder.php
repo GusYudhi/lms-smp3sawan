@@ -17,18 +17,9 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
-        // Create admin user
-        User::firstOrCreate([
-            'email' => 'admin@gmail.com',
-        ], [
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('12345678'),
-            'role' => 'admin',
-        ]);
-
         // Menjalankan seeder dengan urutan yang benar
         $this->call([
+            AdminSeeder::class,
             TahunPelajaranSeeder::class,    // Harus pertama karena dibutuhkan oleh Kelas
             KelasSeeder::class,             // Kedua, karena dibutuhkan oleh Guru dan Siswa
             GuruSeeder::class,              // Setelah kelas tersedia
