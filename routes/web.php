@@ -200,12 +200,15 @@ Route::middleware(['auth'])->group(function () {
         // Jurnal Mengajar routes
         Route::get('/jurnal-mengajar', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'index'])->name('guru.jurnal-mengajar.index');
         Route::get('/jurnal-mengajar/create', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'create'])->name('guru.jurnal-mengajar.create');
+        Route::get('/jurnal-mengajar/wizard', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'createWizard'])->name('guru.jurnal-mengajar.wizard');
         Route::post('/jurnal-mengajar', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'store'])->name('guru.jurnal-mengajar.store');
         Route::get('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'show'])->name('guru.jurnal-mengajar.show');
         Route::get('/jurnal-mengajar/{id}/edit', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'edit'])->name('guru.jurnal-mengajar.edit');
         Route::put('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'update'])->name('guru.jurnal-mengajar.update');
         Route::delete('/jurnal-mengajar/{id}', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'destroy'])->name('guru.jurnal-mengajar.destroy');
+        Route::get('/jurnal-mengajar/{id}/absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'showAbsensi'])->name('guru.jurnal-mengajar.absensi');
         Route::post('/jurnal-mengajar/{id}/update-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateAbsensi'])->name('guru.jurnal-mengajar.update-absensi');
+        Route::post('/jurnal-mengajar/{id}/update-jurnal-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateJurnalAbsensi'])->name('guru.jurnal-mengajar.update-jurnal-absensi');
 
         // Tugas Guru routes
         Route::get('/tugas-guru', [App\Http\Controllers\Guru\TugasGuruController::class, 'index'])->name('guru.tugas-guru.index');

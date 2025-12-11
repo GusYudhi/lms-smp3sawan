@@ -399,62 +399,85 @@ class ImageCompressor
             throw new \Exception('Invalid base64 image data');
         }
 
-        // Create image from string
-        $sourceImage = imagecreatefromstring($imageData);
-
-        if (!$sourceImage) {
-            throw new \Exception('Failed to create image from base64 data');
+        // Check if GD extension is available
+        if (!extension_loaded('gd') || !function_exists('imagecreatefromstring')) {
+            // GD not available, return the decoded image data directly
+            Log::warning('GD extension not available, storing image without compression');
+            return $imageData;
         }
 
-        // Get original dimensions
-        $originalWidth = imagesx($sourceImage);
-        $originalHeight = imagesy($sourceImage);
+        try {
+            // Create image from string
+            $sourceImage = @imagecreatefromstring($imageData);
 
-        // Calculate new dimensions
-        if ($originalWidth > $maxWidth) {
-            $newWidth = $maxWidth;
-            $newHeight = intval(($originalHeight / $originalWidth) * $maxWidth);
-        } else {
-            $newWidth = $originalWidth;
-            $newHeight = $originalHeight;
-        }
+            if (!$sourceImage) {
+                // Failed to create image, return original data
+                Log::warning('Failed to create image from base64, storing without compression');
+                return $imageData;
+            }
 
-        // Create new image
-        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+            // Get original dimensions
+            $originalWidth = imagesx($sourceImage);
+            $originalHeight = imagesy($sourceImage);
 
-        // Preserve transparency
-        imagealphablending($newImage, false);
-        imagesavealpha($newImage, true);
+            // Calculate new dimensions
+            if ($originalWidth > $maxWidth) {
+                $newWidth = $maxWidth;
+                $newHeight = intval(($originalHeight / $originalWidth) * $maxWidth);
+            } else {
+                $newWidth = $originalWidth;
+                $newHeight = $originalHeight;
+            }
 
-        // Resize
-        imagecopyresampled(
-            $newImage,
-            $sourceImage,
-            0, 0, 0, 0,
-            $newWidth,
-            $newHeight,
-            $originalWidth,
-            $originalHeight
-        );
+            // Create new image
+            $newImage = imagecreatetruecolor($newWidth, $newHeight);
 
-        // Start output buffering
-        ob_start();
+            // Preserve transparency
+            imagealphablending($newImage, false);
+            imagesavealpha($newImage, true);
 
-        // Convert to WebP
-        if (!imagewebp($newImage, null, $quality)) {
-            ob_end_clean();
+            // Resize
+            imagecopyresampled(
+                $newImage,
+                $sourceImage,
+                0, 0, 0, 0,
+                $newWidth,
+                $newHeight,
+                $originalWidth,
+                $originalHeight
+            );
+
+            // Start output buffering
+            ob_start();
+
+            // Convert to WebP if available, otherwise use JPEG
+            $success = false;
+            if (function_exists('imagewebp')) {
+                $success = imagewebp($newImage, null, $quality);
+            } elseif (function_exists('imagejpeg')) {
+                $success = imagejpeg($newImage, null, $quality);
+            }
+
+            if (!$success) {
+                ob_end_clean();
+                imagedestroy($sourceImage);
+                imagedestroy($newImage);
+                return $imageData; // Return original if compression fails
+            }
+
+            // Get the image data
+            $compressedData = ob_get_clean();
+
+            // Free memory
             imagedestroy($sourceImage);
             imagedestroy($newImage);
-            throw new \Exception('Failed to convert image to WebP');
+
+            return $compressedData;
+
+        } catch (\Exception $e) {
+            Log::error('Image compression error: ' . $e->getMessage());
+            // Return original image data if any error occurs
+            return $imageData;
         }
-
-        // Get the image data
-        $webpData = ob_get_clean();
-
-        // Free memory
-        imagedestroy($sourceImage);
-        imagedestroy($newImage);
-
-        return $webpData;
     }
 }

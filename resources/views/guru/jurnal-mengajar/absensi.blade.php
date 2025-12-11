@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Jurnal Mengajar')
+@section('title', 'Absensi Siswa - Jurnal Mengajar')
 
 @section('content')
 <div class="container-fluid">
@@ -9,19 +9,17 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.index') }}">Jurnal Mengajar</a></li>
-                    <li class="breadcrumb-item active">Detail Jurnal</li>
+                    <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $jurnal->tanggal]) }}">Isi Jurnal</a></li>
+                    <li class="breadcrumb-item active">Absensi Siswa</li>
                 </ol>
             </nav>
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-1"><i class="fas fa-book-open text-primary me-2"></i>Detail Jurnal Mengajar</h2>
-                    <p class="text-muted mb-0">Informasi lengkap jurnal dan absensi siswa</p>
+                    <h2 class="mb-1"><i class="fas fa-user-check text-primary me-2"></i>Absensi Siswa</h2>
+                    <p class="text-muted mb-0">Edit absensi siswa untuk jurnal mengajar ini</p>
                 </div>
                 <div>
-                    <a href="{{ route('guru.jurnal-mengajar.edit', $jurnal->id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit me-2"></i>Edit Jurnal
-                    </a>
-                    <a href="{{ route('guru.jurnal-mengajar.index') }}" class="btn btn-outline-secondary">
+                    <a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $jurnal->tanggal]) }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Kembali
                     </a>
                 </div>
@@ -43,90 +41,43 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td width="40%"><strong>Tanggal</strong></td>
-                            <td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Hari</strong></td>
-                            <td>: {{ ucfirst($jurnal->hari) }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Jam Pelajaran</strong></td>
-                            <td>:
-                                @if($jurnal->jam_ke_mulai == $jurnal->jam_ke_selesai)
-                                    Jam ke-{{ $jurnal->jam_ke_mulai }}
-                                @else
-                                    Jam ke-{{ $jurnal->jam_ke_mulai }} - {{ $jurnal->jam_ke_selesai }}
-                                @endif
-                                @if($jurnal->jam_mulai && $jurnal->jam_selesai)
-                                    ({{ $jurnal->jam_mulai }} - {{ $jurnal->jam_selesai }})
-                                @endif
-                            </td>
-                        </tr>
-                    </table>
+                <div class="col-md-3">
+                    <p class="mb-2"><strong>Tanggal:</strong></p>
+                    <p>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}</p>
                 </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td width="40%"><strong>Kelas</strong></td>
-                            <td>:{{ $jurnal->kelas->full_name }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Mata Pelajaran</strong></td>
-                            <td>: {{ $jurnal->mataPelajaran->nama_mapel }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Guru Pengajar</strong></td>
-                            <td>: {{ $jurnal->guru->guruProfile->nama ?? $jurnal->guru->name }}</td>
-                        </tr>
-                    </table>
+                <div class="col-md-3">
+                    <p class="mb-2"><strong>Hari:</strong></p>
+                    <p>{{ ucfirst($jurnal->hari) }}</p>
+                </div>
+                <div class="col-md-3">
+                    <p class="mb-2"><strong>Jam Pelajaran:</strong></p>
+                    <p>
+                        @if($jurnal->jam_ke_mulai == $jurnal->jam_ke_selesai)
+                            Jam ke-{{ $jurnal->jam_ke_mulai }}
+                        @else
+                            Jam ke-{{ $jurnal->jam_ke_mulai }} - {{ $jurnal->jam_ke_selesai }}
+                        @endif
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p class="mb-2"><strong>Kelas:</strong></p>
+                    <p>Kelas {{ $jurnal->kelas->full_name }}</p>
                 </div>
             </div>
-
-            <hr>
-
-            <div class="mb-3">
-                <h6><strong>Materi Pembelajaran:</strong></h6>
-                <div class="p-3 bg-light rounded">
-                    {{ $jurnal->materi_pembelajaran }}
+            <div class="row">
+                <div class="col-md-12">
+                    <p class="mb-2"><strong>Mata Pelajaran:</strong></p>
+                    <p>{{ $jurnal->mataPelajaran->nama_mapel }}</p>
                 </div>
             </div>
-
-            @if($jurnal->keterangan)
-                <div class="mb-3">
-                    <h6><strong>Keterangan/Catatan:</strong></h6>
-                    <div class="p-3 bg-light rounded">
-                        {{ $jurnal->keterangan }}
-                    </div>
-                </div>
-            @endif
-
-            @if($jurnal->foto_bukti)
-                <div>
-                    <h6><strong>Foto Bukti Mengajar:</strong></h6>
-                    <div class="p-3 bg-light rounded">
-                        <button type="button" class="btn btn-primary" onclick="showImageModal('{{ asset('storage/' . $jurnal->foto_bukti) }}')">
-                            <i class="fas fa-eye me-2"></i>Lihat Foto
-                        </button>
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 
-    <!-- Rekap Absensi Siswa -->
-    <div class="card">
+    <!-- Rekap Absensi -->
+    <div class="card mb-4">
         <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Rekap Absensi Siswa</h5>
-            <div>
-                <small class="me-3">Total Siswa: {{ $jurnal->jurnalAttendances->count() }}</small>
-                <a href="{{ route('guru.jurnal-mengajar.absensi', $jurnal->id) }}" class="btn btn-sm btn-light">
-                    <i class="fas fa-edit me-1"></i>Edit Absensi
-                </a>
-            </div>
+            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Rekap Absensi</h5>
+            <small>Total Siswa: {{ $jurnal->jurnalAttendances->count() }}</small>
         </div>
         <div class="card-body">
             @php
@@ -136,8 +87,7 @@
                 $alpa = $jurnal->jurnalAttendances->where('status', 'alpa')->count();
             @endphp
 
-            <!-- Summary Cards -->
-            <div class="row mb-4">
+            <div class="row">
                 <div class="col-md-3 col-6 mb-3">
                     <div class="card text-center border-success">
                         <div class="card-body">
@@ -171,23 +121,31 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Daftar Siswa -->
+    <!-- Daftar Siswa -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Daftar Absensi Siswa</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover table-striped">
+                <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%">No</th>
-                            <th width="15%">NIS</th>
-                            <th width="40%">Nama Siswa</th>
-                            <th width="20%">Status Awal</th>
-                            <th width="20%">Status Saat Ini</th>
+                            <th>No</th>
+                            <th>NIS</th>
+                            <th>Nama Siswa</th>
+                            <th>Status Awal</th>
+                            <th>Status Saat Ini</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($jurnal->jurnalAttendances as $key => $attendance)
+                        @foreach($jurnal->jurnalAttendances as $index => $attendance)
                             <tr>
-                                <td>{{ $key + 1 }}</td>
+                                <td>{{ $index + 1 }}</td>
                                 <td>{{ $attendance->studentProfile->nis }}</td>
                                 <td>{{ $attendance->studentProfile->user->name ?? '-' }}</td>
                                 <td>
@@ -218,6 +176,13 @@
                                         <span class="badge bg-danger">Alpa</span>
                                     @endif
                                 </td>
+                                <td>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            onclick="editAbsensi({{ $attendance->id }}, {{ $attendance->student_profile_id }}, '{{ $attendance->studentProfile->user->name ?? '-' }}', '{{ $attendance->status }}')">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -227,29 +192,58 @@
     </div>
 </div>
 
+<!-- Modal Edit Absensi -->
+<div class="modal fade" id="modalEditAbsensi" tabindex="-1" aria-labelledby="modalEditAbsensiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditAbsensiLabel">Edit Absensi Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('guru.jurnal-mengajar.update-jurnal-absensi', $jurnal->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="student_profile_id" id="student_profile_id">
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Nama Siswa:</strong></label>
+                        <p id="namaSiswa" class="text-muted"></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label"><strong>Status Absensi:</strong></label>
+                        <select class="form-select" name="status" id="status" required>
+                            <option value="hadir">Hadir</option>
+                            <option value="sakit">Sakit</option>
+                            <option value="izin">Izin</option>
+                            <option value="alpa">Alpa</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
-    function showImageModal(src) {
-        document.getElementById('modalImage').src = src;
-        var modal = new bootstrap.Modal(document.getElementById('modalImageZoom'));
+    function editAbsensi(attendanceId, studentProfileId, namaSiswa, currentStatus) {
+        document.getElementById('student_profile_id').value = studentProfileId;
+        document.getElementById('namaSiswa').textContent = namaSiswa;
+        document.getElementById('status').value = currentStatus;
+
+        var modal = new bootstrap.Modal(document.getElementById('modalEditAbsensi'));
         modal.show();
     }
 </script>
 @endpush
-
-<!-- Modal Image Zoom -->
-<div class="modal fade" id="modalImageZoom" tabindex="-1" aria-labelledby="modalImageZoomLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalImageZoomLabel">Foto Bukti Mengajar</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" alt="Foto Bukti" class="img-fluid">
-            </div>
-        </div>
-    </div>
-</div>
 
 @endsection

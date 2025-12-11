@@ -8,8 +8,10 @@ use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
 use App\Models\JamPelajaran;
 use App\Models\MataPelajaran;
+use App\Models\Semester;
 use App\Models\Attendance;
 use App\Models\StudentProfile;
+use App\Models\JurnalAttendance;
 use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,11 +30,11 @@ class JurnalMengajarController extends Controller
         $bulan = $request->get('bulan', date('m'));
         $tahun = $request->get('tahun', date('Y'));
 
-        $jurnals = JurnalMengajar::with(['kelas', 'mataPelajaran'])
+        $jurnals = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai'])
             ->byGuru($guru->id)
             ->byBulan($bulan, $tahun)
             ->orderBy('tanggal', 'desc')
-            ->orderBy('jam_ke', 'asc')
+            ->orderBy('jam_ke_mulai', 'asc')
             ->paginate(20);
 
         return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun'));
@@ -54,7 +56,149 @@ class JurnalMengajarController extends Controller
             ->orderBy('jam_ke')
             ->get();
 
-        return view('guru.jurnal-mengajar.create', compact('jadwals', 'tanggal', 'hari'));
+        // Ambil jurnal yang sudah diisi di hari ini
+        $jurnalSudahDiisi = JurnalMengajar::where('guru_id', $guru->id)
+            ->whereDate('tanggal', $tanggal)
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->kelas_id . '_' . $item->mata_pelajaran_id . '_' . $item->jam_ke_mulai . '_' . $item->jam_ke_selesai;
+            });
+
+        // Gabungkan jadwal yang berurutan dengan kelas dan mapel yang sama
+        $groupedJadwals = [];
+        foreach ($jadwals as $jadwal) {
+            $key = $jadwal->kelas_id . '_' . $jadwal->mata_pelajaran_id;
+
+            if (!isset($groupedJadwals[$key])) {
+                // Jadwal pertama untuk kombinasi kelas + mapel ini
+                $groupedJadwals[$key] = [
+                    'id' => $jadwal->id,
+                    'kelas_id' => $jadwal->kelas_id,
+                    'kelas' => $jadwal->kelas,
+                    'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
+                    'mataPelajaran' => $jadwal->mataPelajaran,
+                    'jam_ke_mulai' => $jadwal->jam_ke,
+                    'jam_ke_selesai' => $jadwal->jam_ke,
+                    'jam_ke_array' => [$jadwal->jam_ke],
+                ];
+            } else {
+                // Cek apakah jam_ke nya berurutan
+                $lastJamKe = $groupedJadwals[$key]['jam_ke_selesai'];
+                if ($jadwal->jam_ke == $lastJamKe + 1) {
+                    // Jam berurutan, gabungkan
+                    $groupedJadwals[$key]['jam_ke_selesai'] = $jadwal->jam_ke;
+                    $groupedJadwals[$key]['jam_ke_array'][] = $jadwal->jam_ke;
+                } else {
+                    // Jam tidak berurutan, buat grup baru dengan suffix
+                    $newKey = $key . '_' . $jadwal->jam_ke;
+                    $groupedJadwals[$newKey] = [
+                        'id' => $jadwal->id,
+                        'kelas_id' => $jadwal->kelas_id,
+                        'kelas' => $jadwal->kelas,
+                        'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
+                        'mataPelajaran' => $jadwal->mataPelajaran,
+                        'jam_ke_mulai' => $jadwal->jam_ke,
+                        'jam_ke_selesai' => $jadwal->jam_ke,
+                        'jam_ke_array' => [$jadwal->jam_ke],
+                    ];
+                }
+            }
+        }
+
+        // Filter jurnal yang belum diisi dan yang sudah diisi
+        $jurnalBelumDiisi = [];
+        $jurnalSudahDiisiCollection = [];
+
+        foreach ($groupedJadwals as $key => $jadwal) {
+            $jurnalKey = $jadwal['kelas_id'] . '_' . $jadwal['mata_pelajaran_id'] . '_' . $jadwal['jam_ke_mulai'] . '_' . $jadwal['jam_ke_selesai'];
+
+            if (isset($jurnalSudahDiisi[$jurnalKey])) {
+                $jurnalSudahDiisiCollection[] = [
+                    'jadwal' => $jadwal,
+                    'jurnal' => $jurnalSudahDiisi[$jurnalKey]
+                ];
+            } else {
+                $jurnalBelumDiisi[] = $jadwal;
+            }
+        }
+
+        // Convert to collection
+        $jurnalBelumDiisi = collect($jurnalBelumDiisi);
+        $jurnalSudahDiisiCollection = collect($jurnalSudahDiisiCollection);
+
+        // Ambil data jam pelajaran dari semester aktif
+        $semesterAktif = Semester::where('is_active', true)->first();
+        $jamPelajarans = [];
+
+        if ($semesterAktif) {
+            $jamPelajarans = JamPelajaran::where('semester_id', $semesterAktif->id)
+                ->orderBy('jam_ke')
+                ->get()
+                ->keyBy('jam_ke'); // Key by jam_ke untuk mudah di-mapping
+        }
+
+        return view('guru.jurnal-mengajar.create', compact('jurnalBelumDiisi', 'jurnalSudahDiisiCollection', 'tanggal', 'hari', 'jamPelajarans'));
+    }
+
+    /**
+     * Show wizard form for creating jurnal with attendance
+     */
+    public function createWizard(Request $request)
+    {
+        $guru = Auth::user();
+        $tanggal = $request->get('tanggal');
+        $kelasId = $request->get('kelas_id');
+        $mataPelajaranId = $request->get('mata_pelajaran_id');
+        $jamKeMulai = $request->get('jam_ke_mulai');
+        $jamKeSelesai = $request->get('jam_ke_selesai');
+
+        // Validasi parameter
+        if (!$tanggal || !$kelasId || !$mataPelajaranId || !$jamKeMulai || !$jamKeSelesai) {
+            return redirect()->route('guru.jurnal-mengajar.create')
+                ->withErrors(['error' => 'Parameter tidak lengkap']);
+        }
+
+        // Ambil data kelas, mata pelajaran
+        $kelas = Kelas::findOrFail($kelasId);
+        $mataPelajaran = MataPelajaran::findOrFail($mataPelajaranId);
+        $hari = Carbon::parse($tanggal)->locale('id')->dayName;
+
+        // Ambil siswa di kelas dengan relasi user dan sorting berdasarkan nama user
+        $siswaKelas = StudentProfile::with('user')
+            ->where('kelas_id', $kelasId)
+            ->get()
+            ->sortBy(function($siswa) {
+                return $siswa->user->name ?? '';
+            });
+
+        // Ambil absensi pagi siswa
+        $absensiPagi = Attendance::whereIn('user_id', $siswaKelas->pluck('user_id'))
+            ->whereDate('date', $tanggal)
+            ->get()
+            ->keyBy('user_id');
+
+        // Ambil jam pelajaran untuk display
+        $semesterAktif = Semester::where('is_active', true)->first();
+        $jamPelajarans = [];
+
+        if ($semesterAktif) {
+            $jamPelajarans = JamPelajaran::where('semester_id', $semesterAktif->id)
+                ->orderBy('jam_ke')
+                ->get()
+                ->keyBy('jam_ke');
+        }
+
+        return view('guru.jurnal-mengajar.wizard', compact(
+            'tanggal',
+            'hari',
+            'kelas',
+            'mataPelajaran',
+            'jamKeMulai',
+            'jamKeSelesai',
+            'siswaKelas',
+            'absensiPagi',
+            'jamPelajarans'
+        ));
     }
 
     /**
@@ -65,9 +209,8 @@ class JurnalMengajarController extends Controller
         $request->validate([
             'tanggal' => 'required|date',
             'kelas_id' => 'required|exists:kelas,id',
-            'jam_ke' => 'required|integer',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required',
+            'jam_ke_mulai' => 'required|integer',
+            'jam_ke_selesai' => 'required|integer',
             'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
             'materi_pembelajaran' => 'required|string',
             'keterangan' => 'nullable|string',
@@ -76,7 +219,25 @@ class JurnalMengajarController extends Controller
 
         $hari = Carbon::parse($request->tanggal)->locale('id')->dayName;
 
-        // Handle foto bukti upload
+        // Validasi jam pelajaran exists
+        $semesterAktif = Semester::where('is_active', true)->first();
+
+        if (!$semesterAktif) {
+            return back()->withErrors(['semester' => 'Semester aktif tidak ditemukan.'])->withInput();
+        }
+
+        // Cek apakah jam pelajaran ada
+        $jamPelajaranMulai = JamPelajaran::where('semester_id', $semesterAktif->id)
+            ->where('jam_ke', $request->jam_ke_mulai)
+            ->first();
+
+        $jamPelajaranSelesai = JamPelajaran::where('semester_id', $semesterAktif->id)
+            ->where('jam_ke', $request->jam_ke_selesai)
+            ->first();
+
+        if (!$jamPelajaranMulai || !$jamPelajaranSelesai) {
+            return back()->withErrors(['jam' => 'Data jam pelajaran tidak ditemukan.'])->withInput();
+        }        // Handle foto bukti upload
         $fotoPath = null;
         if ($request->has('foto_bukti') && $request->foto_bukti) {
             try {
@@ -100,16 +261,58 @@ class JurnalMengajarController extends Controller
             'tanggal' => $request->tanggal,
             'hari' => $hari,
             'kelas_id' => $request->kelas_id,
-            'jam_ke' => $request->jam_ke,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
+            'jam_ke_mulai' => $request->jam_ke_mulai,
+            'jam_ke_selesai' => $request->jam_ke_selesai,
             'mata_pelajaran_id' => $request->mata_pelajaran_id,
             'materi_pembelajaran' => $request->materi_pembelajaran,
             'keterangan' => $request->keterangan,
             'foto_bukti' => $fotoPath,
         ]);
 
-        return redirect()->route('guru.jurnal-mengajar.show', $jurnal->id)
+        // Buat data absensi siswa dari input form (jika ada) atau dari absensi harian
+        if ($request->has('absensi') && is_array($request->absensi)) {
+            // Dari wizard form - ada input absensi manual
+            foreach ($request->absensi as $studentProfileId => $statusAbsensi) {
+                $siswa = StudentProfile::find($studentProfileId);
+                if ($siswa) {
+                    // Cek absensi pagi
+                    $absensiHarian = Attendance::where('user_id', $siswa->user_id)
+                        ->whereDate('date', $request->tanggal)
+                        ->first();
+
+                    $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+
+                    JurnalAttendance::create([
+                        'jurnal_mengajar_id' => $jurnal->id,
+                        'student_profile_id' => $studentProfileId,
+                        'status' => $statusAbsensi,
+                        'status_awal' => $statusAwal,
+                    ]);
+                }
+            }
+        } else {
+            // Fallback - buat otomatis dari absensi harian (untuk form lama)
+            $siswaKelas = StudentProfile::where('kelas_id', $request->kelas_id)->get();
+
+            foreach ($siswaKelas as $siswa) {
+                $absensiHarian = Attendance::where('user_id', $siswa->user_id)
+                    ->whereDate('date', $request->tanggal)
+                    ->first();
+
+                $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                // Jika terlambat atau hadir di pagi, default hadir. Selain itu alpa
+                $status = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'alpa';
+
+                JurnalAttendance::create([
+                    'jurnal_mengajar_id' => $jurnal->id,
+                    'student_profile_id' => $siswa->id,
+                    'status' => $status,
+                    'status_awal' => $statusAwal,
+                ]);
+            }
+        }
+
+        return redirect()->route('guru.jurnal-mengajar.create', ['tanggal' => $request->tanggal])
             ->with('success', 'Jurnal mengajar berhasil disimpan!');
     }
 
@@ -118,7 +321,7 @@ class JurnalMengajarController extends Controller
      */
     public function show(string $id)
     {
-        $jurnal = JurnalMengajar::with(['kelas', 'mataPelajaran', 'guru.guruProfile'])
+        $jurnal = JurnalMengajar::with(['kelas', 'mataPelajaran', 'guru.guruProfile', 'jamPelajaranMulai', 'jamPelajaranSelesai', 'jurnalAttendances.studentProfile.user'])
             ->findOrFail($id);
 
         // Pastikan guru hanya bisa melihat jurnalnya sendiri
@@ -126,17 +329,7 @@ class JurnalMengajarController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Ambil data absensi siswa di kelas ini pada tanggal yang sama
-        $siswaKelas = StudentProfile::where('kelas_id', $jurnal->kelas_id)
-            ->with(['user'])
-            ->get();
-
-        $absensi = Attendance::whereIn('user_id', $siswaKelas->pluck('user_id'))
-            ->whereDate('date', $jurnal->tanggal)
-            ->get()
-            ->keyBy('user_id');
-
-        return view('guru.jurnal-mengajar.show', compact('jurnal', 'siswaKelas', 'absensi'));
+        return view('guru.jurnal-mengajar.show', compact('jurnal'));
     }
 
     /**
@@ -233,4 +426,50 @@ class JurnalMengajarController extends Controller
 
         return back()->with('success', 'Absensi berhasil diperbarui!');
     }
+
+    /**
+     * Tampilkan halaman absensi siswa untuk jurnal
+     */
+    public function showAbsensi($jurnalId)
+    {
+        $jurnal = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jurnalAttendances.studentProfile.user'])
+            ->findOrFail($jurnalId);
+
+        // Pastikan guru hanya bisa melihat absensi jurnalnya sendiri
+        if ($jurnal->guru_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('guru.jurnal-mengajar.absensi', compact('jurnal'));
+    }
+
+    /**
+     * Update absensi siswa di jurnal
+     */
+    public function updateJurnalAbsensi(Request $request, $jurnalId)
+    {
+        $jurnal = JurnalMengajar::findOrFail($jurnalId);
+
+        // Pastikan guru hanya bisa update absensi jurnalnya sendiri
+        if ($jurnal->guru_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'student_profile_id' => 'required|exists:student_profiles,id',
+            'status' => 'required|in:hadir,sakit,izin,alpa',
+        ]);
+
+        // Update absensi jurnal
+        $jurnalAttendance = JurnalAttendance::where('jurnal_mengajar_id', $jurnalId)
+            ->where('student_profile_id', $request->student_profile_id)
+            ->first();
+
+        if ($jurnalAttendance) {
+            $jurnalAttendance->update(['status' => $request->status]);
+        }
+
+        return back()->with('success', 'Absensi siswa berhasil diperbarui!');
+    }
 }
+

@@ -17,9 +17,8 @@ class JurnalMengajar extends Model
         'mata_pelajaran_id',
         'tanggal',
         'hari',
-        'jam_ke',
-        'jam_mulai',
-        'jam_selesai',
+        'jam_ke_mulai',
+        'jam_ke_selesai',
         'materi_pembelajaran',
         'keterangan',
         'foto_bukti',
@@ -27,8 +26,6 @@ class JurnalMengajar extends Model
 
     protected $casts = [
         'tanggal' => 'date',
-        'jam_mulai' => 'datetime:H:i',
-        'jam_selesai' => 'datetime:H:i',
     ];
 
     /**
@@ -53,6 +50,58 @@ class JurnalMengajar extends Model
     public function mataPelajaran()
     {
         return $this->belongsTo(MataPelajaran::class);
+    }
+
+    /**
+     * Relasi ke JamPelajaran (mulai)
+     */
+    public function jamPelajaranMulai()
+    {
+        return $this->belongsTo(JamPelajaran::class, 'jam_ke_mulai', 'jam_ke')
+                    ->where('semester_id', function($query) {
+                        $query->select('id')
+                              ->from('semester')
+                              ->where('is_active', true)
+                              ->limit(1);
+                    });
+    }
+
+    /**
+     * Relasi ke JamPelajaran (selesai)
+     */
+    public function jamPelajaranSelesai()
+    {
+        return $this->belongsTo(JamPelajaran::class, 'jam_ke_selesai', 'jam_ke')
+                    ->where('semester_id', function($query) {
+                        $query->select('id')
+                              ->from('semester')
+                              ->where('is_active', true)
+                              ->limit(1);
+                    });
+    }
+
+    /**
+     * Accessor untuk mendapatkan jam_mulai dari relasi
+     */
+    public function getJamMulaiAttribute()
+    {
+        return $this->jamPelajaranMulai ? $this->jamPelajaranMulai->jam_mulai : null;
+    }
+
+    /**
+     * Accessor untuk mendapatkan jam_selesai dari relasi
+     */
+    public function getJamSelesaiAttribute()
+    {
+        return $this->jamPelajaranSelesai ? $this->jamPelajaranSelesai->jam_selesai : null;
+    }
+
+    /**
+     * Relasi ke JurnalAttendance
+     */
+    public function jurnalAttendances()
+    {
+        return $this->hasMany(JurnalAttendance::class);
     }
 
     /**

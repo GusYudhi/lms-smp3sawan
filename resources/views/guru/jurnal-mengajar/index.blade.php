@@ -93,10 +93,14 @@
                                     <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d/m/Y') }}</td>
                                     <td>{{ ucfirst($jurnal->hari) }}</td>
                                     <td class="text-center">
-                                        <span class="badge bg-primary">{{ $jurnal->jam_ke }}</span>
+                                        @if($jurnal->jam_ke_mulai == $jurnal->jam_ke_selesai)
+                                            <span class="badge bg-primary">{{ $jurnal->jam_ke_mulai }}</span>
+                                        @else
+                                            <span class="badge bg-primary">{{ $jurnal->jam_ke_mulai }}-{{ $jurnal->jam_ke_selesai }}</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <strong>{{ $jurnal->kelas->nama_kelas }}</strong>
+                                        <strong>Kelas {{ $jurnal->kelas->full_name }}</strong>
                                     </td>
                                     <td>{{ $jurnal->mataPelajaran->nama_mapel }}</td>
                                     <td>

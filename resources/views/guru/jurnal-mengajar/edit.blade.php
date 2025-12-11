@@ -63,7 +63,7 @@
                     <div class="mb-3">
                         <label class="form-label text-muted small">Kelas</label>
                         <p class="form-control-plaintext">
-                            <strong>{{ $jurnal->kelas->nama_kelas }}</strong>
+                            <strong>{{ $jurnal->kelas->full_name }}</strong>
                         </p>
                     </div>
                     <div class="mb-3">
