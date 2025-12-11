@@ -8,9 +8,12 @@ use App\Models\GuruAttendance;
 use App\Models\User;
 use App\Models\Kelas;
 use App\Models\Semester;
+use App\Models\TahunPelajaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StudentsAttendanceExport;
 
 class AbsensiRekapController extends Controller
 {
@@ -19,6 +22,7 @@ class AbsensiRekapController extends Controller
     {
         $filter = $request->get('filter', 'hari-ini'); // hari-ini, minggu-ini, bulan-ini, semester-ini, custom
         $kelasId = $request->get('kelas_id');
+        $statusFilter = $request->get('status_filter'); // Filter status absensi
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
@@ -26,7 +30,7 @@ class AbsensiRekapController extends Controller
         $dateRange = $this->getDateRange($filter, $startDate, $endDate);
 
         // Get rekap data
-        $rekap = $this->getRekapSiswa($dateRange['start'], $dateRange['end'], $kelasId);
+        $rekap = $this->getRekapSiswa($dateRange['start'], $dateRange['end'], $kelasId, $statusFilter);
 
         // Get kelas list for filter
         $kelasList = Kelas::orderBy('tingkat', 'asc')
@@ -40,6 +44,7 @@ class AbsensiRekapController extends Controller
             'rekap',
             'filter',
             'kelasId',
+            'statusFilter',
             'kelasList',
             'startDate',
             'endDate',
@@ -147,19 +152,21 @@ class AbsensiRekapController extends Controller
     public function indexGuru(Request $request)
     {
         $filter = $request->get('filter', 'hari-ini');
+        $statusFilter = $request->get('status_filter'); // Filter status absensi
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
         $dateRange = $this->getDateRange($filter, $startDate, $endDate);
 
         // Get rekap data
-        $rekap = $this->getRekapGuru($dateRange['start'], $dateRange['end']);
+        $rekap = $this->getRekapGuru($dateRange['start'], $dateRange['end'], $statusFilter);
 
         $activeSemester = Semester::where('is_active', true)->first();
 
         return view('admin.absensi.guru.index', compact(
             'rekap',
             'filter',
+            'statusFilter',
             'startDate',
             'endDate',
             'dateRange',
@@ -331,7 +338,7 @@ class AbsensiRekapController extends Controller
         }
     }
 
-    protected function getRekapSiswa($startDate, $endDate, $kelasId = null)
+    protected function getRekapSiswa($startDate, $endDate, $kelasId = null, $statusFilter = null)
     {
         $query = User::where('role', 'siswa')
             ->with(['studentProfile.kelas'])
@@ -371,10 +378,18 @@ class AbsensiRekapController extends Controller
             });
         }
 
+        // Filter by status if specified
+        if ($statusFilter) {
+            $query->whereHas('attendance', function($q) use ($statusFilter, $startDate, $endDate) {
+                $q->where('status', $statusFilter)
+                  ->whereBetween('date', [$startDate, $endDate]);
+            });
+        }
+
         return $query->orderBy('name', 'asc')->paginate(20);
     }
 
-    protected function getRekapGuru($startDate, $endDate)
+    protected function getRekapGuru($startDate, $endDate, $statusFilter = null)
     {
         $query = User::whereIn('role', ['guru', 'kepala_sekolah'])
             ->with(['guruProfile'])
@@ -408,6 +423,86 @@ class AbsensiRekapController extends Controller
                 $startDate, $endDate
             ]);
 
+        // Filter by status if specified
+        if ($statusFilter) {
+            $query->whereHas('guruAttendance', function($q) use ($statusFilter, $startDate, $endDate) {
+                $q->where('status', $statusFilter)
+                  ->whereBetween('tanggal', [$startDate, $endDate]);
+            });
+        }
+
         return $query->orderBy('name', 'asc')->paginate(20);
+    }
+
+    /**
+     * Export rekap absensi siswa ke Excel
+     */
+    public function exportSiswa(Request $request)
+    {
+        $request->validate([
+            'periode' => 'required|string',
+            'tingkat_kelas' => 'required|array',
+            'tingkat_kelas.*' => 'in:7,8,9',
+        ]);
+
+        // Get active semester
+        $activeSemester = Semester::where('is_active', true)->first();
+        if (!$activeSemester) {
+            return back()->with('error', 'Tidak ada semester aktif');
+        }
+
+        // Get active tahun pelajaran
+        $tahunPelajaran = $activeSemester->tahunPelajaran;
+        if (!$tahunPelajaran) {
+            return back()->with('error', 'Tidak ada tahun pelajaran aktif');
+        }
+
+        // Determine months based on periode
+        $periode = $request->periode;
+        $tingkatKelas = $request->tingkat_kelas;
+
+        if ($periode == 'semester') {
+            // Full semester
+            if ($activeSemester->semester_ke == 1) {
+                // Semester Ganjil: Juli - Desember (7-12)
+                $months = [7, 8, 9, 10, 11, 12];
+                $periodeName = 'Semester_Ganjil_' . $tahunPelajaran->nama;
+            } else {
+                // Semester Genap: Januari - Juni (1-6)
+                $months = [1, 2, 3, 4, 5, 6];
+                $periodeName = 'Semester_Genap_' . $tahunPelajaran->nama;
+            }
+        } else {
+            // Single month
+            $monthNumber = (int) $periode;
+            $months = [$monthNumber];
+            $monthName = Carbon::create(null, $monthNumber, 1)->locale('id')->translatedFormat('F');
+            $year = $this->getYearForMonth($monthNumber);
+            $periodeName = $monthName . '_' . $year;
+        }
+
+        // Create export
+        $export = new StudentsAttendanceExport($tingkatKelas, $months, $tahunPelajaran->id);
+
+        // Generate filename
+        $filename = 'Rekap_Absensi_Siswa_' . $periodeName . '.xlsx';
+
+        return Excel::download($export, $filename);
+    }
+
+    /**
+     * Get year for month (handle semester transition)
+     */
+    protected function getYearForMonth($month)
+    {
+        // Bulan 7-12 (Juli-Desember) = tahun sekarang
+        // Bulan 1-6 (Januari-Juni) = tahun depan
+        $currentYear = Carbon::now()->year;
+
+        if ($month >= 7) {
+            return $currentYear;
+        } else {
+            return $currentYear + 1;
+        }
     }
 }

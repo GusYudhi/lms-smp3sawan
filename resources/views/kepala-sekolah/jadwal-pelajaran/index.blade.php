@@ -29,7 +29,7 @@
             <div class="row align-items-center">
                 <div class="col-md-4">
                     <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
-                    <select class="form-select" id="filter_kelas">
+                    <select class="form-select auto-submit" id="filter_kelas">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($kelas as $k)
                             <option value="{{ $k->id }}">{{ $k->full_name }}</option>
@@ -37,6 +37,9 @@
                     </select>
                 </div>
                 <div class="col-md-8 text-end">
+                    <small class="text-muted me-3">
+                        <i class="fas fa-info-circle me-1"></i>Filter kelas akan diterapkan otomatis
+                    </small>
                     <div id="loading-indicator" class="d-none">
                         <div class="spinner-border text-primary spinner-border-sm" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -47,6 +50,69 @@
             </div>
         </div>
     </div>
+
+    <!-- Jadwal Hari Ini -->
+    @if($jadwalHariIni->isNotEmpty())
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-calendar-day me-2"></i>Jadwal Pelajaran Hari Ini - {{ $hariIni }}, {{ \Carbon\Carbon::now()->format('d F Y') }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @foreach($jadwalHariIni as $kelasId => $jadwals)
+                    @php
+                        $kelasInfo = $kelas->firstWhere('id', $kelasId);
+                    @endphp
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card border-primary h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 text-primary fw-bold">
+                                    <i class="fas fa-door-open me-2"></i>{{ $kelasInfo->full_name ?? 'Kelas' }}
+                                </h6>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th style="width: 30%;">Jam</th>
+                                                <th style="width: 40%;">Mata Pelajaran</th>
+                                                <th style="width: 30%;">Guru</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($jadwals as $jadwal)
+                                                @php
+                                                    $jam = $jamPelajarans->firstWhere('jam_ke', $jadwal->jam_ke);
+                                                    $waktu = $jam ? \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') . '-' . \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') : '-';
+                                                @endphp
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <span class="badge bg-secondary" style="font-size: 0.7rem;">{{ $jadwal->jam_ke }}</span><br>
+                                                        <small class="text-muted">{{ $waktu }}</small>
+                                                    </td>
+                                                    <td><strong>{{ $jadwal->mataPelajaran->nama_mata_pelajaran ?? '-' }}</strong></td>
+                                                    <td><small>{{ $jadwal->guru->name ?? '-' }}</small></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Tidak ada jadwal untuk hari ini ({{ $hariIni }}).</strong>
+    </div>
+    @endif
 
     <!-- Schedule Grid -->
     <div id="schedule-grid" class="d-none" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">

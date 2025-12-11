@@ -17,8 +17,10 @@ class DataViewController extends Controller
     public function indexGuru(Request $request)
     {
         $search = $request->get('search');
+        $mataPelajaranFilter = $request->get('mata_pelajaran');
+        $statusKepegawaianFilter = $request->get('status_kepegawaian');
 
-        $query = User::with(['guruProfile.kelas'])
+        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
             ->whereIn('role', ['guru', 'kepala_sekolah']);
 
         if ($search) {
@@ -31,9 +33,24 @@ class DataViewController extends Controller
             });
         }
 
+        if ($mataPelajaranFilter) {
+            $query->whereHas('guruProfile', function($q) use ($mataPelajaranFilter) {
+                $q->where('mata_pelajaran_id', $mataPelajaranFilter);
+            });
+        }
+
+        if ($statusKepegawaianFilter) {
+            $query->whereHas('guruProfile', function($q) use ($statusKepegawaianFilter) {
+                $q->where('status_kepegawaian', $statusKepegawaianFilter);
+            });
+        }
+
         $users = $query->orderBy('name', 'asc')->paginate(15);
 
-        return view('kepala-sekolah.data.guru.index', compact('users', 'search'));
+        // Get list mata pelajaran untuk filter
+        $mataPelajaranList = \App\Models\MataPelajaran::orderBy('nama_mata_pelajaran', 'asc')->get();
+
+        return view('kepala-sekolah.data.guru.index', compact('users', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter', 'mataPelajaranList'));
     }
 
     public function showGuru($id)

@@ -17,6 +17,9 @@
                             <p class="text-muted mb-0">Monitoring dan rekap kehadiran siswa</p>
                         </div>
                         <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#exportModal">
+                                <i class="fas fa-file-excel me-1"></i>Unduh Rekap Absensi
+                            </button>
                             <a href="{{ route('admin.absensi.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i>Kembali
                             </a>
@@ -37,10 +40,10 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.absensi.siswa.index') }}" method="GET" class="row g-3">
+                    <form action="{{ route('admin.absensi.siswa.index') }}" method="GET" class="row g-3" id="filterForm">
                         <div class="col-md-3">
                             <label class="form-label">Periode</label>
-                            <select name="filter" class="form-select" id="filterPeriode">
+                            <select name="filter" class="form-select auto-submit" id="filterPeriode">
                                 <option value="hari-ini" {{ $filter == 'hari-ini' ? 'selected' : '' }}>Hari Ini</option>
                                 <option value="minggu-ini" {{ $filter == 'minggu-ini' ? 'selected' : '' }}>Minggu Ini</option>
                                 <option value="bulan-ini" {{ $filter == 'bulan-ini' ? 'selected' : '' }}>Bulan Ini</option>
@@ -51,17 +54,17 @@
 
                         <div class="col-md-3" id="customDateRange" style="display: {{ $filter == 'custom' ? 'block' : 'none' }};">
                             <label class="form-label">Tanggal Mulai</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ $startDate }}">
+                            <input type="date" name="start_date" class="form-control auto-submit-date" value="{{ $startDate }}">
                         </div>
 
                         <div class="col-md-3" id="customDateRange2" style="display: {{ $filter == 'custom' ? 'block' : 'none' }};">
                             <label class="form-label">Tanggal Selesai</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ $endDate }}">
+                            <input type="date" name="end_date" class="form-control auto-submit-date" value="{{ $endDate }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Filter Kelas</label>
-                            <select name="kelas_id" class="form-select">
+                            <select name="kelas_id" class="form-select auto-submit">
                                 <option value="">Semua Kelas</option>
                                 @foreach($kelasList as $kelas)
                                 <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>
@@ -71,13 +74,25 @@
                             </select>
                         </div>
 
+                        <div class="col-md-3">
+                            <label class="form-label">Filter Status</label>
+                            <select name="status_filter" class="form-select auto-submit">
+                                <option value="">Semua Status</option>
+                                <option value="hadir" {{ ($statusFilter ?? '') == 'hadir' ? 'selected' : '' }}>Hadir</option>
+                                <option value="sakit" {{ ($statusFilter ?? '') == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                                <option value="izin" {{ ($statusFilter ?? '') == 'izin' ? 'selected' : '' }}>Izin</option>
+                                <option value="alpha" {{ ($statusFilter ?? '') == 'alpha' ? 'selected' : '' }}>Alpha</option>
+                                <option value="terlambat" {{ ($statusFilter ?? '') == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
+                            </select>
+                        </div>
+
                         <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search me-1"></i>Tampilkan
-                            </button>
                             <a href="{{ route('admin.absensi.siswa.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-redo me-1"></i>Reset
                             </a>
+                            <small class="text-muted ms-2">
+                                <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis
+                            </small>
                         </div>
                     </form>
                 </div>
@@ -303,5 +318,154 @@ document.getElementById('filterPeriode').addEventListener('change', function() {
         justify-content: center;
     }
 }
+</style>
+
+<!-- Modal Export Rekap Absensi -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="exportModalLabel">
+                    <i class="fas fa-file-excel me-2"></i>Unduh Rekap Absensi Siswa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.absensi.siswa.export') }}" method="POST" id="exportForm">
+                @csrf
+                <div class="modal-body">
+                    <!-- Periode Selection -->
+                    <div class="mb-3">
+                        <label for="periode" class="form-label fw-bold">Pilih Periode</label>
+                        <select class="form-select" id="periode" name="periode" required>
+                            <option value="">-- Pilih Periode --</option>
+                            @if($activeSemester && $activeSemester->semester_ke == 1)
+                                <!-- Semester Ganjil: Juli - Desember -->
+                                <option value="7">Juli {{ date('Y') }}</option>
+                                <option value="8">Agustus {{ date('Y') }}</option>
+                                <option value="9">September {{ date('Y') }}</option>
+                                <option value="10">Oktober {{ date('Y') }}</option>
+                                <option value="11">November {{ date('Y') }}</option>
+                                <option value="12">Desember {{ date('Y') }}</option>
+                            @else
+                                <!-- Semester Genap: Januari - Juni -->
+                                <option value="1">Januari {{ date('Y') + 1 }}</option>
+                                <option value="2">Februari {{ date('Y') + 1 }}</option>
+                                <option value="3">Maret {{ date('Y') + 1 }}</option>
+                                <option value="4">April {{ date('Y') + 1 }}</option>
+                                <option value="5">Mei {{ date('Y') + 1 }}</option>
+                                <option value="6">Juni {{ date('Y') + 1 }}</option>
+                            @endif
+                            <option value="semester">Selama 1 Semester</option>
+                        </select>
+                    </div>
+
+                    <!-- Tingkat Kelas Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Pilih Tingkat Kelas</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="tingkat_kelas[]" value="7" id="kelas7">
+                            <label class="form-check-label" for="kelas7">
+                                Kelas 7
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="tingkat_kelas[]" value="8" id="kelas8">
+                            <label class="form-check-label" for="kelas8">
+                                Kelas 8
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="tingkat_kelas[]" value="9" id="kelas9">
+                            <label class="form-check-label" for="kelas9">
+                                Kelas 9
+                            </label>
+                        </div>
+                        <small class="text-muted">*Pilih minimal 1 tingkat kelas</small>
+                        <div id="kelasError" class="text-danger mt-1" style="display: none;">
+                            Silakan pilih minimal 1 tingkat kelas
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>File akan diunduh dalam format Excel (.xlsx) dengan sheet terpisah untuk setiap kelas.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-download me-1"></i>Unduh
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit form when filter changes
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('filterForm');
+    const filterPeriode = document.getElementById('filterPeriode');
+
+    // Auto-submit for select dropdowns
+    document.querySelectorAll('.auto-submit').forEach(function(element) {
+        element.addEventListener('change', function() {
+            form.submit();
+        });
+    });
+
+    // Auto-submit for date inputs (with small delay)
+    document.querySelectorAll('.auto-submit-date').forEach(function(element) {
+        element.addEventListener('change', function() {
+            setTimeout(function() {
+                form.submit();
+            }, 300);
+        });
+    });
+
+    // Show/hide custom date range
+    filterPeriode.addEventListener('change', function() {
+        const customDateRange = document.getElementById('customDateRange');
+        const customDateRange2 = document.getElementById('customDateRange2');
+
+        if (this.value === 'custom') {
+            customDateRange.style.display = 'block';
+            customDateRange2.style.display = 'block';
+        } else {
+            customDateRange.style.display = 'none';
+            customDateRange2.style.display = 'none';
+        }
+    });
+});
+
+// Export modal validation
+document.getElementById('exportForm').addEventListener('submit', function(e) {
+    // Check if at least one checkbox is selected
+    const checkboxes = document.querySelectorAll('input[name="tingkat_kelas[]"]:checked');
+    const kelasError = document.getElementById('kelasError');
+
+    if (checkboxes.length === 0) {
+        e.preventDefault();
+        kelasError.style.display = 'block';
+        return false;
+    }
+
+    kelasError.style.display = 'none';
+    return true;
+});
+
+// Hide error when checkbox is clicked
+document.querySelectorAll('input[name="tingkat_kelas[]"]').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[name="tingkat_kelas[]"]:checked');
+        if (checkboxes.length > 0) {
+            document.getElementById('kelasError').style.display = 'none';
+        }
+    });
+});
+</script>
 </style>
 @endsection

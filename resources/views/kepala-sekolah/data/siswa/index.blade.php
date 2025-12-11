@@ -63,7 +63,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <form action="{{ route('kepala-sekolah.siswa.index') }}" method="GET" class="row g-3">
+                    <form action="{{ route('kepala-sekolah.siswa.index') }}" method="GET" class="row g-3" id="filterForm">
                         <div class="col-md-7">
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -71,13 +71,13 @@
                                 </span>
                                 <input type="text"
                                        name="search"
-                                       class="form-control"
+                                       class="form-control search-input"
                                        placeholder="Cari berdasarkan nama, NISN, NIS, atau email..."
                                        value="{{ $search }}">
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <select name="kelas" class="form-select">
+                            <select name="kelas" class="form-select auto-submit">
                                 <option value="">Semua Kelas</option>
                                 @foreach($kelasList as $kelas)
                                 <option value="{{ $kelas->id }}" {{ $kelasFilter == $kelas->id ? 'selected' : '' }}>
@@ -87,9 +87,14 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-search me-1"></i>Cari
-                            </button>
+                            <a href="{{ route('kepala-sekolah.siswa.index') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-redo me-1"></i>Reset
+                            </a>
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Filter kelas akan diterapkan otomatis. Tekan Enter untuk pencarian teks.
+                            </small>
                         </div>
                     </form>
                 </div>
@@ -126,8 +131,15 @@
                                     <td>{{ $users->firstItem() + $index }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-circle bg-success text-white me-2">
-                                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                                            <div class="me-2">
+                                                <x-profile-photo
+                                                    :src="$user->studentProfile && $user->studentProfile->foto_profil
+                                                        ? asset('storage/profile_photos/' . $user->studentProfile->foto_profil)
+                                                        : null"
+                                                    :name="$user->name"
+                                                    size="sm"
+                                                    :clickable="true"
+                                                />
                                             </div>
                                             <strong>{{ $user->name }}</strong>
                                         </div>
@@ -289,4 +301,29 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filterForm');
+    const autoSubmitElements = document.querySelectorAll('.auto-submit');
+    const searchInput = document.querySelector('.search-input');
+
+    // Auto-submit untuk dropdown
+    autoSubmitElements.forEach(element => {
+        element.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+
+    // Submit saat tekan Enter di search input
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterForm.submit();
+            }
+        });
+    }
+});
+</script>
 @endsection

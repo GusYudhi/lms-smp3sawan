@@ -150,6 +150,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get attendance records for student
+     */
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * Get attendance records for guru
+     */
+    public function guruAttendance()
+    {
+        return $this->hasMany(GuruAttendance::class);
+    }
+
+    /**
      * Get the teacher profile for the user (alias for backward compatibility).
      */
     public function teacherProfile()

@@ -27,28 +27,26 @@
                     @endif
 
                     <!-- Filter -->
-                    <form method="GET" action="{{ route('kepala-sekolah.tugas-guru.index') }}" class="mb-4">
+                    <form method="GET" action="{{ route('kepala-sekolah.tugas-guru.index') }}" class="mb-4" id="filterForm">
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <input type="text" name="search" class="form-control" placeholder="Cari tugas..." value="{{ request('search') }}">
+                            <div class="col-md-5">
+                                <input type="text" name="search" class="form-control search-input" placeholder="Cari tugas..." value="{{ request('search') }}">
                             </div>
                             <div class="col-md-3">
-                                <select name="status" class="form-select">
+                                <select name="status" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
                                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                                     <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                                     <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-secondary w-100">
-                                    <i class="fas fa-filter"></i> Filter
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ route('kepala-sekolah.tugas-guru.index') }}" class="btn btn-outline-secondary w-100">
-                                    <i class="fas fa-redo"></i> Reset
+                            <div class="col-md-4">
+                                <a href="{{ route('kepala-sekolah.tugas-guru.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-redo me-1"></i>Reset
                                 </a>
+                                <small class="text-muted ms-2">
+                                    <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis. Tekan Enter untuk pencarian.
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -169,4 +167,29 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filterForm');
+    const autoSubmitElements = document.querySelectorAll('.auto-submit');
+    const searchInput = document.querySelector('.search-input');
+
+    // Auto-submit untuk dropdown
+    autoSubmitElements.forEach(element => {
+        element.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+
+    // Submit saat tekan Enter di search input
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterForm.submit();
+            }
+        });
+    }
+});
+</script>
 @endsection

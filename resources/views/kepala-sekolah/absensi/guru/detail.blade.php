@@ -33,10 +33,15 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center">
-                    <div class="avatar-xl mx-auto mb-3">
-                        <div class="avatar-title rounded-circle bg-primary text-white" style="width: 100px; height: 100px; font-size: 48px; line-height: 100px;">
-                            {{ substr($guru->name, 0, 1) }}
-                        </div>
+                    <div class="d-flex justify-content-center mb-3">
+                        <x-profile-photo
+                            :src="$guru->guruProfile && $guru->guruProfile->foto_profil
+                                ? asset('storage/profile_photos/' . $guru->guruProfile->foto_profil)
+                                : null"
+                            :name="$guru->name"
+                            size="xl"
+                            :clickable="true"
+                        />
                     </div>
                     <h4 class="mb-1">{{ $guru->name }}</h4>
                     <p class="text-muted mb-2">NIP: {{ $guru->guruProfile->nip ?? '-' }}</p>

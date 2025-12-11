@@ -126,6 +126,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi/siswa', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexSiswa'])->name('admin.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailSiswa'])->name('admin.absensi.siswa.detail');
         Route::get('/absensi/siswa/{id}/monthly', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'monthlySiswa'])->name('admin.absensi.siswa.monthly');
+        Route::post('/absensi/siswa/export', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'exportSiswa'])->name('admin.absensi.siswa.export');
         // Route absensi guru dihapus - hanya tersedia untuk kepala sekolah
         // Route::get('/absensi/guru', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexGuru'])->name('admin.absensi.guru.index');
         // Route::get('/absensi/guru/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailGuru'])->name('admin.absensi.guru.detail');
@@ -157,13 +158,23 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi/siswa', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexSiswa'])->name('kepala-sekolah.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailSiswa'])->name('kepala-sekolah.absensi.siswa.detail');
         Route::get('/absensi/siswa/{id}/monthly', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'monthlySiswa'])->name('kepala-sekolah.absensi.siswa.monthly');
+        Route::post('/absensi/siswa/export', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'exportSiswa'])->name('kepala-sekolah.absensi.siswa.export');
         Route::get('/absensi/guru', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexGuru'])->name('kepala-sekolah.absensi.guru.index');
         Route::get('/absensi/guru/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailGuru'])->name('kepala-sekolah.absensi.guru.detail');
         Route::get('/absensi/guru/{id}/monthly', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'monthlyGuru'])->name('kepala-sekolah.absensi.guru.monthly');
+        Route::post('/absensi/guru/export', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'exportGuru'])->name('kepala-sekolah.absensi.guru.export');
 
         // Jadwal Pelajaran (Read Only)
         Route::get('/jadwal-pelajaran', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'index'])->name('kepala-sekolah.jadwal-pelajaran.index');
         Route::get('/jadwal-pelajaran/get-by-kelas/{kelasId}', [App\Http\Controllers\KepalaSekolah\JadwalPelajaranController::class, 'getByKelas'])->name('kepala-sekolah.jadwal-pelajaran.get-by-kelas');
+
+        // Jurnal Mengajar (Read Only)
+        Route::get('/jurnal-mengajar', [App\Http\Controllers\KepalaSekolah\JurnalMengajarController::class, 'index'])->name('kepala-sekolah.jurnal-mengajar.index');
+        Route::get('/jurnal-mengajar/{id}', [App\Http\Controllers\KepalaSekolah\JurnalMengajarController::class, 'show'])->name('kepala-sekolah.jurnal-mengajar.show');
+
+        // Agenda Guru (Read Only)
+        Route::get('/agenda-guru', [App\Http\Controllers\KepalaSekolah\AgendaGuruController::class, 'index'])->name('kepala-sekolah.agenda-guru.index');
+        Route::get('/agenda-guru/{id}', [App\Http\Controllers\KepalaSekolah\AgendaGuruController::class, 'show'])->name('kepala-sekolah.agenda-guru.show');
 
         // Tugas Guru routes
         Route::get('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'index'])->name('kepala-sekolah.tugas-guru.index');

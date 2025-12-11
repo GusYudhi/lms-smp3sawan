@@ -34,17 +34,14 @@
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-lg-3 text-center mb-4 mb-lg-0">
-                            @if($user->studentProfile && $user->studentProfile->foto_profil)
-                                <img src="{{ asset('storage/' . $user->studentProfile->foto_profil) }}"
-                                     alt="Foto {{ $user->name }}"
-                                     class="rounded-circle border"
-                                     style="width: 150px; height: 150px; object-fit: cover;">
-                            @else
-                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light border text-muted"
-                                     style="width: 150px; height: 150px; font-size: 3rem;">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            @endif
+                            <x-profile-photo
+                                :src="$user->studentProfile && $user->studentProfile->foto_profil
+                                    ? asset('storage/profile_photos/' . $user->studentProfile->foto_profil)
+                                    : asset('assets/image/default-avatar.png')"
+                                :name="$user->name"
+                                size="xl"
+                                :clickable="true"
+                            />
                         </div>
                         <div class="col-lg-9">
                             <h2 class="mb-2 fw-bold">{{ $user->name }}</h2>

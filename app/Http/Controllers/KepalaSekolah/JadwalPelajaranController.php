@@ -30,7 +30,25 @@ class JadwalPelajaranController extends Controller
         $kelas = Kelas::all();
         $gurus = User::where('role', 'guru')->get();
 
-        return view('kepala-sekolah.jadwal-pelajaran.index', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester'));
+        // Get today's schedule for all classes
+        $hariIni = $this->getHariIndonesia();
+        $jadwalHariIni = JadwalPelajaran::with(['mataPelajaran', 'guru', 'kelas'])
+            ->where('hari', $hariIni);
+
+        if ($semesterId) {
+            $jadwalHariIni->where('semester_id', $semesterId);
+        }
+
+        $jadwalHariIni = $jadwalHariIni->orderBy('jam_ke')->get()
+            ->groupBy('kelas_id');
+
+        return view('kepala-sekolah.jadwal-pelajaran.index', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester', 'jadwalHariIni', 'hariIni'));
+    }
+
+    private function getHariIndonesia()
+    {
+        $days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        return $days[date('w')];
     }
 
     public function getByKelas($kelasId)
