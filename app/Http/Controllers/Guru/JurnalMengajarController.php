@@ -29,15 +29,46 @@ class JurnalMengajarController extends Controller
         $guru = Auth::user();
         $bulan = $request->get('bulan', date('m'));
         $tahun = $request->get('tahun', date('Y'));
+        $kelasId = $request->get('kelas_id');
+        $mataPelajaranId = $request->get('mata_pelajaran_id');
 
-        $jurnals = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai'])
+        $query = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai'])
             ->byGuru($guru->id)
-            ->byBulan($bulan, $tahun)
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('jam_ke_mulai', 'asc')
-            ->paginate(20);
+            ->byBulan($bulan, $tahun);
 
-        return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun'));
+        // Filter berdasarkan kelas jika dipilih
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        }
+
+        // Filter berdasarkan mata pelajaran jika dipilih
+        if ($mataPelajaranId) {
+            $query->where('mata_pelajaran_id', $mataPelajaranId);
+        }
+
+        $jurnals = $query->orderBy('tanggal', 'desc')
+            ->orderBy('jam_ke_mulai', 'asc')
+            ->paginate(20)
+            ->appends($request->except('page'));
+
+        // Ambil daftar kelas dan mata pelajaran yang pernah diajar oleh guru
+        $kelasList = JurnalMengajar::select('kelas_id')
+            ->where('guru_id', $guru->id)
+            ->distinct()
+            ->with('kelas')
+            ->get()
+            ->pluck('kelas')
+            ->sortBy('full_name');
+
+        $mataPelajaranList = JurnalMengajar::select('mata_pelajaran_id')
+            ->where('guru_id', $guru->id)
+            ->distinct()
+            ->with('mataPelajaran')
+            ->get()
+            ->pluck('mataPelajaran')
+            ->sortBy('nama_mapel');
+
+        return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun', 'kelasId', 'mataPelajaranId', 'kelasList', 'mataPelajaranList'));
     }
 
     /**

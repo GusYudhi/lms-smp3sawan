@@ -31,7 +31,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('guru.jurnal-mengajar.index') }}" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="bulan" class="form-label">Bulan</label>
                     <select name="bulan" id="bulan" class="form-select">
                         <option value="01" {{ $bulan == '01' ? 'selected' : '' }}>Januari</option>
@@ -48,7 +48,7 @@
                         <option value="12" {{ $bulan == '12' ? 'selected' : '' }}>Desember</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <label for="tahun" class="form-label">Tahun</label>
                     <select name="tahun" id="tahun" class="form-select">
                         @for($i = date('Y'); $i >= date('Y') - 5; $i--)
@@ -56,7 +56,29 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
+                <div class="col-md-3">
+                    <label for="kelas_id" class="form-label">Kelas</label>
+                    <select name="kelas_id" id="kelas_id" class="form-select">
+                        <option value="">Semua Kelas</option>
+                        @foreach($kelasList as $kelas)
+                            <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>
+                                {{ $kelas->full_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="mata_pelajaran_id" class="form-label">Mata Pelajaran</label>
+                    <select name="mata_pelajaran_id" id="mata_pelajaran_id" class="form-select">
+                        <option value="">Semua Mata Pelajaran</option>
+                        @foreach($mataPelajaranList as $mapel)
+                            <option value="{{ $mapel->id }}" {{ $mataPelajaranId == $mapel->id ? 'selected' : '' }}>
+                                {{ $mapel->nama_mapel }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-12 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="fas fa-filter me-2"></i>Filter
                     </button>
@@ -100,7 +122,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <strong>Kelas {{ $jurnal->kelas->full_name }}</strong>
+                                        <strong>{{ $jurnal->kelas->full_name }}</strong>
                                     </td>
                                     <td>{{ $jurnal->mataPelajaran->nama_mapel }}</td>
                                     <td>
