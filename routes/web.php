@@ -27,6 +27,9 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Role-based dashboard routes
 Route::middleware(['auth'])->group(function () {
+    // HEIC Conversion endpoint (accessible by all authenticated users)
+    Route::post('/convert-heic', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'convertHeic'])->name('convert-heic');
+
     // School Profile Management Routes (Admin and Kepala Sekolah)
     Route::middleware('role:admin,kepala_sekolah')->group(function () {
         Route::get('/data-sekolah/edit', [App\Http\Controllers\SchoolController::class, 'edit'])->name('school.edit');
@@ -198,7 +201,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/jadwal-mengajar/get-by-kelas/{kelasId}', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'getByKelas'])->name('guru.jadwal-mengajar.get-by-kelas');
 
         // Jurnal Mengajar routes
-        Route::post('/convert-heic', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'convertHeic'])->name('convert-heic');
         Route::get('/jurnal-mengajar', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'index'])->name('guru.jurnal-mengajar.index');
         Route::get('/jurnal-mengajar/create', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'create'])->name('guru.jurnal-mengajar.create');
         Route::get('/jurnal-mengajar/wizard', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'createWizard'])->name('guru.jurnal-mengajar.wizard');
