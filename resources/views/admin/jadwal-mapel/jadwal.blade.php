@@ -19,41 +19,83 @@
     <!-- Filter Section -->
     <div class="card shadow mb-4">
         <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
-                    <select class="form-select" id="filter_kelas">
-                        <option value="">-- Pilih Kelas --</option>
-                        @foreach($kelas as $k)
-                            <option value="{{ $k->id }}">{{ $k->full_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-8 text-end">
-                    <div id="loading-indicator" class="d-none">
-                        <div class="spinner-border text-primary spinner-border-sm" role="status">
-                            <span class="visually-hidden">Loading...</span>
+            <form id="filterForm" method="GET">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-4">
+                        <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
+                        <select class="form-select auto-submit" id="filter_kelas" name="kelas_id">
+                            <option value="">-- Pilih Kelas --</option>
+                            @foreach($kelas as $k)
+                                <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->full_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filter_hari" class="form-label fw-bold">Tampilan:</label>
+                        <select class="form-select auto-submit" id="filter_hari" name="hari">
+                            <option value="">Semua Hari</option>
+                            <option value="hari-ini" {{ request('hari') == 'hari-ini' ? 'selected' : '' }}>Jadwal Hari Ini</option>
+                            <option value="Senin" {{ request('hari') == 'Senin' ? 'selected' : '' }}>Senin</option>
+                            <option value="Selasa" {{ request('hari') == 'Selasa' ? 'selected' : '' }}>Selasa</option>
+                            <option value="Rabu" {{ request('hari') == 'Rabu' ? 'selected' : '' }}>Rabu</option>
+                            <option value="Kamis" {{ request('hari') == 'Kamis' ? 'selected' : '' }}>Kamis</option>
+                            <option value="Jumat" {{ request('hari') == 'Jumat' ? 'selected' : '' }}>Jumat</option>
+                            <option value="Sabtu" {{ request('hari') == 'Sabtu' ? 'selected' : '' }}>Sabtu</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('admin.jadwal.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-redo me-1"></i>Reset
+                        </a>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <div id="loading-indicator" class="d-none">
+                            <div class="spinner-border text-primary spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted">Memuat...</span>
                         </div>
-                        <span class="ms-2 text-muted">Memuat jadwal...</span>
                     </div>
                 </div>
-            </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis
+                        </small>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Schedule Grid -->
     <div id="schedule-grid" class="d-none" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        @php
+            $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            $filterHari = request('hari');
+
+            // Determine which days to show
+            if ($filterHari == 'hari-ini') {
+                $today = \Carbon\Carbon::now()->locale('id')->dayName;
+                $daysToShow = in_array($today, $days) ? [$today] : ['Senin']; // Default to Senin if not found
+            } elseif ($filterHari && $filterHari != '') {
+                $daysToShow = [$filterHari];
+            } else {
+                $daysToShow = $days;
+            }
+        @endphp
+
         <table class="table table-bordered mb-0" style="min-width: 1000px; table-layout: fixed;">
             <colgroup>
                 <col style="width: 100px;">
-                @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari)
+                @foreach($daysToShow as $hari)
                 <col style="width: 150px;">
                 @endforeach
             </colgroup>
             <thead class="bg-light text-center">
                 <tr>
                     <th class="align-middle">Waktu</th>
-                    @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari)
+                    @foreach($daysToShow as $hari)
                         <th class="align-middle">{{ $hari }}</th>
                     @endforeach
                 </tr>
@@ -69,7 +111,7 @@
                             <span class="badge bg-secondary mb-1">Jam Ke-{{ $i }}</span><br>
                             <small class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $waktu }}</small>
                         </td>
-                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari)
+                        @foreach($daysToShow as $hari)
                             <td id="cell-{{ $hari }}-{{ $i }}" class="p-1" style="height: 1px;">
                                 <!-- Content injected by JS -->
                             </td>
@@ -153,22 +195,39 @@
 $(document).ready(function() {
     const scheduleModal = new bootstrap.Modal(document.getElementById('scheduleModal'));
     let currentKelasId = null;
+    let selectedHari = null;
 
-    // Handle Class Selection
+    // Auto-submit functionality
+    $('.auto-submit').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Get current filter values from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const kelasIdParam = urlParams.get('kelas_id');
+    const hariParam = urlParams.get('hari');
+
+    // Auto-load if kelas is selected
+    if (kelasIdParam) {
+        currentKelasId = kelasIdParam;
+        selectedHari = hariParam;
+        loadSchedules(kelasIdParam, hariParam);
+        $('#schedule-grid').removeClass('d-none');
+        $('#empty-state').addClass('d-none');
+    }
+
+    // Handle Class Selection (for direct change without URL params)
     $('#filter_kelas').change(function() {
-        currentKelasId = $(this).val();
-        if (currentKelasId) {
-            loadSchedules(currentKelasId);
-            $('#schedule-grid').removeClass('d-none');
-            $('#empty-state').addClass('d-none');
-        } else {
-            $('#schedule-grid').addClass('d-none');
-            $('#empty-state').removeClass('d-none');
-        }
+        // Auto-submit will handle this
+    });
+
+    // Handle Hari Selection
+    $('#filter_hari').change(function() {
+        // Auto-submit will handle this
     });
 
     // Load Schedules via AJAX
-    function loadSchedules(kelasId) {
+    function loadSchedules(kelasId, hari) {
         $('#loading-indicator').removeClass('d-none');
 
         // Clear existing items

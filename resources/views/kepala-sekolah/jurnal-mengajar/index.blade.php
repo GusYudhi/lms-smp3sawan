@@ -27,22 +27,6 @@
         </div>
     </div>
 
-    <!-- Statistik -->
-    <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-info fs-1 mb-3">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Total Jurnal</h6>
-                    <h2 class="text-info">{{ $jurnalList->total() }}</h2>
-                    <small class="text-muted">Semua Periode</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Filter Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -99,7 +83,7 @@
                                 <option value="">Semua Mata Pelajaran</option>
                                 @foreach($mapelList as $mapel)
                                 <option value="{{ $mapel->id }}" {{ $mapelFilter == $mapel->id ? 'selected' : '' }}>
-                                    {{ $mapel->nama_mata_pelajaran }}
+                                    {{ $mapel->nama_mapel }}
                                 </option>
                                 @endforeach
                             </select>
@@ -161,7 +145,7 @@
                                         <td>
                                             <span class="badge bg-info">{{ $jurnal->kelas->tingkat }}{{ $jurnal->kelas->nama_kelas }}</span>
                                         </td>
-                                        <td>{{ $jurnal->mataPelajaran->nama_mata_pelajaran }}</td>
+                                        <td>{{ $jurnal->mataPelajaran->nama_mapel }}</td>
                                         <td class="text-center">
                                             <span class="badge bg-secondary">{{ $jurnal->jam_ke_mulai }}</span>
                                             @if($jurnal->jam_ke_selesai != $jurnal->jam_ke_mulai)

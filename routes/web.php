@@ -176,6 +176,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/agenda-guru', [App\Http\Controllers\KepalaSekolah\AgendaGuruController::class, 'index'])->name('kepala-sekolah.agenda-guru.index');
         Route::get('/agenda-guru/{id}', [App\Http\Controllers\KepalaSekolah\AgendaGuruController::class, 'show'])->name('kepala-sekolah.agenda-guru.show');
 
+        // Agenda Kepala Sekolah (Own Agenda Management)
+        Route::get('/agenda', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'index'])->name('kepala-sekolah.agenda');
+        Route::post('/agenda', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'store'])->name('kepala-sekolah.agenda.store');
+        Route::put('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'update'])->name('kepala-sekolah.agenda.update');
+        Route::delete('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'destroy'])->name('kepala-sekolah.agenda.destroy');
+
         // Tugas Guru routes
         Route::get('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'index'])->name('kepala-sekolah.tugas-guru.index');
         Route::get('/tugas-guru/create', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'create'])->name('kepala-sekolah.tugas-guru.create');
@@ -207,8 +213,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/absensi-guru/monthly', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'monthly'])->name('guru.absensi-guru.monthly');
         Route::get('/absensi-guru/school-location', [App\Http\Controllers\Guru\AbsensiGuruController::class, 'getSchoolLocation'])->name('guru.absensi-guru.school-location');
 
+        // Student Attendance Recap routes for Guru
+        Route::get('/rekap-absensi-siswa', [App\Http\Controllers\Guru\AbsensiRekapController::class, 'indexSiswa'])->name('guru.rekap-absensi.siswa');
+        Route::get('/rekap-absensi-siswa/{id}', [App\Http\Controllers\Guru\AbsensiRekapController::class, 'detailSiswa'])->name('guru.rekap-absensi.siswa.detail');
+
         // Teaching Schedule routes
         Route::get('/jadwal-mengajar', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'index'])->name('guru.jadwal-mengajar');
+        Route::get('/jadwal-mengajar/today', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'today'])->name('guru.jadwal-mengajar.today');
         Route::get('/jadwal-mengajar/get-by-kelas/{kelasId}', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'getByKelas'])->name('guru.jadwal-mengajar.get-by-kelas');
 
         // Jurnal Mengajar routes

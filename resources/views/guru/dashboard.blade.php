@@ -18,7 +18,22 @@
 
     <!-- Quick Actions -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="text-warning fs-1 mb-3">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <h5 class="card-title">Jadwal Hari Ini</h5>
+                    <p class="card-text text-muted">Lihat jadwal mengajar hari ini</p>
+                    <a href="{{ route('guru.jadwal-mengajar.today') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-eye me-1"></i> Lihat Jadwal
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="text-primary fs-1 mb-3">
@@ -33,7 +48,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="text-success fs-1 mb-3">
@@ -48,7 +63,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 hover-card">
                 <div class="card-body text-center p-4">
                     <div class="text-info fs-1 mb-3">

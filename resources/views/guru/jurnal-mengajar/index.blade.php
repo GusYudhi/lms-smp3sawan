@@ -30,10 +30,10 @@
     <!-- Filter -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('guru.jurnal-mengajar.index') }}" class="row g-3">
+            <form method="GET" action="{{ route('guru.jurnal-mengajar.index') }}" class="row g-3" id="filterForm">
                 <div class="col-md-3">
                     <label for="bulan" class="form-label">Bulan</label>
-                    <select name="bulan" id="bulan" class="form-select">
+                    <select name="bulan" id="bulan" class="form-select auto-submit">
                         <option value="01" {{ $bulan == '01' ? 'selected' : '' }}>Januari</option>
                         <option value="02" {{ $bulan == '02' ? 'selected' : '' }}>Februari</option>
                         <option value="03" {{ $bulan == '03' ? 'selected' : '' }}>Maret</option>
@@ -50,7 +50,7 @@
                 </div>
                 <div class="col-md-2">
                     <label for="tahun" class="form-label">Tahun</label>
-                    <select name="tahun" id="tahun" class="form-select">
+                    <select name="tahun" id="tahun" class="form-select auto-submit">
                         @for($i = date('Y'); $i >= date('Y') - 5; $i--)
                             <option value="{{ $i }}" {{ $tahun == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="kelas_id" class="form-label">Kelas</label>
-                    <select name="kelas_id" id="kelas_id" class="form-select">
+                    <select name="kelas_id" id="kelas_id" class="form-select auto-submit">
                         <option value="">Semua Kelas</option>
                         @foreach($kelasList as $kelas)
                             <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="mata_pelajaran_id" class="form-label">Mata Pelajaran</label>
-                    <select name="mata_pelajaran_id" id="mata_pelajaran_id" class="form-select">
+                    <select name="mata_pelajaran_id" id="mata_pelajaran_id" class="form-select auto-submit">
                         <option value="">Semua Mata Pelajaran</option>
                         @foreach($mataPelajaranList as $mapel)
                             <option value="{{ $mapel->id }}" {{ $mataPelajaranId == $mapel->id ? 'selected' : '' }}>
@@ -78,13 +78,13 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-12 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-filter me-2"></i>Filter
-                    </button>
-                    <a href="{{ route('guru.jurnal-mengajar.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo me-2"></i>Reset
+                <div class="col-md-12">
+                    <a href="{{ route('guru.jurnal-mengajar.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-redo me-1"></i>Reset
                     </a>
+                    <small class="text-muted ms-2">
+                        <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis
+                    </small>
                 </div>
             </form>
         </div>
@@ -187,6 +187,11 @@
 
 @push('scripts')
 <script>
+    // Auto-submit functionality
+    $('.auto-submit').on('change', function() {
+        $('#filterForm').submit();
+    });
+
     function confirmDelete(id) {
         if (confirm('Apakah Anda yakin ingin menghapus jurnal ini?')) {
             document.getElementById('delete-form-' + id).submit();

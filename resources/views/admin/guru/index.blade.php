@@ -166,7 +166,7 @@
                     <form method="GET" action="{{ route('admin.guru.index') }}" id="filterForm">
                         <div class="row g-3 align-items-end">
                             <!-- Search Input -->
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <label for="teacherSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">
@@ -175,53 +175,44 @@
                                     <input type="text"
                                            name="search"
                                            id="teacherSearch"
-                                           class="form-control border-start-0"
+                                           class="form-control border-start-0 search-input"
                                            placeholder="Cari nama, email, atau NIP..."
-                                           value="{{ request('search') }}">
+                                           value="{{ $search ?? '' }}">
                                 </div>
                             </div>
 
-                            <!-- Status Filter -->
+                            <!-- Mata Pelajaran Filter -->
+                            <div class="col-md-3">
+                                <label for="mapelFilter" class="form-label text-medium-contrast fw-medium">Mata Pelajaran</label>
+                                <select name="mata_pelajaran" id="mapelFilter" class="form-select auto-submit">
+                                    <option value="">Semua Mata Pelajaran</option>
+                                    @foreach($mataPelajaranList as $mapel)
+                                    <option value="{{ $mapel->nama_mapel }}" {{ ($mataPelajaranFilter ?? '') == $mapel->nama_mapel ? 'selected' : '' }}>
+                                        {{ $mapel->nama_mapel }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Status Kepegawaian Filter -->
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
-                                <select name="status" id="statusFilter" class="form-select">
+                                <select name="status_kepegawaian" id="statusFilter" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
-                                    <option value="PNS" {{ request('status') === 'PNS' ? 'selected' : '' }}>PNS</option>
-                                    <option value="PPPK" {{ request('status') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                    <option value="Honorer" {{ request('status') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
-                                </select>
-                            </div>
-
-                            <!-- Gender Filter -->
-                            <div class="col-md-2">
-                                <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Jenis Kelamin</label>
-                                <select name="gender" id="genderFilter" class="form-select">
-                                    <option value="">Semua</option>
-                                    <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
-                                </select>
-                            </div>
-
-                            <!-- Wali Kelas Filter -->
-                            <div class="col-md-2">
-                                <label for="waliFilter" class="form-label text-medium-contrast fw-medium">Wali Kelas</label>
-                                <select id="waliFilter" class="form-select" disabled>
-                                    <option value="">Semua</option>
-                                    <option value="Ya">Wali Kelas</option>
-                                    <option value="Tidak">Bukan Wali</option>
+                                    <option value="PNS" {{ ($statusKepegawaianFilter ?? '') === 'PNS' ? 'selected' : '' }}>PNS</option>
+                                    <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
+                                    <option value="Honorer" {{ ($statusKepegawaianFilter ?? '') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
                                 </select>
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="col-md-2">
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary shadow-sm fw-medium">
-                                        <i class="fas fa-search me-1"></i> Cari
-                                    </button>
-                                    <a href="{{ route('admin.guru.index') }}" class="btn btn-outline-secondary shadow-sm fw-medium">
-                                        <i class="fas fa-redo me-1"></i> Reset
-                                    </a>
-                                </div>
+                                <a href="{{ route('admin.guru.index') }}" class="btn btn-outline-secondary w-100 shadow-sm fw-medium">
+                                    <i class="fas fa-redo me-1"></i> Reset
+                                </a>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>Filter otomatis
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -371,30 +362,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const genderFilter = document.getElementById('genderFilter');
     const filterForm = document.getElementById('filterForm');
 
-    // Prevent form submission
-    filterForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-    });
+    // Prevent form submission only if form exists
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    }
 
     // Real-time search with debouncing (AJAX)
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentPage = 1;
-            performAjaxSearch();
-        }, 500);
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                performAjaxSearch();
+            }, 500);
+        });
+    }
 
     // Immediate filter on select change (AJAX)
-    statusFilter.addEventListener('change', function() {
-        currentPage = 1;
-        performAjaxSearch();
-    });
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            currentPage = 1;
+            performAjaxSearch();
+        });
+    }
 
-    genderFilter.addEventListener('change', function() {
-        currentPage = 1;
-        performAjaxSearch();
-    });
+    if (genderFilter) {
+        genderFilter.addEventListener('change', function() {
+            currentPage = 1;
+            performAjaxSearch();
+        });
+    }
 
     // Auto-hide alerts
     const alerts = document.querySelectorAll('.alert.alert-dismissible');
@@ -548,11 +547,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const importBtnText = document.getElementById('importBtnText');
     const importBtnLoading = document.getElementById('importBtnLoading');
 
-    if (importForm) {
+    if (importForm && importBtn && importBtnText && importBtnLoading) {
         importForm.addEventListener('submit', function() {
             importBtn.disabled = true;
             importBtnText.classList.add('d-none');
             importBtnLoading.classList.remove('d-none');
+        });
+    }
+
+    // Auto-submit functionality
+    const filterForm = document.getElementById('filterForm');
+    const autoSubmitElements = document.querySelectorAll('.auto-submit');
+    const searchInput = document.querySelector('.search-input');
+
+    // Auto-submit untuk dropdown
+    if (autoSubmitElements.length > 0 && filterForm) {
+        autoSubmitElements.forEach(element => {
+            element.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    }
+
+    // Submit saat tekan Enter di search input
+    if (searchInput && filterForm) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterForm.submit();
+            }
         });
     }
 });

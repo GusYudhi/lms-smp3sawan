@@ -17,6 +17,7 @@ class AgendaGuruController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $filterPeriode = $request->get('filter', 'bulan-ini');
+        $sortBy = $request->get('sort_by', 'tanggal_desc'); // Default: tanggal terbaru
 
         // Set default date range based on filter
         if ($filterPeriode == 'hari-ini') {
@@ -47,7 +48,29 @@ class AgendaGuruController extends Controller
             $query->where('status_jurnal', $statusFilter);
         }
 
-        $agendaList = $query->orderBy('tanggal', 'desc')
+        // Apply sorting
+        switch ($sortBy) {
+            case 'tanggal_asc':
+                $query->orderBy('tanggal', 'asc');
+                break;
+            case 'tanggal_desc':
+                $query->orderBy('tanggal', 'desc');
+                break;
+            case 'guru_asc':
+                $query->join('users', 'agenda_guru.user_id', '=', 'users.id')
+                    ->orderBy('users.name', 'asc')
+                    ->select('agenda_guru.*');
+                break;
+            case 'guru_desc':
+                $query->join('users', 'agenda_guru.user_id', '=', 'users.id')
+                    ->orderBy('users.name', 'desc')
+                    ->select('agenda_guru.*');
+                break;
+            default:
+                $query->orderBy('tanggal', 'desc');
+        }
+
+        $agendaList = $query
             ->paginate(20)
             ->appends($request->all());
 

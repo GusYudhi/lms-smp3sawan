@@ -147,7 +147,7 @@
                                     <input type="text"
                                            name="search"
                                            id="studentSearch"
-                                           class="form-control border-start-0"
+                                           class="form-control border-start-0 search-input"
                                            placeholder="Cari nama, NIS, NISN..."
                                            value="{{ request('search') }}">
                                 </div>
@@ -156,7 +156,7 @@
                             <!-- Class Filter -->
                             <div class="col-md-2">
                                 <label for="classFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
-                                <select name="kelas" id="classFilter" class="form-select">
+                                <select name="kelas" id="classFilter" class="form-select auto-submit">
                                     <option value="">Semua Kelas</option>
                                     <option value="7" {{ request('kelas') == '7' ? 'selected' : '' }}>Kelas 7 (Semua)</option>
                                     <option value="8" {{ request('kelas') == '8' ? 'selected' : '' }}>Kelas 8 (Semua)</option>
@@ -188,7 +188,7 @@
                             <!-- Gender Filter -->
                             <div class="col-md-2">
                                 <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Jenis Kelamin</label>
-                                <select name="jenis_kelamin" id="genderFilter" class="form-select">
+                                <select name="jenis_kelamin" id="genderFilter" class="form-select auto-submit">
                                     <option value="">Semua</option>
                                     <option value="L" {{ request('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki</option>
                                     <option value="P" {{ request('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan</option>
@@ -198,7 +198,7 @@
                             <!-- Status Filter -->
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
-                                <select name="status" id="statusFilter" class="form-select">
+                                <select name="status" id="statusFilter" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
                                     <option value="AKTIF" {{ request('status') === 'AKTIF' ? 'selected' : '' }}>Aktif</option>
                                     <option value="LULUS" {{ request('status') === 'LULUS' ? 'selected' : '' }}>Lulus</option>
@@ -208,14 +208,12 @@
 
                             <!-- Action Buttons -->
                             <div class="col-md-2">
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary shadow-sm fw-medium">
-                                        <i class="fas fa-search me-1"></i> Cari
-                                    </button>
-                                    <a href="{{ route('admin.siswa.index') }}" class="btn btn-outline-secondary shadow-sm fw-medium">
-                                        <i class="fas fa-redo me-1"></i> Reset
-                                    </a>
-                                </div>
+                                <a href="{{ route('admin.siswa.index') }}" class="btn btn-outline-secondary w-100 shadow-sm fw-medium">
+                                    <i class="fas fa-redo me-1"></i> Reset
+                                </a>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>Filter otomatis
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -582,6 +580,28 @@ document.addEventListener('DOMContentLoaded', function() {
             importBtn.disabled = true;
             importBtnText.classList.add('d-none');
             importBtnLoading.classList.remove('d-none');
+        });
+    }
+
+    // Auto-submit functionality
+    const filterForm = document.getElementById('filterForm');
+    const autoSubmitElements = document.querySelectorAll('.auto-submit');
+    const searchInput = document.querySelector('.search-input');
+
+    // Auto-submit untuk dropdown
+    autoSubmitElements.forEach(element => {
+        element.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+
+    // Submit saat tekan Enter di search input
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterForm.submit();
+            }
         });
     }
 });

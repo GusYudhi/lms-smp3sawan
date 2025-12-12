@@ -30,7 +30,7 @@
                         </tr>
                         <tr>
                             <th>Mata Pelajaran</th>
-                            <td>{{ $jurnal->mataPelajaran->nama_mata_pelajaran }}</td>
+                            <td>{{ $jurnal->mataPelajaran->nama_mapel }}</td>
                         </tr>
                         <tr>
                             <th>Jam Pelajaran</th>

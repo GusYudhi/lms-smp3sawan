@@ -20,7 +20,7 @@ class DataViewController extends Controller
         $mataPelajaranFilter = $request->get('mata_pelajaran');
         $statusKepegawaianFilter = $request->get('status_kepegawaian');
 
-        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
+        $query = User::with(['guruProfile.kelas'])
             ->whereIn('role', ['guru', 'kepala_sekolah']);
 
         if ($search) {
@@ -35,7 +35,7 @@ class DataViewController extends Controller
 
         if ($mataPelajaranFilter) {
             $query->whereHas('guruProfile', function($q) use ($mataPelajaranFilter) {
-                $q->where('mata_pelajaran_id', $mataPelajaranFilter);
+                $q->where('mata_pelajaran', 'like', "%{$mataPelajaranFilter}%");
             });
         }
 
@@ -48,7 +48,7 @@ class DataViewController extends Controller
         $users = $query->orderBy('name', 'asc')->paginate(15);
 
         // Get list mata pelajaran untuk filter
-        $mataPelajaranList = \App\Models\MataPelajaran::orderBy('nama_mata_pelajaran', 'asc')->get();
+        $mataPelajaranList = \App\Models\MataPelajaran::orderBy('nama_mapel', 'asc')->get();
 
         return view('kepala-sekolah.data.guru.index', compact('users', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter', 'mataPelajaranList'));
     }

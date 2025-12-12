@@ -130,4 +130,60 @@ class JadwalMengajarController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Display today's teaching schedule for current teacher
+     */
+    public function today()
+    {
+        // Ensure user is a teacher
+        if (!auth()->user()->isGuru()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $currentUserId = auth()->id();
+
+        // Get today's day name in Indonesian
+        $today = \Carbon\Carbon::now()->locale('id')->dayName;
+
+        // Get current active semester
+        $semesterId = DB::table('semester')
+            ->where('is_active', 1)
+            ->value('id');
+
+        // Get today's schedules for current teacher
+        $query = DB::table('jadwal_pelajarans as jp')
+            ->join('mata_pelajarans as mp', 'jp.mata_pelajaran_id', '=', 'mp.id')
+            ->join('kelas as k', 'jp.kelas_id', '=', 'k.id')
+            ->where('jp.guru_id', $currentUserId)
+            ->where('jp.hari', $today);
+
+        // Filter by semester if available
+        if ($semesterId) {
+            $query->where('jp.semester_id', $semesterId);
+        }
+
+        $schedules = $query->select(
+                'jp.id',
+                'jp.jam_ke',
+                'jp.hari',
+                'jp.kelas_id',
+                'jp.mata_pelajaran_id',
+                'mp.nama_mapel',
+                'mp.kode_mapel',
+                'k.tingkat',
+                'k.nama_kelas',
+                DB::raw('CONCAT(k.tingkat, " ", k.nama_kelas) as kelas_full')
+            )
+            ->orderBy('jp.jam_ke')
+            ->get();
+
+        // Get jam pelajaran details
+        $jamPelajarans = DB::table('jam_pelajarans')
+            ->orderBy('jam_ke')
+            ->get()
+            ->keyBy('jam_ke');
+
+        return view('guru.jadwal-mengajar.today', compact('schedules', 'jamPelajarans', 'today'));
+    }
 }

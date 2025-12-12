@@ -24,28 +24,26 @@
                     @endif
 
                     <!-- Filter -->
-                    <form method="GET" action="{{ route('guru.tugas-guru.index') }}" class="mb-4">
+                    <form method="GET" action="{{ route('guru.tugas-guru.index') }}" class="mb-4" id="filterForm">
                         <div class="row g-3">
                             <div class="col-md-5">
-                                <input type="text" name="search" class="form-control" placeholder="Cari tugas..." value="{{ request('search') }}">
+                                <input type="text" name="search" class="form-control search-input" placeholder="Cari tugas..." value="{{ request('search') }}">
                             </div>
                             <div class="col-md-3">
-                                <select name="status" class="form-select">
+                                <select name="status" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
                                     <option value="dikumpulkan" {{ request('status') == 'dikumpulkan' ? 'selected' : '' }}>Sudah Dikumpulkan</option>
                                     <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                                     <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-secondary w-100">
-                                    <i class="fas fa-filter"></i> Filter
-                                </button>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{{ route('guru.tugas-guru.index') }}" class="btn btn-outline-secondary w-100">
-                                    <i class="fas fa-redo"></i> Reset
+                            <div class="col-md-4">
+                                <a href="{{ route('guru.tugas-guru.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-redo me-1"></i> Reset
                                 </a>
+                                <small class="text-muted ms-2">
+                                    <i class="fas fa-info-circle me-1"></i>Auto-submit aktif
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -139,4 +137,21 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // Auto-submit functionality
+    $('.auto-submit').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search input - submit on Enter
+    $('.search-input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#filterForm').submit();
+        }
+    });
+</script>
+@endpush
 @endsection

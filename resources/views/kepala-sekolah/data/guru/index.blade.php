@@ -108,8 +108,8 @@
                             <select name="mata_pelajaran" class="form-select auto-submit">
                                 <option value="">Semua Mata Pelajaran</option>
                                 @foreach($mataPelajaranList as $mapel)
-                                <option value="{{ $mapel->id }}" {{ ($mataPelajaranFilter ?? '') == $mapel->id ? 'selected' : '' }}>
-                                    {{ $mapel->nama_mata_pelajaran }}
+                                <option value="{{ $mapel->nama_mapel }}" {{ ($mataPelajaranFilter ?? '') == $mapel->nama_mapel ? 'selected' : '' }}>
+                                    {{ $mapel->nama_mapel }}
                                 </option>
                                 @endforeach
                             </select>

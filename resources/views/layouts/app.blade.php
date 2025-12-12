@@ -219,6 +219,27 @@
                                 </a>
                             </li>
 
+                            <!-- Jurnal Mengajar -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.jurnal-mengajar') ? 'active' : '' }}" href="{{ route('kepala-sekolah.jurnal-mengajar.index') }}">
+                                    <i class="fas fa-book me-2"></i> Jurnal Mengajar
+                                </a>
+                            </li>
+
+                            <!-- Agenda Guru -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.agenda-guru') ? 'active' : '' }}" href="{{ route('kepala-sekolah.agenda-guru.index') }}">
+                                    <i class="fas fa-clipboard-list me-2"></i> Agenda Guru
+                                </a>
+                            </li>
+
+                            <!-- Agenda Kepala Sekolah -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.agenda') && !str_contains(Route::currentRouteName(), 'kepala-sekolah.agenda-guru') ? 'active' : '' }}" href="{{ route('kepala-sekolah.agenda') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i> Agenda Saya
+                                </a>
+                            </li>
+
                             <!-- Data Sekolah -->
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
@@ -237,8 +258,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ str_contains(Route::currentRouteName(), 'guru.rekap-absensi.siswa') ? 'active' : '' }}" href="{{ route('guru.rekap-absensi.siswa') }}">
+                                    <i class="fas fa-clipboard-check me-2"></i> Rekap Absensi Siswa
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'guru.absensi-guru' ? 'active' : '' }}" href="{{ route('guru.absensi-guru') }}">
                                     <i class="fas fa-camera me-2"></i> Absensi Guru
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'guru.jadwal-mengajar.today' ? 'active' : '' }}" href="{{ route('guru.jadwal-mengajar.today') }}">
+                                    <i class="fas fa-calendar-day me-2"></i> Jadwal Hari Ini
                                 </a>
                             </li>
                             <li class="nav-item">

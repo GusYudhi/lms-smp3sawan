@@ -67,7 +67,7 @@ class JurnalMengajarController extends Controller
         $kelasList = Kelas::orderBy('tingkat', 'asc')
             ->orderBy('nama_kelas', 'asc')
             ->get();
-        $mapelList = MataPelajaran::orderBy('nama_mata_pelajaran', 'asc')
+        $mapelList = MataPelajaran::orderBy('nama_mapel', 'asc')
             ->get();
 
         return view('kepala-sekolah.jurnal-mengajar.index', compact(

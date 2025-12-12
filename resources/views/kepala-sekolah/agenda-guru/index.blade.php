@@ -27,21 +27,6 @@
         </div>
     </div>
 
-    <!-- Statistik -->
-    <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-success fs-1 mb-3">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Total Agenda</h6>
-                    <h2 class="text-success">{{ $agendaList->total() }}</h2>
-                    <small class="text-muted">Periode Dipilih</small>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Filter Section -->
     <div class="row mb-4">
@@ -87,6 +72,16 @@
                                 <option value="">Semua Status</option>
                                 <option value="pending" {{ $statusFilter == 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="selesai" {{ $statusFilter == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Urutkan Menurut</label>
+                            <select name="sort_by" class="form-select auto-submit">
+                                <option value="tanggal_desc" {{ request('sort_by', 'tanggal_desc') == 'tanggal_desc' ? 'selected' : '' }}>Tanggal Terbaru</option>
+                                <option value="tanggal_asc" {{ request('sort_by') == 'tanggal_asc' ? 'selected' : '' }}>Tanggal Terlama</option>
+                                <option value="guru_asc" {{ request('sort_by') == 'guru_asc' ? 'selected' : '' }}>Guru (A-Z)</option>
+                                <option value="guru_desc" {{ request('sort_by') == 'guru_desc' ? 'selected' : '' }}>Guru (Z-A)</option>
                             </select>
                         </div>
 

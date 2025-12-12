@@ -25,46 +25,45 @@ class AdminController extends Controller
 
     public function manageGuru(Request $request)
     {
+        $search = $request->get('search');
+        $mataPelajaranFilter = $request->get('mata_pelajaran');
+        $statusKepegawaianFilter = $request->get('status_kepegawaian');
+
         // get user with profile guru
-        $query = User::whereIn('role', ['guru', 'kepala_sekolah'])->with('guruProfile');
+        $query = User::with(['guruProfile.kelas'])
+            ->whereIn('role', ['guru', 'kepala_sekolah']);
 
         // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if ($search) {
             $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhereHas('guruProfile', function($sub) use ($search) {
-                      $sub->where('nip', 'LIKE', "%{$search}%")
-                          ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('guruProfile', function($query) use ($search) {
+                      $query->where('nip', 'like', "%{$search}%");
                   });
             });
         }
 
-        // Filter by status kepegawaian if needed
-        if ($request->filled('status')) {
-            $query->whereHas('guruProfile', function($q) use ($request) {
-                $q->where('status_kepegawaian', $request->status);
+        // Filter by mata pelajaran
+        if ($mataPelajaranFilter) {
+            $query->whereHas('guruProfile', function($q) use ($mataPelajaranFilter) {
+                $q->where('mata_pelajaran', 'like', "%{$mataPelajaranFilter}%");
             });
         }
 
-        // Filter by gender if needed
-        if ($request->filled('gender')) {
-            $query->whereHas('guruProfile', function($q) use ($request) {
-                $q->where('jenis_kelamin', $request->gender);
+        // Filter by status kepegawaian
+        if ($statusKepegawaianFilter) {
+            $query->whereHas('guruProfile', function($q) use ($statusKepegawaianFilter) {
+                $q->where('status_kepegawaian', $statusKepegawaianFilter);
             });
         }
 
         $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
 
-        // Get unique subjects for filter dropdown (nanti bisa ditambahkan ketika ada tabel mata pelajaran)
-        $subjects = collect([
-            'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA Fisika',
-            'IPA Biologi', 'IPS Sejarah', 'PKN', 'Pendidikan Jasmani',
-            'Seni Budaya', 'Prakarya'
-        ]);
+        // Get list mata pelajaran untuk filter
+        $mataPelajaranList = \App\Models\MataPelajaran::orderBy('nama_mapel', 'asc')->get();
 
-        return view('admin.guru.index', compact('teachers', 'subjects'));
+        return view('admin.guru.index', compact('teachers', 'mataPelajaranList', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter'));
     }
 
     /**

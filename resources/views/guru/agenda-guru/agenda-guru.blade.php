@@ -63,7 +63,7 @@
                                     <input type="text"
                                            name="search"
                                            id="agendaSearch"
-                                           class="form-control border-start-0"
+                                           class="form-control border-start-0 search-input"
                                            placeholder="Cari materi atau kompetensi..."
                                            value="{{ request('search') }}">
                                 </div>
@@ -72,7 +72,7 @@
                             <!-- Kelas Filter -->
                             <div class="col-md-2">
                                 <label for="kelasFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
-                                <select name="kelas" id="kelasFilter" class="form-select">
+                                <select name="kelas" id="kelasFilter" class="form-select auto-submit">
                                     <option value="">Semua Kelas</option>
                                     @foreach($kelasList as $kelas)
                                         <option value="{{ $kelas->full_name }}" {{ request('kelas') == $kelas->full_name ? 'selected' : '' }}>
@@ -85,34 +85,32 @@
                             <!-- Status Jurnal Filter -->
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status Jurnal</label>
-                                <select name="status" id="statusFilter" class="form-select">
+                                <select name="status" id="statusFilter" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
-                                    <option value="selesai">Selesai</option>
-                                    <option value="belum_selesai">Belum Selesai</option>
+                                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                    <option value="belum_selesai" {{ request('status') == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
                                 </select>
                             </div>
 
                             <!-- Keterangan Filter -->
                             <div class="col-md-2">
                                 <label for="keteranganFilter" class="form-label text-medium-contrast fw-medium">Keterangan</label>
-                                <select name="keterangan" id="keteranganFilter" class="form-select">
+                                <select name="keterangan" id="keteranganFilter" class="form-select auto-submit">
                                     <option value="">Semua</option>
-                                    <option value="pengayaan">Pengayaan</option>
-                                    <option value="perbaikan">Perbaikan</option>
-                                    <option value="-">Tidak Ada</option>
+                                    <option value="pengayaan" {{ request('keterangan') == 'pengayaan' ? 'selected' : '' }}>Pengayaan</option>
+                                    <option value="perbaikan" {{ request('keterangan') == 'perbaikan' ? 'selected' : '' }}>Perbaikan</option>
+                                    <option value="-" {{ request('keterangan') == '-' ? 'selected' : '' }}>Tidak Ada</option>
                                 </select>
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="col-md-2">
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary shadow-sm fw-medium">
-                                        <i class="fas fa-search me-1"></i> Cari
-                                    </button>
-                                    <a href="{{ route('guru.agenda') }}" class="btn btn-outline-secondary shadow-sm fw-medium">
-                                        <i class="fas fa-redo me-1"></i> Reset
-                                    </a>
-                                </div>
+                                <a href="{{ route('guru.agenda') }}" class="btn btn-secondary w-100 shadow-sm fw-medium">
+                                    <i class="fas fa-redo me-1"></i> Reset
+                                </a>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>Auto-submit
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -466,6 +464,19 @@
 
 @push('scripts')
 <script>
+    // Auto-submit functionality
+    $('.auto-submit').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Search input - submit on Enter
+    $('.search-input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#filterForm').submit();
+        }
+    });
+
     // Edit Agenda
     function editAgenda(id, tanggal, kelas, jamMulaiId, jamSelesaiId, materi, statusJurnal, keterangan) {
         document.getElementById('edit_tanggal').value = tanggal;
