@@ -317,7 +317,7 @@
                     </ul>
 
                     <hr class="text-white-50 mt-4">
-                    <div class="px-3">
+                    <div class="px-3 mb-5">
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-outline-light btn-sm w-100">
