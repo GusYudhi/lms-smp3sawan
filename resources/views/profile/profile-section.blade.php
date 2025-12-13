@@ -570,7 +570,7 @@
 <!-- Modal Kartu Identitas -->
 @if(auth()->user()->role === 'siswa')
 <div class="modal fade" id="kartuIdentitasModal" tabindex="-1" aria-labelledby="kartuIdentitasModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="kartuIdentitasModalLabel">

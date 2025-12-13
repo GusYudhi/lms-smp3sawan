@@ -11,6 +11,7 @@ use App\Exports\StudentsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaController extends Controller
@@ -29,8 +30,9 @@ class SiswaController extends Controller
     {
         $search = $request->input('search');
         $filters = $request->only(['jenis_kelamin', 'kelas', 'status']);
+        $perPage = $request->input('per_page', 15);
 
-        $students = $this->userService->getStudentsWithProfiles($search, $filters);
+        $students = $this->userService->getStudentsWithProfiles($search, $filters, $perPage);
 
         // Get available classes for filter from kelas table
         $classes = \App\Models\Kelas::orderBy('tingkat')
@@ -66,8 +68,9 @@ class SiswaController extends Controller
     {
         $search = $request->input('search');
         $filters = $request->only(['jenis_kelamin', 'kelas', 'status']);
+        $perPage = $request->input('per_page', 15);
 
-        $students = $this->userService->getStudentsWithProfiles($search, $filters);
+        $students = $this->userService->getStudentsWithProfiles($search, $filters, $perPage);
 
         // Get available classes for filter from kelas table
         $classes = \App\Models\Kelas::orderBy('tingkat')
@@ -85,7 +88,7 @@ class SiswaController extends Controller
                 'info' => view('admin.siswa.partials.table-info', compact('students'))->render(),
                 'total' => $students->total(),
                 'current_page' => $students->currentPage(),
-                'filters' => $request->only(['search', 'jenis_kelamin', 'kelas', 'status'])
+                'filters' => $request->only(['search', 'jenis_kelamin', 'kelas', 'status', 'per_page'])
             ]);
         }
 
@@ -165,9 +168,26 @@ class SiswaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
+
+        // Check if this is an AJAX request for canvas data
+        if ($request->wantsJson() || $request->ajax()) {
+            $profile = $student->studentProfile;
+
+            return response()->json([
+                'id' => $student->id,
+                'nama_lengkap' => $student->name,
+                'nama' => $student->name,
+                'nisn' => $profile->nisn ?? '-',
+                'nis' => $profile->nis ?? '-',
+                'tempat_lahir' => $profile->tempat_lahir ?? '',
+                'tanggal_lahir' => $profile->tanggal_lahir ? \Carbon\Carbon::parse($profile->tanggal_lahir)->format('d-m-Y') : '',
+                'foto_url' => $profile->foto ? Storage::url($profile->foto) : asset('images/default-avatar.png'),
+            ]);
+        }
+
         return view('admin.siswa.show', compact('student'));
     }
 
@@ -305,6 +325,107 @@ class SiswaController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error saat import: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download bulk student ID cards as ZIP
+     */
+    public function downloadBulkIdCardZip(Request $request)
+    {
+        $request->validate([
+            'cards' => 'required|array',
+            'cards.*.id' => 'required|integer',
+            'cards.*.name' => 'required|string',
+            'cards.*.nisn' => 'nullable|string',
+            'cards.*.base64' => 'required|string',
+        ]);
+
+        try {
+            $cards = $request->input('cards');
+
+            // Create temporary directory for images
+            $tempDir = storage_path('app/temp/id_cards_' . time());
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Create ZIP file
+            $zipFileName = 'Kartu_Identitas_Siswa_' . date('Ymd_His') . '.zip';
+            $zipFilePath = storage_path('app/temp/' . $zipFileName);
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \Exception('Gagal membuat file ZIP');
+            }
+
+            // Process each card
+            foreach ($cards as $index => $card) {
+                try {
+                    // Decode base64 image
+                    $base64Data = $card['base64'];
+
+                    // Remove data:image/png;base64, prefix if exists
+                    if (strpos($base64Data, 'data:image/png;base64,') === 0) {
+                        $base64Data = substr($base64Data, strlen('data:image/png;base64,'));
+                    }
+
+                    $imageData = base64_decode($base64Data);
+
+                    if ($imageData === false) {
+                        Log::warning("Failed to decode base64 for student ID: " . $card['id']);
+                        continue;
+                    }
+
+                    // Create filename: NISN_Nama_Siswa.png
+                    $nisn = $card['nisn'] ?? 'TANPA_NISN';
+                    $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $card['name']);
+                    $name = substr($name, 0, 50); // Limit name length
+                    $fileName = "{$nisn}_{$name}.png";
+
+                    // Save image to temp directory
+                    $imagePath = $tempDir . '/' . $fileName;
+                    file_put_contents($imagePath, $imageData);
+
+                    // Add to ZIP
+                    $zip->addFile($imagePath, $fileName);
+
+                } catch (\Exception $e) {
+                    Log::error("Error processing card for student ID {$card['id']}: " . $e->getMessage());
+                    continue;
+                }
+            }
+
+            $zip->close();
+
+            // Check if ZIP file was created successfully
+            if (!file_exists($zipFilePath)) {
+                throw new \Exception('File ZIP tidak dapat dibuat');
+            }
+
+            // Return ZIP file as download
+            return response()->download($zipFilePath)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::error('Bulk ID card download error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat file ZIP: ' . $e->getMessage()
+            ], 500);
+        } finally {
+            // Clean up temporary directory
+            if (isset($tempDir) && file_exists($tempDir)) {
+                // Delete all files in temp directory
+                $files = glob($tempDir . '/*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        @unlink($file);
+                    }
+                }
+                // Delete directory
+                @rmdir($tempDir);
+            }
         }
     }
 }

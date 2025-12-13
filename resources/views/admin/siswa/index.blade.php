@@ -51,19 +51,36 @@
                             <p class="text-subtle mb-0 fw-medium">Kelola data siswa: tambahkan, edit, lihat, atau ekspor data</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex flex-wrap gap-2 justify-content-end">
-                                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
-                                    <i class="fas fa-file-import me-1"></i>
-                                    <span class="d-none d-sm-inline">Import Data</span>
-                                </button>
-                                <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-1"></i>
-                                    <span class="d-none d-sm-inline">Tambah Siswa</span>
-                                </a>
-                                <button class="btn btn-outline-secondary" onclick="exportData()">
-                                    <i class="fas fa-file-export me-1"></i>
-                                    <span class="d-none d-sm-inline">Ekspor</span>
-                                </button>
+                            <div class="row g-2 justify-content-end">
+
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-outline-success w-100" data-bs-toggle="modal" data-bs-target="#importModal">
+                                        <i class="fas fa-file-import me-1"></i>
+                                        <span>Import Data</span>
+                                    </button>
+                                </div>
+
+                                <div class="col-6">
+                                    <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary w-100">
+                                        <i class="fas fa-plus me-1"></i>
+                                        <span>Tambah Siswa</span>
+                                    </a>
+                                </div>
+
+                                <div class="col-6">
+                                    <button class="btn btn-outline-secondary w-100" onclick="exportData()">
+                                        <i class="fas fa-file-export me-1"></i>
+                                        <span>Ekspor</span>
+                                    </button>
+                                </div>
+
+                                <div class="col-6">
+                                    <button id="bulk-download-btn" class="btn btn-success w-100" onclick="startBulkDownload()">
+                                        <i class="fas fa-id-card me-1"></i>
+                                        <span>Unduh Kartu Identitas</span>
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -137,8 +154,22 @@
                     </h6>
                     <form method="GET" action="{{ route('admin.siswa.index') }}" id="filterForm">
                         <div class="row g-3 align-items-end">
+                            <!-- Show Entries -->
+                            <div class="col-md-2">
+                                <label for="perPageFilter" class="form-label text-medium-contrast fw-medium">Tampilkan</label>
+                                <select name="per_page" id="perPageFilter" class="form-select auto-submit">
+                                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 data</option>
+                                    <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20 data</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 data</option>
+                                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 data</option>
+                                    <option value="300" {{ request('per_page') == 300 ? 'selected' : '' }}>300 data</option>
+                                    <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500 data</option>
+                                    <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000 data</option>
+                                </select>
+                            </div>
+
                             <!-- Search Input -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="studentSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">
@@ -301,6 +332,64 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Download Modal -->
+<div class="modal fade" id="bulkDownloadModal" tabindex="-1" aria-labelledby="bulkDownloadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title" id="bulkDownloadModalLabel">
+                    <i class="fas fa-id-card me-2"></i>Download Kartu Identitas Siswa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <div class="display-1 text-success mb-3">
+                        <i class="fas fa-address-card"></i>
+                    </div>
+                    <h5 class="mb-2">Konfirmasi Download</h5>
+                    <p class="text-muted">
+                        Anda akan mengunduh kartu identitas untuk <strong id="totalStudentsToDownload">0</strong> siswa
+                        <span id="filterInfoText"></span>
+                    </p>
+                </div>
+
+                <div class="alert alert-info d-flex align-items-start" role="alert">
+                    <i class="fas fa-info-circle me-2 mt-1"></i>
+                    <div>
+                        <strong>Informasi:</strong>
+                        <ul class="mb-0 mt-2 ps-3">
+                            <li>Kartu akan diunduh dalam format ZIP</li>
+                            <li>Setiap kartu berformat PNG dengan resolusi tinggi</li>
+                            <li>Proses mungkin memakan waktu beberapa menit</li>
+                            <li>Jangan tutup halaman selama proses download</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">
+                            <i class="fas fa-filter text-primary me-2"></i>Filter yang diterapkan:
+                        </h6>
+                        <div id="activeFilters" class="d-flex flex-wrap gap-2">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Batal
+                </button>
+                <button type="button" class="btn btn-success" id="confirmBulkDownloadBtn">
+                    <i class="fas fa-download me-1"></i> Ya, Download Sekarang
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -605,5 +694,680 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ==============================================================================
+// BULK ID CARD DOWNLOAD FUNCTIONALITY
+// ==============================================================================
+
+/**
+ * Fetch student canvas data from server
+ */
+async function fetchStudentCanvasData(studentId) {
+    try {
+        const response = await fetch(`/admin/siswa/${studentId}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Return formatted data for canvas rendering
+        return {
+            id: data.id,
+            nama: data.nama_lengkap || data.nama || 'Tidak ada nama',
+            nisn: data.nisn || '-',
+            nis: data.nis || '-',
+            ttl: `${data.tempat_lahir || ''}, ${data.tanggal_lahir || ''}`.trim(),
+            fotoUrl: data.foto_url || null, // Set to null if no photo
+            logoUrl: '/assets/image/LogoSMP3SAWAN.webp' // Path logo sekolah yang benar
+        };
+    } catch (error) {
+        console.error('Error fetching student data:', error);
+        throw error;
+    }
+}
+
+/**
+ * Draw ID card on canvas for a specific student
+ */
+function drawStudentIdCard(canvas, studentData) {
+    return new Promise((resolve, reject) => {
+        try {
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Create background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1e3c72');
+            gradient.addColorStop(1, '#2a5298');
+
+            // Fill background
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add background patterns (decorative circles)
+            drawBackgroundPattern(ctx, canvas.width, canvas.height);
+
+            // Function to continue drawing even without logo
+            const continueDrawing = function() {
+                // Draw header text
+                drawHeader(ctx);
+
+                // Load and draw student photo (only if exists)
+                if (studentData.fotoUrl) {
+                    const foto = new Image();
+                    foto.crossOrigin = 'anonymous';
+                    foto.onload = function() {
+                        // Draw photo
+                        ctx.save();
+                        ctx.fillStyle = 'white';
+                        roundRect(ctx, 66, 198, 228, 340, 20);
+                        ctx.fill();
+
+                        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                        ctx.shadowBlur = 20;
+                        ctx.shadowOffsetX = 4;
+                        ctx.shadowOffsetY = 4;
+
+                        roundRect(ctx, 75, 210, 210, 315, 15);
+                        ctx.clip();
+                        ctx.drawImage(foto, 75, 210, 210, 315);
+                        ctx.restore();
+
+                        // Draw student data
+                        drawContent(ctx, studentData.nama, studentData.ttl, studentData.nisn, studentData.nis);
+
+                        // Draw QR code and footer
+                        drawQRCodeSync(ctx, studentData.nisn)
+                            .then(() => {
+                                drawFooter(ctx);
+                                resolve();
+                            })
+                            .catch((err) => {
+                                console.warn('QR Code error, continuing without it:', err);
+                                drawFooter(ctx);
+                                resolve(); // Resolve anyway
+                            });
+                    };
+                    foto.onerror = () => {
+                        console.warn('Failed to load photo for ' + studentData.nama + ', skipping photo');
+
+                        // Just continue without photo - no placeholder
+                        drawContent(ctx, studentData.nama, studentData.ttl, studentData.nisn, studentData.nis);
+
+                        // Draw QR code and footer
+                        drawQRCodeSync(ctx, studentData.nisn)
+                            .then(() => {
+                                drawFooter(ctx);
+                                resolve();
+                            })
+                            .catch((err) => {
+                                console.warn('QR Code error:', err);
+                                drawFooter(ctx);
+                                resolve(); // Resolve anyway
+                            });
+                    };
+                    foto.src = studentData.fotoUrl;
+                } else {
+                    // No photo URL, just draw without photo
+                    drawContent(ctx, studentData.nama, studentData.ttl, studentData.nisn, studentData.nis);
+
+                    // Draw QR code and footer
+                    drawQRCodeSync(ctx, studentData.nisn)
+                        .then(() => {
+                            drawFooter(ctx);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            console.warn('QR Code error:', err);
+                            drawFooter(ctx);
+                            resolve(); // Resolve anyway
+                        });
+                }
+            };
+
+            // Try to load logo
+            const logo = new Image();
+            logo.crossOrigin = 'anonymous';
+
+            // Set a timeout for logo loading
+            let logoLoaded = false;
+            const logoTimeout = setTimeout(() => {
+                if (!logoLoaded) {
+                    console.warn('Logo load timeout, continuing without logo');
+                    continueDrawing();
+                }
+            }, 3000); // 3 second timeout
+
+            logo.onload = function() {
+                logoLoaded = true;
+                clearTimeout(logoTimeout);
+
+                // Draw logo
+                const centerX = canvas.width / 2 - 350;
+                const centerY = 90;
+                const r = 60;
+
+                ctx.save();
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+
+                const imgSize = r * 2 - 6;
+                ctx.drawImage(logo, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+                ctx.restore();
+
+                continueDrawing();
+            };
+
+            logo.onerror = () => {
+                logoLoaded = true;
+                clearTimeout(logoTimeout);
+                console.warn('Failed to load logo, continuing without it');
+                continueDrawing(); // Continue without logo
+            };
+
+            // Try multiple logo paths
+            const logoPaths = [
+                '/assets/image/LogoSMP3SAWAN.webp',
+                '{{ asset("assets/image/LogoSMP3SAWAN.webp") }}'
+            ];
+
+            logo.src = logoPaths[0];
+
+        } catch (error) {
+            console.error('Error in drawStudentIdCard:', error);
+            reject(error);
+        }
+    });
+}
+
+/**
+ * Helper function to draw QR code synchronously
+ */
+function drawQRCodeSync(ctx, nisn) {
+    return new Promise((resolve, reject) => {
+        if (typeof QRCode === 'undefined') {
+            console.warn('QRCode library not available');
+            resolve();
+            return;
+        }
+
+        const qrCanvas = document.createElement('canvas');
+        QRCode.toCanvas(qrCanvas, nisn, {
+            width: 250,
+            height: 250,
+            margin: 1,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+        })
+        .then(() => {
+            ctx.fillStyle = 'white';
+            roundRect(ctx, 750, 280, 372, 400, 24);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            ctx.drawImage(qrCanvas, 775, 305, 320, 320);
+
+            ctx.fillStyle = '#666';
+            ctx.font = 'bold 21px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SCAN ME', 950, 655);
+
+            resolve();
+        })
+        .catch(reject);
+    });
+}
+
+/**
+ * Helper functions for canvas drawing
+ */
+function drawBackgroundPattern(ctx, width, height) {
+    ctx.save();
+    const gradient1 = ctx.createRadialGradient(width * 0.85, height * 0.15, 0, width * 0.85, height * 0.15, 300);
+    gradient1.addColorStop(0, 'rgba(255,255,255,0.1)');
+    gradient1.addColorStop(0.5, 'rgba(255,165,0,0.1)');
+    gradient1.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient1;
+    ctx.beginPath();
+    ctx.arc(width * 0.85, height * 0.15, 300, 0, 2 * Math.PI);
+    ctx.fill();
+
+    const gradient2 = ctx.createRadialGradient(width * 0.15, height * 0.85, 0, width * 0.15, height * 0.85, 200);
+    gradient2.addColorStop(0, 'rgba(255,255,255,0.08)');
+    gradient2.addColorStop(0.5, 'rgba(255,165,0,0.08)');
+    gradient2.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient2;
+    ctx.beginPath();
+    ctx.arc(width * 0.15, height * 0.85, 200, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawHeader(ctx) {
+    const offsetY = 20;
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 33px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('KARTU IDENTITAS MURID', ctx.canvas.width / 2, 55 + offsetY);
+
+    ctx.font = 'bold 41px Arial, sans-serif';
+    ctx.fillText('SMP NEGERI 3 SAWAN', ctx.canvas.width / 2, 95 + offsetY);
+
+    ctx.font = 'italic 27px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillText('Student Identity Card', ctx.canvas.width / 2, 125 + offsetY);
+    ctx.textAlign = 'left';
+}
+
+function drawContent(ctx, nama, ttl, nisn, nis) {
+    ctx.fillStyle = 'white';
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    ctx.font = 'bold 51px Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(nama.toUpperCase().trim().substring(0, 24), 360, 238);
+
+    const dataY = 300;
+    const lineHeight = 90;
+
+    drawDataField(ctx, 'Tempat, Tanggal Lahir', ttl, 360, dataY, '#4ecdc4');
+    drawDataField(ctx, 'NISN', nisn, 360, dataY + lineHeight, '#ffd93d');
+    drawDataField(ctx, 'NIS', nis, 360, dataY + (lineHeight * 2), '#4ecdc4');
+}
+
+function drawDataField(ctx, label, value, x, y, borderColor) {
+    ctx.fillStyle = borderColor;
+    ctx.fillRect(x, y - 25, 6, 50);
+
+    ctx.font = '23px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText(label, x + 20, y - 5);
+
+    ctx.font = 'bold 31px Arial, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.fillText(value, x + 20, y + 30);
+}
+
+function drawFooter(ctx) {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '17px Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('SMP Negeri 3 Sawan - Suwug, Kec. Sawan, Kabupaten Buleleng, Bali 81171', 40, 720);
+
+    const currentDate = new Date().toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    ctx.fillText('Generated: ' + currentDate, 40, 745);
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+/**
+ * Main function: Download bulk ID cards
+ */
+async function downloadBulkIdCards(selectedStudentIds) {
+    if (!selectedStudentIds || selectedStudentIds.length === 0) {
+        showToast('error', 'Tidak ada siswa yang dipilih');
+        return;
+    }
+
+    // Show loading overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'bulk-download-overlay';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;';
+    overlay.innerHTML = `
+        <div class="card" style="min-width: 400px; max-width: 500px;">
+            <div class="card-body text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-2">Membuat Kartu Identitas</h5>
+                <p class="text-muted mb-2">Mohon tunggu, sedang memproses...</p>
+                <div class="progress" style="height: 25px;">
+                    <div id="bulk-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                         role="progressbar" style="width: 0%">0 / ${selectedStudentIds.length}</div>
+                </div>
+                <small class="text-muted mt-2 d-block">Jangan tutup halaman ini</small>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    try {
+        // Create hidden canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 800;
+        canvas.style.display = 'none';
+        document.body.appendChild(canvas);
+
+        const results = [];
+        const progressBar = document.getElementById('bulk-progress-bar');
+        let successCount = 0;
+        let errorCount = 0;
+
+        // Process each student
+        for (let i = 0; i < selectedStudentIds.length; i++) {
+            const studentId = selectedStudentIds[i];
+
+            try {
+                // Update progress
+                const progress = Math.round(((i + 1) / selectedStudentIds.length) * 100);
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = `${i + 1} / ${selectedStudentIds.length} (✓${successCount} ✗${errorCount})`;
+
+                // Fetch student data
+                const studentData = await fetchStudentCanvasData(studentId);
+
+                // Draw on canvas
+                await drawStudentIdCard(canvas, studentData);
+
+                // Wait a bit for canvas to render completely
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Convert to base64
+                const base64 = canvas.toDataURL('image/png', 1.0);
+
+                results.push({
+                    id: studentData.id,
+                    name: studentData.nama,
+                    nisn: studentData.nisn,
+                    base64: base64
+                });
+
+                successCount++;
+
+            } catch (error) {
+                console.error(`Error processing student ${studentId}:`, error);
+                errorCount++;
+                // Continue with next student
+            }
+        }
+
+        // Remove canvas
+        document.body.removeChild(canvas);
+
+        if (results.length === 0) {
+            throw new Error('Tidak ada kartu yang berhasil dibuat');
+        }
+
+        // Update overlay message
+        overlay.querySelector('h5').textContent = 'Mengunduh File ZIP...';
+        overlay.querySelector('p').textContent = 'Sedang membuat file ZIP...';
+
+        // Send to server
+        const response = await fetch('{{ route("admin.siswa.download_bulk_idcard") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                cards: results
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Gagal membuat file ZIP');
+        }
+
+        // Download the ZIP file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Kartu_Identitas_Siswa_${new Date().getTime()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        // Remove overlay
+        document.body.removeChild(overlay);
+
+        showToast('success', `Berhasil mengunduh ${results.length} kartu identitas`);
+
+    } catch (error) {
+        console.error('Bulk download error:', error);
+
+        // Remove overlay
+        const existingOverlay = document.getElementById('bulk-download-overlay');
+        if (existingOverlay) {
+            document.body.removeChild(existingOverlay);
+        }
+
+        showToast('error', 'Terjadi kesalahan: ' + error.message);
+    }
+}
+
+/**
+ * Start bulk download process
+ * Gets all students from current filtered view
+ */
+function startBulkDownload() {
+    const btn = document.getElementById('bulk-download-btn');
+
+    // Get current filter parameters
+    const searchValue = document.getElementById('studentSearch').value;
+    const genderValue = document.getElementById('genderFilter').value;
+    const classValue = document.getElementById('classFilter').value;
+    const statusValue = document.getElementById('statusFilter').value;
+    const perPageValue = document.getElementById('perPageFilter').value;
+
+    const params = new URLSearchParams({
+        search: searchValue,
+        jenis_kelamin: genderValue,
+        kelas: classValue,
+        status: statusValue,
+        per_page: perPageValue,
+        all: '1' // Get all results without pagination
+    });
+
+    // Remove empty values
+    for (let [key, value] of params.entries()) {
+        if (!value && key !== 'all' && key !== 'per_page') params.delete(key);
+    }
+
+    // Fetch all students matching filter
+    fetch(`{{ route('admin.siswa.search') }}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Extract student IDs from response
+        const studentIds = extractStudentIds(data.html);
+
+        if (studentIds.length === 0) {
+            showToast('warning', 'Tidak ada siswa untuk diunduh');
+            return;
+        }
+
+        // Show modal with information
+        showBulkDownloadModal(studentIds, {
+            search: searchValue,
+            gender: genderValue,
+            kelas: classValue,
+            status: statusValue
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching students:', error);
+        showToast('error', 'Gagal mengambil data siswa');
+    });
+}
+
+/**
+ * Show bulk download confirmation modal
+ */
+function showBulkDownloadModal(studentIds, filters) {
+    // Update total students
+    document.getElementById('totalStudentsToDownload').textContent = studentIds.length;
+
+    // Update filter info text
+    let filterText = '';
+    if (filters.search || filters.gender || filters.kelas || filters.status) {
+        filterText = ' yang sesuai dengan filter';
+    } else {
+        filterText = ' (semua siswa)';
+    }
+    document.getElementById('filterInfoText').textContent = filterText;
+
+    // Display active filters
+    const activeFiltersContainer = document.getElementById('activeFilters');
+    activeFiltersContainer.innerHTML = '';
+
+    let hasFilters = false;
+
+    if (filters.search) {
+        hasFilters = true;
+        activeFiltersContainer.innerHTML += `
+            <span class="badge bg-primary">
+                <i class="fas fa-search me-1"></i>Pencarian: ${filters.search}
+            </span>
+        `;
+    }
+
+    if (filters.kelas) {
+        hasFilters = true;
+        activeFiltersContainer.innerHTML += `
+            <span class="badge bg-info">
+                <i class="fas fa-school me-1"></i>Kelas: ${filters.kelas}
+            </span>
+        `;
+    }
+
+    if (filters.gender) {
+        hasFilters = true;
+        const genderText = filters.gender === 'L' ? 'Laki-laki' : 'Perempuan';
+        activeFiltersContainer.innerHTML += `
+            <span class="badge bg-warning text-dark">
+                <i class="fas fa-venus-mars me-1"></i>${genderText}
+            </span>
+        `;
+    }
+
+    if (filters.status) {
+        hasFilters = true;
+        activeFiltersContainer.innerHTML += `
+            <span class="badge bg-success">
+                <i class="fas fa-check-circle me-1"></i>${filters.status}
+            </span>
+        `;
+    }
+
+    if (!hasFilters) {
+        activeFiltersContainer.innerHTML = `
+            <span class="badge bg-secondary">
+                <i class="fas fa-list me-1"></i>Tidak ada filter (semua data)
+            </span>
+        `;
+    }
+
+    // Store student IDs for later use
+    window.pendingDownloadStudentIds = studentIds;
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('bulkDownloadModal'));
+    modal.show();
+
+    // Attach event to confirm button
+    document.getElementById('confirmBulkDownloadBtn').onclick = function() {
+        // Close modal
+        modal.hide();
+
+        // Start download process
+        const btn = document.getElementById('bulk-download-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i><span>Mempersiapkan...</span>';
+
+        downloadBulkIdCards(window.pendingDownloadStudentIds);
+
+        // Re-enable button after a short delay
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-id-card me-1"></i><span>Unduh Kartu Identitas</span>';
+        }, 2000);
+    };
+}
+
+/**
+ * Extract student IDs from HTML table
+ */
+function extractStudentIds(htmlString) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const rows = doc.querySelectorAll('table tbody tr');
+    const ids = [];
+
+    rows.forEach(row => {
+        // Look for data-id attribute or extract from action buttons
+        const editBtn = row.querySelector('a[href*="/siswa/"][href*="/edit"]');
+        if (editBtn) {
+            const href = editBtn.getAttribute('href');
+            const match = href.match(/\/siswa\/(\d+)\/edit/);
+            if (match && match[1]) {
+                ids.push(parseInt(match[1]));
+            }
+        }
+    });
+
+    return ids;
+}
 </script>
 @endpush

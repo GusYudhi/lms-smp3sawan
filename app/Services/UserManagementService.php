@@ -235,7 +235,7 @@ class UserManagementService
     /**
      * Get students with profiles for listing
      */
-    public function getStudentsWithProfiles($search = null, $filters = [])
+    public function getStudentsWithProfiles($search = null, $filters = [], $perPage = 15)
     {
         $query = User::with('studentProfile.kelas')
             ->where('role', 'siswa')
@@ -280,7 +280,10 @@ class UserManagementService
             });
         }
 
-        return $query->paginate(15);
+        // Validate perPage value
+        $perPage = in_array($perPage, [15, 20, 50, 100, 300, 500, 1000]) ? $perPage : 15;
+
+        return $query->paginate($perPage)->appends(request()->query());
     }
 
     /**
