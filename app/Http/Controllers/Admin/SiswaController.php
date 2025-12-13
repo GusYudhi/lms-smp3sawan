@@ -170,11 +170,12 @@ class SiswaController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $student = User::with('studentProfile')->where('role', 'siswa')->findOrFail($id);
+        $student = User::with(['studentProfile.kelas'])->where('role', 'siswa')->findOrFail($id);
 
         // Check if this is an AJAX request for canvas data
         if ($request->wantsJson() || $request->ajax()) {
             $profile = $student->studentProfile;
+            $kelas = $profile && $profile->kelas ? $profile->kelas->full_name : '-';
 
             return response()->json([
                 'id' => $student->id,
@@ -182,9 +183,10 @@ class SiswaController extends Controller
                 'nama' => $student->name,
                 'nisn' => $profile->nisn ?? '-',
                 'nis' => $profile->nis ?? '-',
+                'kelas' => $kelas,
                 'tempat_lahir' => $profile->tempat_lahir ?? '',
                 'tanggal_lahir' => $profile->tanggal_lahir ? \Carbon\Carbon::parse($profile->tanggal_lahir)->format('d-m-Y') : '',
-                'foto_url' => $profile->foto ? Storage::url($profile->foto) : asset('images/default-avatar.png'),
+                'foto_url' => $profile->foto ? Storage::url($profile->foto) : null,
             ]);
         }
 
@@ -338,16 +340,29 @@ class SiswaController extends Controller
             'cards.*.id' => 'required|integer',
             'cards.*.name' => 'required|string',
             'cards.*.nisn' => 'nullable|string',
+            'cards.*.nis' => 'required|string',
+            'cards.*.kelas' => 'required|string',
             'cards.*.base64' => 'required|string',
         ]);
 
         try {
             $cards = $request->input('cards');
 
-            // Create temporary directory for images
-            $tempDir = storage_path('app/temp/id_cards_' . time());
-            if (!file_exists($tempDir)) {
-                mkdir($tempDir, 0755, true);
+            // Group cards by class
+            $cardsByClass = [];
+            foreach ($cards as $card) {
+                $kelas = $card['kelas'] ?? 'Tanpa_Kelas';
+                if (!isset($cardsByClass[$kelas])) {
+                    $cardsByClass[$kelas] = [];
+                }
+                $cardsByClass[$kelas][] = $card;
+            }
+
+            // Sort each class by NIS
+            foreach ($cardsByClass as $kelas => &$classCards) {
+                usort($classCards, function($a, $b) {
+                    return strcmp($a['nis'], $b['nis']);
+                });
             }
 
             // Create ZIP file
@@ -359,40 +374,43 @@ class SiswaController extends Controller
                 throw new \Exception('Gagal membuat file ZIP');
             }
 
-            // Process each card
-            foreach ($cards as $index => $card) {
-                try {
-                    // Decode base64 image
-                    $base64Data = $card['base64'];
+            // Process each class
+            foreach ($cardsByClass as $kelas => $classCards) {
+                // Create folder for this class
+                $classFolderName = 'Kelas_' . str_replace(' ', '_', $kelas);
+                $zip->addEmptyDir($classFolderName);
 
-                    // Remove data:image/png;base64, prefix if exists
-                    if (strpos($base64Data, 'data:image/png;base64,') === 0) {
-                        $base64Data = substr($base64Data, strlen('data:image/png;base64,'));
-                    }
+                // Process each card in this class
+                foreach ($classCards as $card) {
+                    try {
+                        // Decode base64 image
+                        $base64Data = $card['base64'];
 
-                    $imageData = base64_decode($base64Data);
+                        // Remove data:image/png;base64, prefix if exists
+                        if (strpos($base64Data, 'data:image/png;base64,') === 0) {
+                            $base64Data = substr($base64Data, strlen('data:image/png;base64,'));
+                        }
 
-                    if ($imageData === false) {
-                        Log::warning("Failed to decode base64 for student ID: " . $card['id']);
+                        $imageData = base64_decode($base64Data);
+
+                        if ($imageData === false) {
+                            Log::warning("Failed to decode base64 for student ID: " . $card['id']);
+                            continue;
+                        }
+
+                        // Create filename: NIS_Nama_Siswa.png
+                        $nis = $card['nis'];
+                        $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $card['name']);
+                        $name = substr($name, 0, 40); // Limit name length
+                        $fileName = "{$nis}_{$name}.png";
+
+                        // Add directly to ZIP with class folder path (no temp files)
+                        $zip->addFromString($classFolderName . '/' . $fileName, $imageData);
+
+                    } catch (\Exception $e) {
+                        Log::error("Error processing card for student ID {$card['id']}: " . $e->getMessage());
                         continue;
                     }
-
-                    // Create filename: NISN_Nama_Siswa.png
-                    $nisn = $card['nisn'] ?? 'TANPA_NISN';
-                    $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $card['name']);
-                    $name = substr($name, 0, 50); // Limit name length
-                    $fileName = "{$nisn}_{$name}.png";
-
-                    // Save image to temp directory
-                    $imagePath = $tempDir . '/' . $fileName;
-                    file_put_contents($imagePath, $imageData);
-
-                    // Add to ZIP
-                    $zip->addFile($imagePath, $fileName);
-
-                } catch (\Exception $e) {
-                    Log::error("Error processing card for student ID {$card['id']}: " . $e->getMessage());
-                    continue;
                 }
             }
 
@@ -403,29 +421,190 @@ class SiswaController extends Controller
                 throw new \Exception('File ZIP tidak dapat dibuat');
             }
 
+            Log::info("ZIP file created successfully: {$zipFilePath}, size: " . filesize($zipFilePath) . " bytes");
+
             // Return ZIP file as download
-            return response()->download($zipFilePath)->deleteFileAfterSend(true);
+            return response()->download($zipFilePath, $zipFileName, [
+                'Content-Type' => 'application/zip',
+            ])->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {
             Log::error('Bulk ID card download error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal membuat file ZIP: ' . $e->getMessage()
             ], 500);
-        } finally {
-            // Clean up temporary directory
-            if (isset($tempDir) && file_exists($tempDir)) {
-                // Delete all files in temp directory
-                $files = glob($tempDir . '/*');
-                foreach ($files as $file) {
-                    if (is_file($file)) {
-                        @unlink($file);
+        }
+    }
+
+    /**
+     * Upload batch of ID cards (for batch processing)
+     */
+    public function uploadBatchIdCards(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|string',
+            'batch_number' => 'required|integer',
+            'total_batches' => 'required|integer',
+            'cards' => 'required|array',
+        ]);
+
+        try {
+            $sessionId = $request->input('session_id');
+            $batchNumber = $request->input('batch_number');
+            $cards = $request->input('cards');
+
+            // Create session directory
+            $sessionDir = storage_path('app/temp/batch_' . $sessionId);
+            if (!file_exists($sessionDir)) {
+                mkdir($sessionDir, 0755, true);
+            }
+
+            // Save batch data to file
+            $batchFile = $sessionDir . '/batch_' . $batchNumber . '.json';
+            file_put_contents($batchFile, json_encode($cards));
+
+            Log::info("Batch {$batchNumber} saved for session {$sessionId}");
+
+            return response()->json([
+                'success' => true,
+                'batch_number' => $batchNumber,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Batch upload error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal upload batch: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Finalize batch processing and create ZIP
+     */
+    public function finalizeBatchDownload(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|string',
+            'total_batches' => 'required|integer',
+        ]);
+
+        try {
+            $sessionId = $request->input('session_id');
+            $totalBatches = $request->input('total_batches');
+            $sessionDir = storage_path('app/temp/batch_' . $sessionId);
+
+            // Collect all batches
+            $allCards = [];
+            for ($i = 1; $i <= $totalBatches; $i++) {
+                $batchFile = $sessionDir . '/batch_' . $i . '.json';
+                if (!file_exists($batchFile)) {
+                    throw new \Exception("Batch {$i} tidak ditemukan");
+                }
+                $batchCards = json_decode(file_get_contents($batchFile), true);
+                $allCards = array_merge($allCards, $batchCards);
+            }
+
+            Log::info("All batches collected. Total cards: " . count($allCards));
+
+            // Group cards by class
+            $cardsByClass = [];
+            foreach ($allCards as $card) {
+                $kelas = $card['kelas'] ?? 'Tanpa_Kelas';
+                if (!isset($cardsByClass[$kelas])) {
+                    $cardsByClass[$kelas] = [];
+                }
+                $cardsByClass[$kelas][] = $card;
+            }
+
+            // Sort each class by NIS
+            foreach ($cardsByClass as $kelas => &$classCards) {
+                usort($classCards, function($a, $b) {
+                    return strcmp($a['nis'], $b['nis']);
+                });
+            }
+
+            // Create ZIP file
+            $zipFileName = 'Kartu_Identitas_Siswa_' . date('Ymd_His') . '.zip';
+            $zipFilePath = storage_path('app/temp/' . $zipFileName);
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \Exception('Gagal membuat file ZIP');
+            }
+
+            // Process each class
+            foreach ($cardsByClass as $kelas => $classCards) {
+                // Create folder for this class
+                $classFolderName = 'Kelas_' . str_replace(' ', '_', $kelas);
+                $zip->addEmptyDir($classFolderName);
+
+                Log::info("Processing class: {$kelas} with " . count($classCards) . " students");
+
+                // Process each card in this class
+                foreach ($classCards as $card) {
+                    try {
+                        // Decode base64 image
+                        $base64Data = $card['base64'];
+
+                        // Remove data:image/png;base64, prefix if exists
+                        if (strpos($base64Data, 'data:image/png;base64,') === 0) {
+                            $base64Data = substr($base64Data, strlen('data:image/png;base64,'));
+                        }
+
+                        $imageData = base64_decode($base64Data);
+
+                        if ($imageData === false) {
+                            Log::warning("Failed to decode base64 for student ID: " . $card['id']);
+                            continue;
+                        }
+
+                        // Create filename: NIS_Nama_Siswa.png
+                        $nis = $card['nis'];
+                        $name = preg_replace('/[^A-Za-z0-9_\-]/', '_', $card['name']);
+                        $name = substr($name, 0, 40); // Limit name length
+                        $fileName = "{$nis}_{$name}.png";
+
+                        // Add directly to ZIP with class folder path
+                        $zip->addFromString($classFolderName . '/' . $fileName, $imageData);
+
+                    } catch (\Exception $e) {
+                        Log::error("Error processing card for student ID {$card['id']}: " . $e->getMessage());
+                        continue;
                     }
                 }
-                // Delete directory
-                @rmdir($tempDir);
             }
+
+            $zip->close();
+
+            // Clean up batch files
+            $files = glob($sessionDir . '/*');
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
+            }
+            @rmdir($sessionDir);
+
+            $zipSize = filesize($zipFilePath);
+            Log::info("ZIP file created: {$zipFilePath}, size: {$zipSize} bytes");
+
+            // Return ZIP file as download
+            return response()->download($zipFilePath, $zipFileName, [
+                'Content-Type' => 'application/zip',
+            ])->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::error('Finalize batch error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat file ZIP: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

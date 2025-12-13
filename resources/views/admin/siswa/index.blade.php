@@ -725,6 +725,7 @@ async function fetchStudentCanvasData(studentId) {
             nama: data.nama_lengkap || data.nama || 'Tidak ada nama',
             nisn: data.nisn || '-',
             nis: data.nis || '-',
+            kelas: data.kelas || '-',
             ttl: `${data.tempat_lahir || ''}, ${data.tanggal_lahir || ''}`.trim(),
             fotoUrl: data.foto_url || null, // Set to null if no photo
             logoUrl: '/assets/image/LogoSMP3SAWAN.webp' // Path logo sekolah yang benar
@@ -1122,6 +1123,8 @@ async function downloadBulkIdCards(selectedStudentIds) {
                     id: studentData.id,
                     name: studentData.nama,
                     nisn: studentData.nisn,
+                    nis: studentData.nis,
+                    kelas: studentData.kelas,
                     base64: base64
                 });
 
@@ -1145,33 +1148,108 @@ async function downloadBulkIdCards(selectedStudentIds) {
         overlay.querySelector('h5').textContent = 'Mengunduh File ZIP...';
         overlay.querySelector('p').textContent = 'Sedang membuat file ZIP...';
 
-        // Send to server
-        const response = await fetch('{{ route("admin.siswa.download_bulk_idcard") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                cards: results
-            })
-        });
+        // Batch processing configuration
+        const BATCH_SIZE = 10; // Send 10 cards per batch
+        const totalBatches = Math.ceil(results.length / BATCH_SIZE);
+        const sessionId = Date.now().toString();
 
-        if (!response.ok) {
-            throw new Error('Gagal membuat file ZIP');
+        // If total cards <= 20, send directly without batching
+        if (results.length <= 20) {
+            // Direct download without batching
+            const response = await fetch('{{ route("admin.siswa.download_bulk_idcard") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    cards: results
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal membuat file ZIP');
+            }
+
+            // Download the ZIP file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Kartu_Identitas_Siswa_${new Date().getTime()}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+        } else {
+            // Batch processing for large datasets
+            overlay.querySelector('p').textContent = `Mengunggah batch 0/${totalBatches}...`;
+
+            // Upload batches
+            for (let i = 0; i < totalBatches; i++) {
+                const batchNumber = i + 1;
+                const start = i * BATCH_SIZE;
+                const end = Math.min(start + BATCH_SIZE, results.length);
+                const batchCards = results.slice(start, end);
+
+                overlay.querySelector('p').textContent = `Mengunggah batch ${batchNumber}/${totalBatches}...`;
+
+                const batchResponse = await fetch('{{ route("admin.siswa.upload_batch_idcard") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        batch_number: batchNumber,
+                        total_batches: totalBatches,
+                        cards: batchCards
+                    })
+                });
+
+                if (!batchResponse.ok) {
+                    throw new Error(`Gagal upload batch ${batchNumber}`);
+                }
+
+                // Small delay between batches
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            // Finalize and create ZIP
+            overlay.querySelector('p').textContent = 'Membuat file ZIP...';
+
+            const finalResponse = await fetch('{{ route("admin.siswa.finalize_batch_download") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    total_batches: totalBatches
+                })
+            });
+
+            if (!finalResponse.ok) {
+                throw new Error('Gagal membuat file ZIP');
+            }
+
+            // Download the ZIP file
+            const blob = await finalResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Kartu_Identitas_Siswa_${new Date().getTime()}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
-
-        // Download the ZIP file
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Kartu_Identitas_Siswa_${new Date().getTime()}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
 
         // Remove overlay
         document.body.removeChild(overlay);

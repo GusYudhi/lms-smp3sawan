@@ -82,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/siswa/search', [App\Http\Controllers\Admin\SiswaController::class, 'search'])->name('admin.siswa.search');
         Route::get('/siswa/export', [App\Http\Controllers\Admin\SiswaController::class, 'export'])->name('admin.siswa.export');
         Route::post('/siswa/download-bulk-idcard', [App\Http\Controllers\Admin\SiswaController::class, 'downloadBulkIdCardZip'])->name('admin.siswa.download_bulk_idcard');
+        Route::post('/siswa/upload-batch-idcard', [App\Http\Controllers\Admin\SiswaController::class, 'uploadBatchIdCards'])->name('admin.siswa.upload_batch_idcard');
+        Route::post('/siswa/finalize-batch-download', [App\Http\Controllers\Admin\SiswaController::class, 'finalizeBatchDownload'])->name('admin.siswa.finalize_batch_download');
         Route::get('/siswa/template', [App\Http\Controllers\Admin\SiswaController::class, 'downloadTemplate'])->name('admin.siswa.template');
         Route::post('/siswa/import', [App\Http\Controllers\Admin\SiswaController::class, 'import'])->name('admin.siswa.import');
         Route::post('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'store'])->name('admin.siswa.store');
