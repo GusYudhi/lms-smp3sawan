@@ -122,7 +122,7 @@
                                 <small class="text-subtle fw-medium text-uppercase">Website</small>
                                 <div class="mt-1">
                                     @if($schoolData['website'] ?? null)
-                                        <a href="https://{{ $schoolData['website'] }}" target="_blank"
+                                        <a href="{{ $schoolData['website'] }}" target="_blank"
                                            class="text-decoration-none text-primary fw-medium">
                                             {{ $schoolData['website'] }}
                                             <i class="fas fa-external-link-alt ms-1 fs-6"></i>
@@ -242,9 +242,9 @@
                                 <div>
                                     <small class="text-subtle fw-medium text-uppercase">Email</small>
                                     <div class="text-high-contrast fw-medium">
-                                        <a href="mailto:{{ $schoolData['email'] ?? 'info@smp3sawan.sch.id' }}"
+                                        <a href="mailto:{{ $schoolData['email'] ?? 'admin@smp3sawan.sch.id' }}"
                                            class="text-decoration-none text-high-contrast">
-                                            {{ $schoolData['email'] ?? 'info@smp3sawan.sch.id' }}
+                                            {{ $schoolData['email'] ?? 'admin@smp3sawan.sch.id' }}
                                         </a>
                                     </div>
                                 </div>
