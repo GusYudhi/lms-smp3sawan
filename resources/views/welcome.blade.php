@@ -300,6 +300,7 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <p class="mb-0">&copy; {{ date('Y') }} {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</p>
+                    <p class="mb-0 small">Asistensi Mengajar Undiksha 2025</p>
                     <p class="mb-0 small">Semua hak cipta dilindungi.</p>
                 </div>
             </div>
