@@ -177,7 +177,7 @@
                                     <i class="fas fa-envelope"></i>
                                     <div>
                                         <strong>Email:</strong><br>
-                                        {{ $schoolData['email'] ?? 'info@smpn3sawan.sch.id' }}
+                                        {{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}
                                     </div>
                                 </div>
                                 @if(isset($schoolData['website']) && !empty($schoolData['website']))
@@ -185,7 +185,11 @@
                                     <i class="fas fa-globe"></i>
                                     <div>
                                         <strong>Website:</strong><br>
-                                        {{ $schoolData['website'] }}
+                                            <a href="{{ $schoolData['website'] }}" target="_blank"
+                                            class="text-decoration-none text-primary fw-medium">
+                                                {{ $schoolData['website'] }}
+                                                <i class="fas fa-external-link-alt ms-1 fs-6"></i>
+                                            </a>
                                     </div>
                                 </div>
                                 @endif
