@@ -22,7 +22,7 @@
                 <td class="text-center">
                     <div class="student-photo mx-auto rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
                         @if($student->studentProfile && $student->studentProfile->foto_profil)
-                            <img src="{{ asset('storage/' . $student->studentProfile->foto_profil) }}"
+                            <img src="{{ asset('storage/profile_photos/' . $student->studentProfile->foto_profil) }}"
                                  alt="Foto {{ $student->name }}"
                                  class="rounded-circle">
                         @else
