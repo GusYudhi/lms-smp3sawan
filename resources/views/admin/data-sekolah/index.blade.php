@@ -122,7 +122,7 @@
                                 <small class="text-subtle fw-medium text-uppercase">Website</small>
                                 <div class="mt-1">
                                     @if($schoolData['website'] ?? null)
-                                        <a href="http://{{ $schoolData['website'] }}" target="_blank"
+                                        <a href="https://{{ $schoolData['website'] }}" target="_blank"
                                            class="text-decoration-none text-primary fw-medium">
                                             {{ $schoolData['website'] }}
                                             <i class="fas fa-external-link-alt ms-1 fs-6"></i>
