@@ -55,7 +55,6 @@
                     <input type="file" id="profile-photo-input" accept="image/*" class="d-none" onchange="previewPhotoQuick(this)">
                     <p class="text-subtle small mb-0">Klik ikon kamera untuk mengubah foto</p>
                     <small class="text-muted">Format: JPG, PNG, WebP, HEIC (Maks. 5MB)<br>
-                    <strong>Catatan:</strong> Foto akan otomatis dikompress ke format WebP dan langsung tersimpan setelah dipilih. File HEIC dari iPhone otomatis dikonversi.</small>
                 </div>
             </div>
 
