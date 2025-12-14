@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Semester;
 use App\Models\TahunPelajaran;
@@ -9,29 +10,21 @@ use App\Models\MataPelajaran;
 use App\Models\JamPelajaran;
 use App\Models\FixedSchedule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SemesterController extends Controller
 {
-    /**
-     * Display a listing of semesters for a specific tahun pelajaran
-     */
-    public function index($tahunPelajaranId)
-    {
-        $tahunPelajaran = TahunPelajaran::with('semester')->findOrFail($tahunPelajaranId);
-        $semesters = $tahunPelajaran->semester()->orderBy('semester_ke')->get();
-
-        return view('admin.semester.index', compact('tahunPelajaran', 'semesters'));
-    }
-
     /**
      * Show the form for creating a new semester
      */
     public function create(Request $request)
     {
         $tahunPelajaranId = $request->input('tahun_pelajaran_id');
-        $tahunPelajaran = TahunPelajaran::findOrFail($tahunPelajaranId);
-
+        if (!$tahunPelajaranId) {
+            // fallback: ambil tahun pelajaran aktif
+            $tahunPelajaran = TahunPelajaran::where('is_active', 1)->first();
+        } else {
+            $tahunPelajaran = TahunPelajaran::findOrFail($tahunPelajaranId);
+        }
         return view('admin.semester.create', compact('tahunPelajaran'));
     }
 
@@ -60,7 +53,61 @@ class SemesterController extends Controller
             $semester->setActive();
         }
 
-        return redirect()->route('admin.semester.index', $request->tahun_pelajaran_id)
+        // Jika semester ke-2 dan permintaan salin data dari semester 1
+        if ($request->input('copy_from_semester_1') == '1' && $semester->semester_ke == 2) {
+            // Cari semester 1 di tahun pelajaran yang sama
+            $sourceSemester = Semester::where('tahun_pelajaran_id', $semester->tahun_pelajaran_id)
+                ->where('semester_ke', 1)
+                ->first();
+            if ($sourceSemester) {
+                // Cek apakah semester 1 punya data
+                $sourceHasData = \App\Models\MataPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
+                                 \App\Models\JamPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
+                                 \App\Models\FixedSchedule::where('semester_id', $sourceSemester->id)->exists();
+                if ($sourceHasData) {
+                    DB::transaction(function () use ($sourceSemester, $semester) {
+                        // Copy Mata Pelajaran
+                        $mataPelajarans = \App\Models\MataPelajaran::where('semester_id', $sourceSemester->id)->get();
+                        foreach ($mataPelajarans as $mapel) {
+                            \App\Models\MataPelajaran::create([
+                                'nama_mapel' => $mapel->nama_mapel,
+                                'kode_mapel' => $mapel->kode_mapel,
+                                'semester_id' => $semester->id,
+                            ]);
+                        }
+                        // Copy Jam Pelajaran
+                        $jamPelajarans = \App\Models\JamPelajaran::where('semester_id', $sourceSemester->id)->get();
+                        foreach ($jamPelajarans as $jam) {
+                            \App\Models\JamPelajaran::create([
+                                'jam_ke' => $jam->jam_ke,
+                                'jam_mulai' => $jam->jam_mulai,
+                                'jam_selesai' => $jam->jam_selesai,
+                                'semester_id' => $semester->id,
+                            ]);
+                        }
+                        // Copy Fixed Schedules
+                        $fixedSchedules = \App\Models\FixedSchedule::where('semester_id', $sourceSemester->id)->get();
+                        foreach ($fixedSchedules as $schedule) {
+                            \App\Models\FixedSchedule::create([
+                                'hari' => $schedule->hari,
+                                'jam_ke' => $schedule->jam_ke,
+                                'keterangan' => $schedule->keterangan,
+                                'semester_id' => $semester->id,
+                            ]);
+                        }
+                    });
+                    $msg = 'Semester berhasil ditambahkan dan data berhasil disalin dari Semester 1!';
+                } else {
+                    $msg = 'Semester berhasil ditambahkan, namun Semester 1 belum memiliki data untuk disalin!';
+                }
+            } else {
+                $msg = 'Semester berhasil ditambahkan, namun Semester 1 tidak ditemukan!';
+            }
+            return redirect()->route('admin.tahun-pelajaran.dashboard', $request->tahun_pelajaran_id)
+                ->with('success', $msg);
+        }
+
+        return redirect()->route('admin.tahun-pelajaran.dashboard', $request->tahun_pelajaran_id)
             ->with('success', 'Semester berhasil ditambahkan!');
     }
 
@@ -110,7 +157,7 @@ class SemesterController extends Controller
             'nama', 'semester_ke', 'tanggal_mulai', 'tanggal_selesai', 'keterangan'
         ]));
 
-        return redirect()->route('admin.semester.index', $semester->tahun_pelajaran_id)
+        return redirect()->route('admin.tahun-pelajaran.dashboard', $semester->tahun_pelajaran_id)
             ->with('success', 'Semester berhasil diperbarui!');
     }
 
@@ -142,7 +189,7 @@ class SemesterController extends Controller
         $tahunPelajaranId = $semester->tahun_pelajaran_id;
         $semester->delete();
 
-        return redirect()->route('admin.semester.index', $tahunPelajaranId)
+        return redirect()->route('admin.tahun-pelajaran.dashboard', $tahunPelajaranId)
             ->with('success', 'Semester "' . $nama . '" berhasil dihapus!');
     }
 

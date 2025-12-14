@@ -28,7 +28,7 @@
                             <p class="text-muted mb-0">Tambahkan semester baru untuk tahun pelajaran {{ $tahunPelajaran->nama }}</p>
                         </div>
                         <div>
-                            <a href="{{ route('admin.semester.index', ['tahun_pelajaran_id' => $tahunPelajaran->id]) }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.tahun-pelajaran.dashboard', $tahunPelajaran->id) }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Kembali
                             </a>
                         </div>
@@ -154,17 +154,73 @@
 
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between pt-3 border-top">
-                            <a href="{{ route('admin.semester.index', ['tahun_pelajaran_id' => $tahunPelajaran->id]) }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.tahun-pelajaran.dashboard', $tahunPelajaran->id) }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>Batal
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Simpan Semester
                             </button>
                         </div>
+                                                    <!-- Salin Data dari Semester 1 (hanya untuk Semester 2) -->
+                                                    <div class="mt-4" id="copy-semester-1-section" style="display:none;">
+                                                            <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#copySemester1Modal">
+                                                                    <i class="fas fa-copy me-2"></i>Salin Data dari Semester 1
+                                                            </button>
+                                                    </div>
+<!-- Modal Konfirmasi Salin Data (pindah ke luar card/form) -->
+<div class="modal fade" id="copySemester1Modal" tabindex="-1" aria-labelledby="copySemester1ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="copySemester1ModalLabel">Konfirmasi Salin Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda ingin menyalin <b>Data Mata Pelajaran, Jam Pelajaran, Jadwal Pelajaran, dan Jadwal Tetap</b> dari Semester 1 (Ganjil)?<br>
+                <small class="text-muted">Fitur ini hanya dapat digunakan jika semester 1 sudah memiliki data.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" id="confirmCopySemester1Btn">Salin Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+    @push('scripts')
+    <script>
+    // Tampilkan tombol salin data jika semester_ke = 2
+    document.addEventListener('DOMContentLoaded', function() {
+        var semesterSelect = document.getElementById('semester_ke');
+        var copySection = document.getElementById('copy-semester-1-section');
+        function toggleCopySection() {
+            if (semesterSelect.value == '2') {
+                copySection.style.display = '';
+            } else {
+                copySection.style.display = 'none';
+            }
+        }
+        semesterSelect.addEventListener('change', toggleCopySection);
+        toggleCopySection();
+
+        // Tombol konfirmasi salin data
+        document.getElementById('confirmCopySemester1Btn').addEventListener('click', function() {
+            // Submit form dengan tambahan input hidden
+            var form = semesterSelect.closest('form');
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'copy_from_semester_1';
+            input.value = '1';
+            form.appendChild(input);
+            form.submit();
+        });
+    });
+    </script>
+    @endpush
 @endsection
