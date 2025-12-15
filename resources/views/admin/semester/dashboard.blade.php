@@ -76,9 +76,9 @@
     @endif
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row">
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-start border-primary border-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -86,14 +86,14 @@
                             <h3 class="mb-0 fw-bold text-primary">{{ $statistics['total_mata_pelajaran'] ?? 0 }}</h3>
                         </div>
                         <div class="text-primary">
-                            <i class="fas fa-book fa-2x opacity-50"></i>
+                            <i class="fas fa-book fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-start border-warning border-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -101,14 +101,14 @@
                             <h3 class="mb-0 fw-bold text-warning">{{ $statistics['total_jam_pelajaran'] ?? 0 }}</h3>
                         </div>
                         <div class="text-warning">
-                            <i class="fas fa-clock fa-2x opacity-50"></i>
+                            <i class="fas fa-clock fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-start border-info border-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -116,7 +116,7 @@
                             <h3 class="mb-0 fw-bold text-info">{{ $statistics['total_fixed_schedule'] ?? 0 }}</h3>
                         </div>
                         <div class="text-info">
-                            <i class="fas fa-calendar-check fa-2x opacity-50"></i>
+                            <i class="fas fa-calendar-check fa-2x"></i>
                         </div>
                     </div>
                 </div>
@@ -137,16 +137,23 @@
                     <div class="row">
                         <div class="col-md-6 mb-2">
                             @if(!$semester->is_active)
-                            <form action="{{ route('admin.semester.set-active', $semester->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="fas fa-check-circle me-2"></i>Aktifkan Semester Ini
-                                </button>
-                            </form>
+                                @if($semester->semester_ke == 2)
+                                    <!-- Tombol membuka modal konfirmasi saat mengaktifkan Semester 2 -->
+                                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#activateSemesterModal">
+                                        <i class="fas fa-check-circle me-2"></i>Aktifkan Semester Ini
+                                    </button>
+                                @else
+                                    <form action="{{ route('admin.semester.set-active', $semester->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-check-circle me-2"></i>Aktifkan Semester Ini
+                                        </button>
+                                    </form>
+                                @endif
                             @else
-                            <button type="button" class="btn btn-success w-100" disabled>
-                                <i class="fas fa-check-circle me-2"></i>Semester Sedang Aktif
-                            </button>
+                                <button type="button" class="btn btn-success w-100" disabled>
+                                    <i class="fas fa-check-circle me-2"></i>Semester Sedang Aktif
+                                </button>
                             @endif
                         </div>
                         <div class="col-md-6 mb-2">
@@ -174,33 +181,53 @@
                 <div class="card shadow-sm border-warning">
                     <div class="card-header bg-warning text-dark">
                         <h6 class="mb-0 fw-semibold">
-                            <i class="fas fa-download me-2"></i>Import Data dari Semester Ganjil
+                            <i class="fas fa-download me-2"></i>Salin Data dari Semester Ganjil
                         </h6>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info alert-permanent mb-3">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Semester Genap belum memiliki data.</strong>
-                            <p class="mb-0 mt-2">Anda dapat mengimport data dari Semester Ganjil (Semester 1) di tahun pelajaran yang sama. Data yang akan di-copy meliputi:</p>
+                            <p class="mb-0 mt-2">Anda dapat menyalin data dari Semester Ganjil (Semester 1) di tahun pelajaran yang sama. Data yang akan disalin meliputi:</p>
                             <ul class="mb-0 mt-2">
                                 <li>Mata Pelajaran</li>
                                 <li>Jam Pelajaran</li>
                                 <li>Jadwal Tetap</li>
                             </ul>
                         </div>
-                        <form action="{{ route('admin.semester.import-from-semester-1', $semester->id) }}" method="POST"
-                              onsubmit="return confirm('Apakah Anda yakin ingin import data dari Semester Ganjil? Data akan di-copy ke Semester Genap ini.')">
-                            @csrf
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-download me-2"></i>Import Data dari Semester Ganjil
-                            </button>
-                        </form>
+                        <!-- Button opens modal to confirm import from Semester 1 -->
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#importFromSemesterModal">
+                            <i class="fas fa-download me-2"></i>Salin Data dari Semester Ganjil
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         @endif
     @endif
+
+    <!-- Modal Salin Data dari Semester Ganjil -->
+    <div class="modal fade" id="importFromSemesterModal" tabindex="-1" aria-labelledby="importFromSemesterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importFromSemesterModalLabel">Salin Data dari Semester Ganjil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin menyalin <strong>Mata Pelajaran, Jam Pelajaran, dan Jadwal Tetap</strong> dari Semester Ganjil ke Semester Genap ini? Proses ini akan menyalin data ke semester saat ini.
+                    <div class="mt-2 text-muted small">Jika Semester Ganjil belum memiliki data, proses akan dibatalkan dan Anda akan diberi tahu.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <form action="{{ route('admin.semester.import-from-semester-1', $semester->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">Ya, Salin Data</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Management Cards -->
     <div class="row">
@@ -268,6 +295,39 @@
             </div>
         </div>
     </div>
+
+<!-- Modal Aktifkan Semester (opsi salin data untuk Semester 2) -->
+<div class="modal fade" id="activateSemesterModal" tabindex="-1" aria-labelledby="activateSemesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activateSemesterModalLabel">Aktifkan Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Anda akan mengaktifkan <strong>{{ $semester->full_name }}</strong> (Semester Genap). Apakah Anda ingin menyalin data dari Semester Ganjil sebelum mengaktifkan?
+                <ul class="mt-2 mb-0">
+                    <li>Mata Pelajaran</li>
+                    <li>Jam Pelajaran</li>
+                    <li>Jadwal Tetap</li>
+                </ul>
+                <div class="mt-2 text-muted small">Jika Semester Ganjil belum memiliki data, proses salin akan gagal dan Anda akan diberitahu.</div>
+            </div>
+            <div class="modal-footer">
+                <form action="{{ route('admin.semester.set-active', $semester->id) }}" method="POST" class="me-2">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary">Aktifkan Tanpa Salin</button>
+                </form>
+
+                <form action="{{ route('admin.semester.set-active', $semester->id) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="copy_from_semester_1" value="1">
+                    <button type="submit" class="btn btn-warning">Aktifkan &amp; Salin Data</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Semester Info -->
     @if($semester->keterangan)

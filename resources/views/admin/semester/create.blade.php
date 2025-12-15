@@ -161,13 +161,21 @@
                                 <i class="fas fa-save me-2"></i>Simpan Semester
                             </button>
                         </div>
-                                                    <!-- Salin Data dari Semester 1 (hanya untuk Semester 2) -->
-                                                    <div class="mt-4" id="copy-semester-1-section" style="display:none;">
-                                                            <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#copySemester1Modal">
-                                                                    <i class="fas fa-copy me-2"></i>Salin Data dari Semester 1
-                                                            </button>
-                                                    </div>
-<!-- Modal Konfirmasi Salin Data (pindah ke luar card/form) -->
+                        <!-- Salin Data dari Semester 1 (hanya untuk Semester 2) -->
+                        <div class="mt-4" id="copy-semester-1-section" style="display:none;">
+                                <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#copySemester1Modal">
+                                        <i class="fas fa-copy me-2"></i>Salin Data dari Semester 1
+                                </button>
+                        </div>
+                        <!-- (modal dipindahkan ke bawah agar tidak berada di dalam form/card) -->
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Salin Data (ditempatkan di luar form/card, sesuai pattern jam-pelajaran) -->
 <div class="modal fade" id="copySemester1Modal" tabindex="-1" aria-labelledby="copySemester1ModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -186,19 +194,16 @@
         </div>
     </div>
 </div>
-@endsection
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-    @push('scripts')
+
+@push('scripts')
     <script>
     // Tampilkan tombol salin data jika semester_ke = 2
     document.addEventListener('DOMContentLoaded', function() {
         var semesterSelect = document.getElementById('semester_ke');
         var copySection = document.getElementById('copy-semester-1-section');
+        var confirmBtn = document.getElementById('confirmCopySemester1Btn');
+        if (!semesterSelect || !copySection) return;
+
         function toggleCopySection() {
             if (semesterSelect.value == '2') {
                 copySection.style.display = '';
@@ -210,16 +215,18 @@
         toggleCopySection();
 
         // Tombol konfirmasi salin data
-        document.getElementById('confirmCopySemester1Btn').addEventListener('click', function() {
-            // Submit form dengan tambahan input hidden
-            var form = semesterSelect.closest('form');
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'copy_from_semester_1';
-            input.value = '1';
-            form.appendChild(input);
-            form.submit();
-        });
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                var form = semesterSelect.closest('form');
+                if (!form) return;
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'copy_from_semester_1';
+                input.value = '1';
+                form.appendChild(input);
+                form.submit();
+            });
+        }
     });
     </script>
     @endpush

@@ -164,9 +164,66 @@ class SemesterController extends Controller
     /**
      * Set semester as active
      */
-    public function setActive($id)
+    public function setActive(Request $request, $id)
     {
         $semester = Semester::findOrFail($id);
+
+        // Jika diminta untuk menyalin dari semester 1 sebelum mengaktifkan
+        if ($request->boolean('copy_from_semester_1') && $semester->semester_ke == 2) {
+            // Cek jika semester target sudah punya data
+            $hasData = MataPelajaran::where('semester_id', $semester->id)->exists() ||
+                       JamPelajaran::where('semester_id', $semester->id)->exists() ||
+                       FixedSchedule::where('semester_id', $semester->id)->exists();
+
+            if ($hasData) {
+                return redirect()->back()
+                    ->with('error', 'Semester ini sudah memiliki data. Hapus data terlebih dahulu jika ingin import ulang!');
+            }
+
+            // Cari Semester 1 di tahun pelajaran yang sama
+            $sourceSemester = Semester::where('tahun_pelajaran_id', $semester->tahun_pelajaran_id)
+                ->where('semester_ke', 1)
+                ->first();
+
+            if (!$sourceSemester) {
+                return redirect()->back()
+                    ->with('error', 'Semester Ganjil tidak ditemukan! Data tidak bisa disalin.');
+            }
+
+            // Copy data dalam transaksi
+            DB::transaction(function () use ($sourceSemester, $semester) {
+                $mataPelajarans = MataPelajaran::where('semester_id', $sourceSemester->id)->get();
+                foreach ($mataPelajarans as $mapel) {
+                    MataPelajaran::create([
+                        'nama_mapel' => $mapel->nama_mapel,
+                        'kode_mapel' => $mapel->kode_mapel,
+                        'semester_id' => $semester->id,
+                    ]);
+                }
+
+                $jamPelajarans = JamPelajaran::where('semester_id', $sourceSemester->id)->get();
+                foreach ($jamPelajarans as $jam) {
+                    JamPelajaran::create([
+                        'jam_ke' => $jam->jam_ke,
+                        'jam_mulai' => $jam->jam_mulai,
+                        'jam_selesai' => $jam->jam_selesai,
+                        'semester_id' => $semester->id,
+                    ]);
+                }
+
+                $fixedSchedules = FixedSchedule::where('semester_id', $sourceSemester->id)->get();
+                foreach ($fixedSchedules as $schedule) {
+                    FixedSchedule::create([
+                        'hari' => $schedule->hari,
+                        'jam_ke' => $schedule->jam_ke,
+                        'keterangan' => $schedule->keterangan,
+                        'semester_id' => $semester->id,
+                    ]);
+                }
+            });
+        }
+
+        // Aktifkan semester
         $semester->setActive();
 
         return redirect()->back()

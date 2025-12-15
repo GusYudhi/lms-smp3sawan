@@ -178,15 +178,6 @@
                                             <i class="fas fa-th-large me-1"></i>Dashboard
                                         </a>
 
-                                        @if(!$semester->is_active)
-                                        <form action="{{ route('admin.semester.set-active', $semester->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-success">
-                                                <i class="fas fa-check-circle me-1"></i>Aktifkan
-                                            </button>
-                                        </form>
-                                        @endif
-
                                         <a href="{{ route('admin.semester.edit', $semester->id) }}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -215,6 +206,26 @@
     @csrf
     @method('DELETE')
 </form>
+
+<!-- Modal Konfirmasi Salin Data (ditempatkan di luar form/card, sesuai pattern jam-pelajaran) -->
+<div class="modal fade" id="copySemester1Modal" tabindex="-1" aria-labelledby="copySemester1ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="copySemester1ModalLabel">Konfirmasi Salin Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda ingin menyalin <b>Data Mata Pelajaran, Jam Pelajaran, Jadwal Pelajaran, dan Jadwal Tetap</b> dari Semester 1 (Ganjil)?<br>
+                <small class="text-muted">Fitur ini hanya dapat digunakan jika semester 1 sudah memiliki data.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tidak</button>
+                <button type="submit" class="btn btn-warning" id="confirmCopySemester1Btn">Salin Data</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
