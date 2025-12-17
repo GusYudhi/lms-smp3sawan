@@ -14,10 +14,8 @@ use App\Models\Semester;
 
 class JadwalPelajaranController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, $semesterId)
     {
-        $semesterId = $request->input('semester_id');
-
         if ($semesterId) {
             $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
             $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
@@ -34,7 +32,7 @@ class JadwalPelajaranController extends Controller
         return view('admin.jadwal-mapel.jadwal', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester'));
     }
 
-    public function getByKelas($kelasId)
+    public function getByKelas($semesterId, $kelasId)
     {
         // Get current active semester from session or request
         $semesterId = session('semester_id') ?? request('semester_id');
@@ -215,7 +213,7 @@ class JadwalPelajaranController extends Controller
         return response()->json(['message' => 'Jadwal berhasil diperbarui']);
     }
 
-    public function destroy($id)
+    public function destroy($idSemester, $id)
     {
         JadwalPelajaran::findOrFail($id)->delete();
         return response()->json(['message' => 'Jadwal berhasil dihapus']);

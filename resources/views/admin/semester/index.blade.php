@@ -97,7 +97,7 @@
 
                     <!-- Actions -->
                     <div class="d-grid gap-2">
-                        <a href="{{ route('admin.semester.dashboard', $semester->id) }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                         </a>
 

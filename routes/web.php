@@ -38,6 +38,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin routes
     Route::prefix('admin')->middleware('role:admin')->group(function () {
+        Route::get('/', function() {
+            return redirect()->route('admin.dashboard');
+        });
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/guru', [App\Http\Controllers\Admin\AdminController::class, 'manageGuru'])->name('admin.guru.index');
         Route::get('/guru/create', [App\Http\Controllers\Admin\AdminController::class, 'createGuru'])->name('admin.guru.create');
@@ -67,15 +70,24 @@ Route::middleware(['auth'])->group(function () {
 
         // Semester routes
         Route::get('/tahun-pelajaran/{tahunPelajaranId}/semester', [App\Http\Controllers\Admin\SemesterController::class, 'index'])->name('admin.semester.index');
-        Route::get('/semester/create', [App\Http\Controllers\Admin\SemesterController::class, 'create'])->name('admin.semester.create');
-        Route::post('/semester', [App\Http\Controllers\Admin\SemesterController::class, 'store'])->name('admin.semester.store');
-        Route::get('/semester/{id}/dashboard', [App\Http\Controllers\Admin\SemesterController::class, 'dashboard'])->name('admin.semester.dashboard');
-        Route::get('/semester/{id}/edit', [App\Http\Controllers\Admin\SemesterController::class, 'edit'])->name('admin.semester.edit');
-        Route::put('/semester/{id}', [App\Http\Controllers\Admin\SemesterController::class, 'update'])->name('admin.semester.update');
-        Route::post('/semester/{id}/set-active', [App\Http\Controllers\Admin\SemesterController::class, 'setActive'])->name('admin.semester.set-active');
-        Route::post('/semester/{id}/import-from-semester-1', [App\Http\Controllers\Admin\SemesterController::class, 'importFromSemester1'])->name('admin.semester.import-from-semester-1');
-        Route::delete('/semester/{id}', [App\Http\Controllers\Admin\SemesterController::class, 'destroy'])->name('admin.semester.destroy');
-
+        Route::group(['prefix' => '/semester'], function () {
+            Route::get('/create', [App\Http\Controllers\Admin\SemesterController::class, 'create'])->name('admin.semester.create');
+            Route::post('', [App\Http\Controllers\Admin\SemesterController::class, 'store'])->name('admin.semester.store');
+            Route::get('/{semester_id}/dashboard', [App\Http\Controllers\Admin\SemesterController::class, 'dashboard'])->name('admin.semester.dashboard');
+            Route::get('/{semester_id}/edit', [App\Http\Controllers\Admin\SemesterController::class, 'edit'])->name('admin.semester.edit');
+            Route::put('/{semester_id}', [App\Http\Controllers\Admin\SemesterController::class, 'update'])->name('admin.semester.update');
+            Route::post('/{semester_id}/set-active', [App\Http\Controllers\Admin\SemesterController::class, 'setActive'])->name('admin.semester.set-active');
+            Route::post('/{semester_id}/import-from-semester-1', [App\Http\Controllers\Admin\SemesterController::class, 'importFromSemester1'])->name('admin.semester.import-from-semester-1');
+            Route::delete('/{semester_id}', [App\Http\Controllers\Admin\SemesterController::class, 'destroy'])->name('admin.semester.destroy');
+            // Jadwal Pelajaran routes
+            Route::resource('/{semester_id}/jadwal-mapel', App\Http\Controllers\Admin\JadwalPelajaranController::class)->names([
+                'index' => 'admin.jadwal.index',
+                'store' => 'admin.jadwal.store',
+                'update' => 'admin.jadwal.update',
+                'destroy' => 'admin.jadwal.destroy',
+            ])->except(['create', 'edit', 'show']);
+            Route::get('/{semester_id}/jadwal-mapel/get-by-kelas/{kelasId}', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'getByKelas'])->name('admin.jadwal.get-by-kelas');
+        });
         // Siswa management routes
         Route::get('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'index'])->name('admin.siswa.index');
         Route::get('/siswa/create', [App\Http\Controllers\Admin\SiswaController::class, 'create'])->name('admin.siswa.create');
@@ -92,14 +104,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'update'])->name('admin.siswa.update');
         Route::delete('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'destroy'])->name('admin.siswa.destroy');
 
-        // Jadwal Pelajaran routes
-        Route::get('jadwal-mapel/get-by-kelas/{kelasId}', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'getByKelas'])->name('admin.jadwal.get-by-kelas');
-        Route::resource('jadwal-mapel', App\Http\Controllers\Admin\JadwalPelajaranController::class)->names([
-            'index' => 'admin.jadwal.index',
-            'store' => 'admin.jadwal.store',
-            'update' => 'admin.jadwal.update',
-            'destroy' => 'admin.jadwal.destroy',
-        ])->except(['create', 'edit', 'show']);
+
 
         // Mata Pelajaran routes
         Route::resource('mata-pelajaran', App\Http\Controllers\Admin\MataPelajaranController::class)->names([

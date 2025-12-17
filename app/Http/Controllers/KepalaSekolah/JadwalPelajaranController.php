@@ -51,12 +51,9 @@ class JadwalPelajaranController extends Controller
         return $days[date('w')];
     }
 
-    public function getByKelas($kelasId)
+    public function getByKelas($semesterId, $kelasId)
     {
         try {
-            // Get current active semester from session or request
-            $semesterId = session('semester_id') ?? request('semester_id');
-
             // Get Lessons - filter by semester if available
             $query = JadwalPelajaran::with(['mataPelajaran', 'guru'])
                 ->where('kelas_id', $kelasId);

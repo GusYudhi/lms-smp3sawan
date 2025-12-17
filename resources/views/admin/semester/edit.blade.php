@@ -20,7 +20,7 @@
                                         <a href="{{ route('admin.tahun-pelajaran.dashboard', $semester->tahunPelajaran->id) }}">{{ $semester->tahunPelajaran->nama }}</a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="{{ route('admin.semester.dashboard', $semester->id) }}">{{ $semester->nama }}</a>
+                                        <a href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}">{{ $semester->nama }}</a>
                                     </li>
                                     <li class="breadcrumb-item active">Edit</li>
                                 </ol>
@@ -31,7 +31,7 @@
                             <p class="text-muted mb-0">Ubah data semester {{ $semester->nama }}</p>
                         </div>
                         <div>
-                            <a href="{{ route('admin.semester.dashboard', $semester->id) }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Kembali
                             </a>
                         </div>
@@ -135,7 +135,7 @@
 
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between pt-3 border-top">
-                            <a href="{{ route('admin.semester.dashboard', $semester->id) }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>Batal
                             </a>
                             <button type="submit" class="btn btn-primary">

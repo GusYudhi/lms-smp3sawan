@@ -160,7 +160,7 @@
 
                         <!-- Dashboard Semester -->
                         <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'admin.semester.dashboard' ? 'active' : '' }}" href="{{ route('admin.semester.dashboard', $semester->id) }}">
+                            <a class="nav-link {{ Route::currentRouteName() == 'admin.semester.dashboard' ? 'active' : '' }}" href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}">
                                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard Semester
                             </a>
                         </li>

@@ -44,7 +44,7 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <a href="{{ route('admin.jadwal.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary">
                             <i class="fas fa-redo me-1"></i>Reset
                         </a>
                     </div>
@@ -233,7 +233,9 @@ $(document).ready(function() {
         // Clear existing items
         $('[id^="cell-"]').empty();
 
-        const url = `{{ url('admin/jadwal-mapel/get-by-kelas') }}/${kelasId}`;
+        let url = `{{ route('admin.jadwal.get-by-kelas', ['semester_id' => $semester->id, 'kelasId' => 'ID_KELAS']) }}`;
+        url = url.replace('ID_KELAS', kelasId);
+
         const params = @if($semester) { semester_id: {{ $semester->id }} } @else {} @endif;
 
         $.get(url, params)
@@ -349,7 +351,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         const id = $('#schedule_id').val();
-        const url = id ? `{{ url('admin/jadwal-mapel') }}/${id}` : `{{ route('admin.jadwal.store') }}`;
+        const url = id ? `{{ route('admin.jadwal.update', ['semester_id' => $semester->id, 'jadwal_mapel' => 'ID']) }}`.replace('ID', id) : `{{ route('admin.jadwal.store', ['semester_id' => $semester->id]) }}`;
         const method = id ? 'PUT' : 'POST';
 
         $.ajax({
@@ -376,7 +378,7 @@ $(document).ready(function() {
         const id = $('#schedule_id').val();
 
         $.ajax({
-            url: `{{ url('admin/jadwal-mapel') }}/${id}`,
+            url: `{{ route('admin.jadwal.destroy', ['semester_id' => $semester->id, 'jadwal_mapel' => 'ID']) }}`.replace('ID', id),
             type: 'DELETE',
             data: {
                 _token: '{{ csrf_token() }}'

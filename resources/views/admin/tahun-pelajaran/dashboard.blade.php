@@ -174,11 +174,11 @@
                                     @endif
 
                                     <div class="d-flex gap-2">
-                                        <a href="{{ route('admin.semester.dashboard', $semester->id) }}" class="btn btn-sm btn-primary">
+                                        <a href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}" class="btn btn-sm btn-primary">
                                             <i class="fas fa-th-large me-1"></i>Dashboard
                                         </a>
 
-                                        <a href="{{ route('admin.semester.edit', $semester->id) }}" class="btn btn-sm btn-warning">
+                                        <a href="{{ route('admin.semester.edit', ['semester_id' => $semester->id]) }}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>
 
