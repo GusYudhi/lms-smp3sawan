@@ -102,37 +102,7 @@
                                             </form>
                                         </td>
                                     </tr>
-
-                                    <!-- Edit Modal -->
-                                    <div class="modal fade" id="editModal{{ $mapel->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Edit Mata Pelajaran</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form action="{{ route('admin.mapel.update', $mapel->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Nama Mata Pelajaran</label>
-                                                            <input type="text" class="form-control" name="nama_mapel" value="{{ $mapel->nama_mapel }}" required>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Kode Mapel</label>
-                                                            <input type="text" class="form-control" name="kode_mapel" value="{{ $mapel->kode_mapel }}" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
+                                    @empty
                                     <tr>
                                         <td colspan="3" class="text-center py-4 text-muted">
                                             <i class="fas fa-book fs-1 mb-2 d-block"></i>
@@ -148,4 +118,6 @@
         </div>
     </div>
 </div>
+
+
 @endsection
