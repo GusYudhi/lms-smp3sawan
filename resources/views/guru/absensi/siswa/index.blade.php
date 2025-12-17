@@ -7,12 +7,12 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h1 class="h3 mb-2 text-success">
-                                <i class="fas fa-clipboard-check me-2"></i>Rek Absensi Siswa
+                            <h1 class="h3 mb-2">
+                                <i class="fas fa-clipboard-check text-primary me-2"></i>Rekapan Absensi Siswa
                             </h1>
                             <p class="text-muted mb-0">Monitoring dan rekap kehadiran siswa di kelas yang Anda ajar</p>
                         </div>

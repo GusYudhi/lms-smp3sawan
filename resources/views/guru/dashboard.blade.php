@@ -8,8 +8,8 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="bg-white rounded-3 shadow-sm p-4">
-                <h1 class="h3 mb-2 text-primary">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>Dashboard Guru
+                <h1 class="h3 mb-2">
+                    <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Dashboard Guru
                 </h1>
                 <p class="text-muted mb-0">Selamat datang, {{ auth()->user()->name }}! Kelola tugas dan kehadiran Anda dengan mudah.</p>
             </div>

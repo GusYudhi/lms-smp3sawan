@@ -12,8 +12,8 @@
             <div class="bg-white rounded-3 shadow-sm p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="h3 mb-2 text-primary">
-                            <i class="fas fa-user-check me-2"></i>Absensi Guru
+                        <h1 class="h3 mb-2">
+                            <i class="fas fa-user-check text-primary me-2"></i>Absensi Guru
                         </h1>
                         <p class="text-muted mb-0">
                             <i class="fas fa-calendar-alt me-1"></i>

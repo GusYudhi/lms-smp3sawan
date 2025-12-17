@@ -2,6 +2,17 @@
 
 @section('content')
 <div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="fas fa-book text-primary me-2"></i>Daftar Tugas Guru</h2>
+                    <p class="text-muted mb-0">Kerjakan tugas guru dengan tepat waktu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card">

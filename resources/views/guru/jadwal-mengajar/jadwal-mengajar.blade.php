@@ -10,8 +10,8 @@
             <div class="bg-white rounded-3 shadow-sm p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="h3 mb-2 text-primary">
-                            <i class="fas fa-chalkboard-teacher me-2"></i>Jadwal Mengajar
+                        <h1 class="h3 mb-2">
+                            <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Jadwal Mengajar
                         </h1>
                         <p class="text-muted mb-0">
                             Lihat jadwal mengajar seluruh kelas. Jadwal Anda ditandai dengan warna hijau.
