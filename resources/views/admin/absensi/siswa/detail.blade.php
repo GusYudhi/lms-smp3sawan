@@ -412,6 +412,7 @@
 }
 </style>
 
+<style>
 .pagination-info {
     color: #6c757d;
     font-size: 0.9rem;
