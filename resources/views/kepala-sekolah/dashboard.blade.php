@@ -20,44 +20,51 @@
     <div class="row g-4 mb-4">
         <!-- Total Guru -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card card-stats h-100">
-                <div class="card-body text-center">
-                    <div class="text-primary fs-1 mb-3">
-                        <i class="fas fa-chalkboard-teacher"></i>
+            <a href="{{ route('kepala-sekolah.guru.index') }}" class="text-decoration-none">
+                <div class="card card-stats h-100">
+                    <div class="card-body text-center">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h5 class="card-title text-muted">Total Guru</h5>
+                        <h2 class="text-primary mb-2">{{ $totalGuru }}</h2>
+                        <p class="text-muted small mb-0">Guru Aktif</p>
                     </div>
-                    <h5 class="card-title text-muted">Total Guru</h5>
-                    <h2 class="text-primary mb-2">{{ $totalGuru }}</h2>
-                    <p class="text-muted small mb-0">Guru Aktif</p>
                 </div>
-            </div>
+            </a>
+
         </div>
 
         <!-- Total Siswa -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card card-stats h-100">
-                <div class="card-body text-center">
-                    <div class="text-success fs-1 mb-3">
-                        <i class="fas fa-user-graduate"></i>
+            <a href="{{ route('kepala-sekolah.siswa.index') }}" class="text-decoration-none">
+                <div class="card card-stats h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success fs-1 mb-3">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h5 class="card-title text-muted">Total Siswa</h5>
+                        <h2 class="text-success mb-2">{{ $totalSiswa }}</h2>
+                        <p class="text-muted small mb-0">Siswa Terdaftar</p>
                     </div>
-                    <h5 class="card-title text-muted">Total Siswa</h5>
-                    <h2 class="text-success mb-2">{{ $totalSiswa }}</h2>
-                    <p class="text-muted small mb-0">Siswa Terdaftar</p>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Siswa Hadir Hari Ini -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card card-stats h-100">
-                <div class="card-body text-center">
-                    <div class="text-info fs-1 mb-3">
-                        <i class="fas fa-user-check"></i>
+            <a href="{{ route('kepala-sekolah.absensi.index') }}" class="text-decoration-none">
+                <div class="card card-stats h-100">
+                    <div class="card-body text-center">
+                        <div class="text-info fs-1 mb-3">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h5 class="card-title text-muted">Siswa Hadir</h5>
+                        <h2 class="text-info mb-2">{{ $siswaHadirHariIni }}</h2>
+                        <p class="text-muted small mb-0">Hari Ini</p>
                     </div>
-                    <h5 class="card-title text-muted">Siswa Hadir</h5>
-                    <h2 class="text-info mb-2">{{ $siswaHadirHariIni }}</h2>
-                    <p class="text-muted small mb-0">Hari Ini</p>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Siswa Tidak Hadir Hari Ini -->
