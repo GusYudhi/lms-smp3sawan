@@ -87,7 +87,10 @@ class JadwalPelajaranController extends Controller
             ->get();
 
         // Get all jam pelajaran for time reference
-        $jamPelajaranList = \App\Models\JamPelajaran::orderBy('jam_ke')->get()->keyBy('jam_ke');
+        $jamPelajaranList = \App\Models\JamPelajaran::where('semester_id', $activeSemester->id)
+            ->orderBy('jam_ke')
+            ->get()
+            ->keyBy('jam_ke');
 
         // Organize by day
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];

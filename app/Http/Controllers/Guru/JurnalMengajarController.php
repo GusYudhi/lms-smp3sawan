@@ -335,8 +335,16 @@ class JurnalMengajarController extends Controller
                     ->first();
 
                 $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
-                // Jika terlambat atau hadir di pagi, default hadir. Selain itu alpa
-                $status = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'alpa';
+
+                // Determine status based on daily attendance
+                $status = 'alpa';
+                if ($absensiHarian) {
+                    if (in_array($absensiHarian->status, ['hadir', 'terlambat'])) {
+                        $status = 'hadir';
+                    } elseif (in_array($absensiHarian->status, ['sakit', 'izin'])) {
+                        $status = $absensiHarian->status;
+                    }
+                }
 
                 JurnalAttendance::create([
                     'jurnal_mengajar_id' => $jurnal->id,

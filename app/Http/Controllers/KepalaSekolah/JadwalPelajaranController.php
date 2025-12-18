@@ -17,14 +17,20 @@ class JadwalPelajaranController extends Controller
     {
         $semesterId = $request->input('semester_id');
 
+        // If no semester_id provided, get the active semester
+        if (!$semesterId) {
+            $activeSemester = Semester::where('is_active', true)->first();
+            $semesterId = $activeSemester ? $activeSemester->id : null;
+        }
+
         if ($semesterId) {
-            $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
+            $semester = Semester::with('tahunPelajaran')->find($semesterId);
             $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
             $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
         } else {
             $semester = null;
-            $mapels = MataPelajaran::all();
-            $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
+            $mapels = collect(); // Empty collection instead of all
+            $jamPelajarans = collect(); // Empty collection instead of all
         }
 
         $kelas = Kelas::all();
@@ -51,8 +57,9 @@ class JadwalPelajaranController extends Controller
         return $days[date('w')];
     }
 
-    public function getByKelas($semesterId, $kelasId)
+    public function getByKelas($kelasId)
     {
+        $semesterId = request('semester_id');
         try {
             // Get Lessons - filter by semester if available
             $query = JadwalPelajaran::with(['mataPelajaran', 'guru'])

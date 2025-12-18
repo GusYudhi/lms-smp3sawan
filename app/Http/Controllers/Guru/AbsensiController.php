@@ -105,7 +105,15 @@ class AbsensiController extends Controller
 
         // Determine attendance status based on time
         $cutoffTime = Carbon::today()->setTime(7, 30); // 07:30 as cutoff time
-        $status = $currentTime->lte($cutoffTime) ? 'hadir' : 'terlambat';
+
+        if ($currentTime->lte($cutoffTime)) {
+            $status = 'hadir';
+            $notes = null;
+        } else {
+            // Jika terlambat, tetap dianggap hadir tapi dengan catatan
+            $status = 'hadir';
+            $notes = 'Terlambat';
+        }
 
         // Insert attendance record
         try {
@@ -114,6 +122,7 @@ class AbsensiController extends Controller
                 'date' => $today,
                 'time' => $currentTime,
                 'status' => $status,
+                'notes' => $notes,
                 'created_by' => auth()->id(),
                 'created_at' => now(),
                 'updated_at' => now()

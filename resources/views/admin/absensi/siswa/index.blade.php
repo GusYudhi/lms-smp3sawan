@@ -63,6 +63,16 @@
                         </div>
 
                         <div class="col-md-3">
+                            <label class="form-label">Cari Nama Siswa</label>
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control auto-submit" value="{{ $search ?? '' }}" placeholder="Cari nama...">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
                             <label class="form-label">Filter Kelas</label>
                             <select name="kelas_id" class="form-select auto-submit">
                                 <option value="">Semua Kelas</option>

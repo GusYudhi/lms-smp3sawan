@@ -34,8 +34,8 @@ class JadwalPelajaranController extends Controller
 
     public function getByKelas($semesterId, $kelasId)
     {
-        // Get current active semester from session or request
-        $semesterId = session('semester_id') ?? request('semester_id');
+        // Use the semesterId passed from route
+        // $semesterId = session('semester_id') ?? request('semester_id'); // This was overwriting the route param
 
         // Get Lessons - filter by semester if available
         $query = JadwalPelajaran::with(['mataPelajaran', 'guru'])
@@ -48,7 +48,7 @@ class JadwalPelajaranController extends Controller
         $jadwals = $query->get();
 
         // Get Fixed Schedules
-        $fixedSchedules = FixedSchedule::all();
+        $fixedSchedules = FixedSchedule::where('semester_id', $semesterId)->get();
 
         // Structure data: [hari][jam_ke] = item
         $data = [];

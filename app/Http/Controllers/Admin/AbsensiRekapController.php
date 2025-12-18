@@ -25,12 +25,13 @@ class AbsensiRekapController extends Controller
         $statusFilter = $request->get('status_filter'); // Filter status absensi
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $search = $request->get('search');
 
         // Set date range based on filter
         $dateRange = $this->getDateRange($filter, $startDate, $endDate);
 
         // Get rekap data
-        $rekap = $this->getRekapSiswa($dateRange['start'], $dateRange['end'], $kelasId, $statusFilter);
+        $rekap = $this->getRekapSiswa($dateRange['start'], $dateRange['end'], $kelasId, $statusFilter, $search);
 
         // Get kelas list for filter
         $kelasList = Kelas::orderBy('tingkat', 'asc')
@@ -49,7 +50,8 @@ class AbsensiRekapController extends Controller
             'startDate',
             'endDate',
             'dateRange',
-            'activeSemester'
+            'activeSemester',
+            'search'
         ));
     }
 
@@ -155,11 +157,12 @@ class AbsensiRekapController extends Controller
         $statusFilter = $request->get('status_filter'); // Filter status absensi
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $search = $request->get('search');
 
         $dateRange = $this->getDateRange($filter, $startDate, $endDate);
 
         // Get rekap data
-        $rekap = $this->getRekapGuru($dateRange['start'], $dateRange['end'], $statusFilter);
+        $rekap = $this->getRekapGuru($dateRange['start'], $dateRange['end'], $statusFilter, $search);
 
         $activeSemester = Semester::where('is_active', true)->first();
 
@@ -170,7 +173,8 @@ class AbsensiRekapController extends Controller
             'startDate',
             'endDate',
             'dateRange',
-            'activeSemester'
+            'activeSemester',
+            'search'
         ));
     }
 
@@ -338,7 +342,7 @@ class AbsensiRekapController extends Controller
         }
     }
 
-    protected function getRekapSiswa($startDate, $endDate, $kelasId = null, $statusFilter = null)
+    protected function getRekapSiswa($startDate, $endDate, $kelasId = null, $statusFilter = null, $search = null)
     {
         $query = User::where('role', 'siswa')
             ->with(['studentProfile.kelas'])
@@ -378,6 +382,10 @@ class AbsensiRekapController extends Controller
             });
         }
 
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
         // Filter by status if specified
         if ($statusFilter) {
             $query->whereHas('attendance', function($q) use ($statusFilter, $startDate, $endDate) {
@@ -389,7 +397,7 @@ class AbsensiRekapController extends Controller
         return $query->orderBy('name', 'asc')->paginate(20);
     }
 
-    protected function getRekapGuru($startDate, $endDate, $statusFilter = null)
+    protected function getRekapGuru($startDate, $endDate, $statusFilter = null, $search = null)
     {
         $query = User::whereIn('role', ['guru', 'kepala_sekolah'])
             ->with(['guruProfile'])
@@ -422,6 +430,10 @@ class AbsensiRekapController extends Controller
                 $startDate, $endDate,
                 $startDate, $endDate
             ]);
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
 
         // Filter by status if specified
         if ($statusFilter) {

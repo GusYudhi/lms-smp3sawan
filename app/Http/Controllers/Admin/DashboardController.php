@@ -23,13 +23,13 @@ class DashboardController extends Controller
         // Hitung kehadiran siswa hari ini
         $today = Carbon::today();
         $siswaHadirHariIni = Attendance::where('date', $today)
-            ->where('status', 'hadir')
+            ->whereIn('status', ['hadir', 'terlambat'])
             ->distinct('user_id')
             ->count('user_id');
 
-        // Hitung siswa tidak hadir hari ini (terlambat, alpha)
+        // Hitung siswa tidak hadir hari ini (sakit, izin, alpha)
         $siswaTidakHadirHariIni = Attendance::where('date', $today)
-            ->whereIn('status', ['terlambat', 'alpha'])
+            ->whereIn('status', ['sakit', 'izin', 'alpha'])
             ->distinct('user_id')
             ->count('user_id');
 
@@ -53,7 +53,7 @@ class DashboardController extends Controller
             if ($dayName === 'Minggu') continue;
 
             $hadirCount = Attendance::where('date', $date)
-                ->where('status', 'hadir')
+                ->whereIn('status', ['hadir', 'terlambat'])
                 ->distinct('user_id')
                 ->count('user_id');
 
@@ -79,7 +79,7 @@ class DashboardController extends Controller
         // Hitung rata-rata kehadiran bulan ini
         $startOfMonth = Carbon::now()->startOfMonth();
         $totalHadirBulanIni = Attendance::where('date', '>=', $startOfMonth)
-            ->where('status', 'hadir')
+            ->whereIn('status', ['hadir', 'terlambat'])
             ->count();
 
         $totalRecordBulanIni = Attendance::where('date', '>=', $startOfMonth)
@@ -95,7 +95,7 @@ class DashboardController extends Controller
             ->join('student_profiles', 'users.id', '=', 'student_profiles.user_id')
             ->join('kelas', 'student_profiles.kelas_id', '=', 'kelas.id')
             ->select('kelas.id', 'kelas.tingkat', 'kelas.nama_kelas')
-            ->selectRaw('COUNT(CASE WHEN attendance.status = "hadir" THEN 1 END) * 100.0 / COUNT(*) as attendance_rate')
+            ->selectRaw('COUNT(CASE WHEN attendance.status IN ("hadir", "terlambat") THEN 1 END) * 100.0 / COUNT(*) as attendance_rate')
             ->where('attendance.date', '>=', $startOfMonth)
             ->where('users.role', 'siswa')
             ->groupBy('kelas.id', 'kelas.tingkat', 'kelas.nama_kelas')

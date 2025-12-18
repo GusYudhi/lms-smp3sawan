@@ -207,6 +207,28 @@
     @method('DELETE')
 </form>
 
+<!-- Delete Semester Modal -->
+<div class="modal fade" id="deleteSemesterModal" tabindex="-1" aria-labelledby="deleteSemesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSemesterModalLabel">Hapus Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus Semester <strong id="deleteSemesterName"></strong>?</p>
+                <p class="text-danger mb-0"><small><i class="fas fa-exclamation-triangle me-1"></i> Semua data jadwal yang terkait akan ikut terhapus!</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteSemesterBtn">
+                    <i class="fas fa-trash me-1"></i>Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Konfirmasi Salin Data (ditempatkan di luar form/card, sesuai pattern jam-pelajaran) -->
 <div class="modal fade" id="copySemester1Modal" tabindex="-1" aria-labelledby="copySemester1ModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -230,12 +252,17 @@
 @push('scripts')
 <script>
 function confirmDeleteSemester(id, nama) {
-    if (confirm(`Apakah Anda yakin ingin menghapus Semester "${nama}"?\n\nSemua data jadwal yang terkait akan ikut terhapus!`)) {
-        const form = document.getElementById('deleteSemesterForm');
-        form.action = `/admin/semester/${id}`;
-        form.submit();
-    }
+    document.getElementById('deleteSemesterName').textContent = nama;
+    const form = document.getElementById('deleteSemesterForm');
+    form.action = `/admin/semester/${id}`;
+
+    const modal = new bootstrap.Modal(document.getElementById('deleteSemesterModal'));
+    modal.show();
 }
+
+document.getElementById('confirmDeleteSemesterBtn').addEventListener('click', function() {
+    document.getElementById('deleteSemesterForm').submit();
+});
 </script>
 @endpush
 @endsection

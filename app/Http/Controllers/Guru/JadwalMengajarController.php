@@ -18,17 +18,35 @@ class JadwalMengajarController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        // Get all classes with tingkat
-        $kelas = DB::table('kelas')
+        // Get active semester
+        $activeSemester = DB::table('semester')
+            ->where('is_active', 1)
+            ->first();
+
+        $semesterId = $activeSemester ? $activeSemester->id : null;
+        $tahunPelajaranId = $activeSemester ? $activeSemester->tahun_pelajaran_id : null;
+
+        // Get all classes with tingkat (filter by active tahun pelajaran if available)
+        $kelasQuery = DB::table('kelas')
             ->select('kelas.*', DB::raw('CONCAT(tingkat, " ", nama_kelas) as full_name'))
             ->orderBy('tingkat')
-            ->orderBy('nama_kelas')
-            ->get();
+            ->orderBy('nama_kelas');
 
-        // Get jam pelajaran
-        $jamPelajarans = DB::table('jam_pelajarans')
-            ->orderBy('jam_ke')
-            ->get();
+        if ($tahunPelajaranId) {
+            $kelasQuery->where('tahun_pelajaran_id', $tahunPelajaranId);
+        }
+
+        $kelas = $kelasQuery->get();
+
+        // Get jam pelajaran (filter by active semester)
+        $jamQuery = DB::table('jam_pelajarans')
+            ->orderBy('jam_ke');
+
+        if ($semesterId) {
+            $jamQuery->where('semester_id', $semesterId);
+        }
+
+        $jamPelajarans = $jamQuery->get();
 
         return view('guru.jadwal-mengajar.jadwal-mengajar', compact('kelas', 'jamPelajarans'));
     }

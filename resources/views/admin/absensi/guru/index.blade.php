@@ -49,6 +49,11 @@
                             </select>
                         </div>
 
+                        <div class="col-md-4">
+                            <label class="form-label">Cari Nama Guru</label>
+                            <input type="text" name="search" class="form-control" value="{{ $search ?? '' }}" placeholder="Cari nama...">
+                        </div>
+
                         <div class="col-md-4" id="customDateRange" style="display: {{ $filter == 'custom' ? 'block' : 'none' }};">
                             <label class="form-label">Tanggal Mulai</label>
                             <input type="date" name="start_date" class="form-control" value="{{ $startDate }}">

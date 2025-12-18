@@ -1,4 +1,4 @@
-@extends($semester ? 'layouts.semester' : 'layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Jadwal Pelajaran')
 
@@ -23,33 +23,6 @@
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
-                    <select class="form-select auto-submit" id="filter_kelas">
-                        <option value="">-- Pilih Kelas --</option>
-                        @foreach($kelas as $k)
-                            <option value="{{ $k->id }}">{{ $k->full_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-8 text-end">
-                    <small class="text-muted me-3">
-                        <i class="fas fa-info-circle me-1"></i>Filter kelas akan diterapkan otomatis
-                    </small>
-                    <div id="loading-indicator" class="d-none">
-                        <div class="spinner-border text-primary spinner-border-sm" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <span class="ms-2 text-muted">Memuat jadwal...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Jadwal Hari Ini -->
     @if($jadwalHariIni->isNotEmpty())
@@ -93,7 +66,7 @@
                                                         <span class="badge bg-secondary" style="font-size: 0.7rem;">{{ $jadwal->jam_ke }}</span><br>
                                                         <small class="text-muted">{{ $waktu }}</small>
                                                     </td>
-                                                    <td><strong>{{ $jadwal->mataPelajaran->nama_mata_pelajaran ?? '-' }}</strong></td>
+                                                    <td><strong>{{ $jadwal->mataPelajaran->nama_mapel ?? '-' }}</strong></td>
                                                     <td><small>{{ $jadwal->guru->name ?? '-' }}</small></td>
                                                 </tr>
                                             @endforeach
@@ -113,6 +86,34 @@
         <strong>Tidak ada jadwal untuk hari ini ({{ $hariIni }}).</strong>
     </div>
     @endif
+
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
+                    <select class="form-select auto-submit" id="filter_kelas">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id }}">{{ $k->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-8 text-end">
+                    <small class="text-muted me-3">
+                        <i class="fas fa-info-circle me-1"></i>Filter kelas akan diterapkan otomatis
+                    </small>
+                    <div id="loading-indicator" class="d-none">
+                        <div class="spinner-border text-primary spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2 text-muted">Memuat jadwal...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Schedule Grid -->
     <div id="schedule-grid" class="d-none" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">

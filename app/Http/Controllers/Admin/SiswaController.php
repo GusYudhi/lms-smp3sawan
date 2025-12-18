@@ -122,7 +122,7 @@ class SiswaController extends Controller
             'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'jenis_kelamin' => 'nullable|in:L,P',
-            'profile_photo' => 'nullable|image|max:2048',
+            'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,heic,heif|max:10240',
             // Student profile fields
             'nis' => 'nullable|string|max:50|unique:student_profiles,nis',
             'nisn' => 'nullable|string|max:50',
@@ -186,7 +186,7 @@ class SiswaController extends Controller
                 'kelas' => $kelas,
                 'tempat_lahir' => $profile->tempat_lahir ?? '',
                 'tanggal_lahir' => $profile->tanggal_lahir ? \Carbon\Carbon::parse($profile->tanggal_lahir)->format('d-m-Y') : '',
-                'foto_url' => $profile->foto ? Storage::url($profile->foto) : null,
+                'foto_url' => $profile->getProfilePhotoUrl(),
             ]);
         }
 
@@ -214,7 +214,7 @@ class SiswaController extends Controller
             'email' => 'nullable|email|unique:users,email,' . $student->id,
             'password' => 'nullable|string|min:8|confirmed',
             'jenis_kelamin' => 'nullable|in:L,P',
-            'profile_photo' => 'nullable|image|max:2048',
+            'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp,heic,heif|max:10240',
             // Student profile fields
             'nis' => 'nullable|string|max:50|unique:student_profiles,nis,' . ($student->studentProfile->id ?? 'NULL'),
             'nisn' => 'nullable|string|max:50',
