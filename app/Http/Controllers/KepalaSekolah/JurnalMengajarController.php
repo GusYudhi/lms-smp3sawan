@@ -67,8 +67,19 @@ class JurnalMengajarController extends Controller
         $kelasList = Kelas::orderBy('tingkat', 'asc')
             ->orderBy('nama_kelas', 'asc')
             ->get();
-        $mapelList = MataPelajaran::orderBy('nama_mapel', 'asc')
-            ->get();
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
+        $mapelQuery = MataPelajaran::query();
+
+        if ($activeSemester) {
+            $mapelQuery->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+
+        $mapelList = $mapelQuery->orderBy('nama_mapel', 'asc')->get();
 
         return view('kepala-sekolah.jurnal-mengajar.index', compact(
             'jurnalList',

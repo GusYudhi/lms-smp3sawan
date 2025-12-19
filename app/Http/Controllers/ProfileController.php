@@ -33,8 +33,20 @@ class ProfileController extends Controller
             ->orderBy('nama_kelas', 'asc')
             ->get();
 
-        // Get all mata pelajaran for selection
-        $mataPelajarans = \App\Models\MataPelajaran::orderBy('nama_mapel', 'asc')->get();
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
+        // Get all mata pelajaran for selection based on active semester
+        $mataPelajarans = \App\Models\MataPelajaran::query();
+
+        if ($activeSemester) {
+            $mataPelajarans->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+
+        $mataPelajarans = $mataPelajarans->orderBy('nama_mapel', 'asc')->get();
 
         return view('profile.profile-section', compact('user', 'kelasList', 'mataPelajarans'));
     }

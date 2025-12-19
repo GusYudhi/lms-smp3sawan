@@ -60,8 +60,20 @@ class AdminController extends Controller
 
         $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
 
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
         // Get list mata pelajaran untuk filter
-        $mataPelajaranList = \App\Models\MataPelajaran::orderBy('nama_mapel', 'asc')->get();
+        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
+
+        if ($activeSemester) {
+            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+
+        $mataPelajaranList = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
 
         return view('admin.guru.index', compact('teachers', 'mataPelajaranList', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter'));
     }
@@ -443,8 +455,19 @@ class AdminController extends Controller
     {
         $search = $request->get('q', '');
 
-        $mataPelajaran = \App\Models\MataPelajaran::where('nama_mapel', 'LIKE', "%{$search}%")
-            ->orderBy('nama_mapel')
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
+        $query = \App\Models\MataPelajaran::where('nama_mapel', 'LIKE', "%{$search}%");
+
+        if ($activeSemester) {
+            $query->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+
+        $mataPelajaran = $query->orderBy('nama_mapel')
             ->limit(10)
             ->get(['id', 'nama_mapel', 'kode_mapel']);
 

@@ -447,7 +447,7 @@
                                                 <select id="mata_pelajaran"
                                                        name="mata_pelajaran"
                                                        class="form-select">
-                                                    <option value="">Pilih Mata Pelajaran</option>
+                                                    <option value="">Tidak Ada</option>
                                                     @foreach($mataPelajarans as $mapel)
                                                         <option value="{{ $mapel->nama_mapel }}"
                                                             {{ (old('mata_pelajaran') == $mapel->nama_mapel || (isset($profile->mata_pelajaran) && (is_array($profile->mata_pelajaran) ? in_array($mapel->nama_mapel, $profile->mata_pelajaran) : $profile->mata_pelajaran == $mapel->nama_mapel))) ? 'selected' : '' }}>
