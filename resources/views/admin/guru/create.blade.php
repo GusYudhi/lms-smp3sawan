@@ -161,6 +161,10 @@
                                     <select class="form-select @error('golongan') is-invalid @enderror"
                                             id="golongan" name="golongan">
                                         <option value="">Pilih Golongan</option>
+                                        <option value="I/a" {{ old('golongan') == 'I/a' ? 'selected' : '' }}>I/a</option>
+                                        <option value="I/b" {{ old('golongan') == 'I/b' ? 'selected' : '' }}>I/b</option>
+                                        <option value="I/c" {{ old('golongan') == 'I/c' ? 'selected' : '' }}>I/c</option>
+                                        <option value="I/d" {{ old('golongan') == 'I/d' ? 'selected' : '' }}>I/d</option>
                                         <option value="II/a" {{ old('golongan') == 'II/a' ? 'selected' : '' }}>II/a</option>
                                         <option value="II/b" {{ old('golongan') == 'II/b' ? 'selected' : '' }}>II/b</option>
                                         <option value="II/c" {{ old('golongan') == 'II/c' ? 'selected' : '' }}>II/c</option>
@@ -211,35 +215,35 @@
 
                                 <div class="col-md-6">
                                     <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran (opsional)</label>
-                                    <input type="text"
-                                           class="form-control @error('mata_pelajaran') is-invalid @enderror"
-                                           id="mata_pelajaran"
-                                           name="mata_pelajaran_display"
-                                           placeholder="Ketik nama mata pelajaran..."
-                                           value="{{ old('mata_pelajaran_display') }}"
-                                           autocomplete="off">
-                                    <input type="hidden" id="mata_pelajaran_hidden" name="mata_pelajaran" value="{{ old('mata_pelajaran') }}">
-                                    <div id="mata-pelajaran-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    <select class="form-select @error('mata_pelajaran') is-invalid @enderror"
+                                            id="mata_pelajaran" name="mata_pelajaran">
+                                        <option value="">Tidak Ada</option>
+                                        @foreach($mataPelajarans as $mapel)
+                                            <option value="{{ $mapel->nama_mapel }}" {{ old('mata_pelajaran') == $mapel->nama_mapel ? 'selected' : '' }}>
+                                                {{ $mapel->nama_mapel }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <div class="form-text">Kosongkan jika Guru BK atau jabatan non-pengajar</div>
                                     @error('mata_pelajaran')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <div class="col-md-6">
                                     <label for="kelas_id" class="form-label fw-medium">Wali Kelas (opsional)</label>
-                                    <input type="text"
-                                           class="form-control @error('kelas_id') is-invalid @enderror"
-                                           id="kelas_id"
-                                           name="kelas_display"
-                                           placeholder="Ketik tingkat/nama kelas (misal: 7 atau 7A)..."
-                                           value="{{ old('kelas_display') }}"
-                                           autocomplete="off">
-                                    <input type="hidden" id="kelas_id_hidden" name="kelas_id" value="{{ old('kelas_id') }}">
-                                    <div id="kelas-dropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                                    <select class="form-select @error('kelas_id') is-invalid @enderror"
+                                            id="kelas_id" name="kelas_id">
+                                        <option value="">Pilih Kelas</option>
+                                        @foreach($kelasList as $kelas)
+                                            <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                                {{ $kelas->tingkat }} {{ $kelas->nama_kelas }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <div class="form-text">Kosongkan jika tidak menjadi wali kelas</div>
                                     @error('kelas_id')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -334,110 +338,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Photo selected:', file.name);
             };
             reader.readAsDataURL(file);
-        }
-    });
-
-    // Autocomplete for Mata Pelajaran
-    const mataPelajaranInput = document.getElementById('mata_pelajaran');
-    const mataPelajaranHidden = document.getElementById('mata_pelajaran_hidden');
-    const mataPelajaranDropdown = document.getElementById('mata-pelajaran-dropdown');
-    let mataPelajaranTimeout;
-
-    mataPelajaranInput.addEventListener('input', function() {
-        clearTimeout(mataPelajaranTimeout);
-        const query = this.value.trim();
-
-        if (query.length < 1) {
-            mataPelajaranDropdown.classList.remove('show');
-            return;
-        }
-
-        mataPelajaranTimeout = setTimeout(() => {
-            fetch(`{{ route('admin.api.mata-pelajaran') }}?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    mataPelajaranDropdown.innerHTML = '';
-
-                    if (data.length === 0) {
-                        mataPelajaranDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada mata pelajaran ditemukan</div>';
-                    } else {
-                        data.forEach(mapel => {
-                            const item = document.createElement('a');
-                            item.className = 'dropdown-item';
-                            item.href = '#';
-                            item.textContent = `${mapel.nama_mapel} (${mapel.kode_mapel})`;
-                            item.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                mataPelajaranInput.value = mapel.nama_mapel;
-                                mataPelajaranHidden.value = mapel.nama_mapel;
-                                mataPelajaranDropdown.classList.remove('show');
-                            });
-                            mataPelajaranDropdown.appendChild(item);
-                        });
-                    }
-
-                    mataPelajaranDropdown.classList.add('show');
-                })
-                .catch(error => {
-                    console.error('Error fetching mata pelajaran:', error);
-                });
-        }, 300);
-    });
-
-    // Autocomplete for Kelas
-    const kelasInput = document.getElementById('kelas_id');
-    const kelasHidden = document.getElementById('kelas_id_hidden');
-    const kelasDropdown = document.getElementById('kelas-dropdown');
-    let kelasTimeout;
-
-    kelasInput.addEventListener('input', function() {
-        clearTimeout(kelasTimeout);
-        const query = this.value.trim();
-
-        if (query.length < 1) {
-            kelasDropdown.classList.remove('show');
-            return;
-        }
-
-        kelasTimeout = setTimeout(() => {
-            fetch(`{{ route('admin.api.kelas') }}?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    kelasDropdown.innerHTML = '';
-
-                    if (data.length === 0) {
-                        kelasDropdown.innerHTML = '<div class="dropdown-item text-muted">Tidak ada kelas ditemukan</div>';
-                    } else {
-                        data.forEach(kelas => {
-                            const item = document.createElement('a');
-                            item.className = 'dropdown-item';
-                            item.href = '#';
-                            item.textContent = `Kelas ${kelas.tingkat} ${kelas.nama_kelas}`;
-                            item.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                kelasInput.value = `${kelas.tingkat} ${kelas.nama_kelas}`;
-                                kelasHidden.value = kelas.id;
-                                kelasDropdown.classList.remove('show');
-                            });
-                            kelasDropdown.appendChild(item);
-                        });
-                    }
-
-                    kelasDropdown.classList.add('show');
-                })
-                .catch(error => {
-                    console.error('Error fetching kelas:', error);
-                });
-        }, 300);
-    });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!mataPelajaranInput.contains(e.target) && !mataPelajaranDropdown.contains(e.target)) {
-            mataPelajaranDropdown.classList.remove('show');
-        }
-        if (!kelasInput.contains(e.target) && !kelasDropdown.contains(e.target)) {
-            kelasDropdown.classList.remove('show');
         }
     });
 

@@ -155,7 +155,7 @@
                     <div class="mb-3">
                         <label class="form-label">Mata Pelajaran</label>
                         <select class="form-select" id="mata_pelajaran_id" name="mata_pelajaran_id" required>
-                            <option value="">Pilih Mata Pelajaran</option>
+                            <option value="">Tidak Ada</option>
                             @foreach($mapels as $m)
                                 <option value="{{ $m->id }}">{{ $m->nama_mapel }} ({{ $m->kode_mapel }})</option>
                             @endforeach

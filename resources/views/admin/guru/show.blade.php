@@ -65,11 +65,13 @@
                                         </span>
                                     </div>
                                 </div>
-                                @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
+                                @if($teacher->guruProfile && $teacher->guruProfile->kelas)
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Wali Kelas</span>
-                                        <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->guruProfile->wali_kelas }}</span>
+                                        <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">
+                                            {{ $teacher->guruProfile->kelas->tingkat }} {{ $teacher->guruProfile->kelas->nama_kelas }}
+                                        </span>
                                     </div>
                                 </div>
                                 @endif
@@ -163,6 +165,12 @@
                         </div>
                         <div class="col-12">
                             <div class="d-flex flex-column">
+                                <span class="small text-muted">Golongan</span>
+                                <span class="fw-semibold">{{ $teacher->guruProfile->golongan ?? '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
                                 <span class="small text-muted">Mata Pelajaran</span>
                                 @if($teacher->guruProfile && $teacher->guruProfile->subjects_string)
                                     <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->guruProfile->subjects_string }}</span>
@@ -174,8 +182,10 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Wali Kelas</span>
-                                @if($teacher->guruProfile && $teacher->guruProfile->wali_kelas)
-                                    <span class="badge bg-warning-subtle text-warning border mt-1 align-self-start">{{ $teacher->guruProfile->wali_kelas }}</span>
+                                @if($teacher->guruProfile && $teacher->guruProfile->kelas)
+                                    <span class="badge bg-warning-subtle text-warning border mt-1 align-self-start">
+                                        {{ $teacher->guruProfile->kelas->tingkat }} {{ $teacher->guruProfile->kelas->nama_kelas }}
+                                    </span>
                                 @else
                                     <span class="text-muted">Tidak ada</span>
                                 @endif

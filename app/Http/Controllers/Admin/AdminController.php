@@ -137,7 +137,25 @@ class AdminController extends Controller
 
     public function createGuru()
     {
-        return view('admin.guru.create');
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
+        // Get mata pelajaran filtered by active semester
+        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
+        if ($activeSemester) {
+            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+        $mataPelajarans = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+
+        // Get all kelas
+        $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
+            ->orderBy('nama_kelas', 'asc')
+            ->get();
+
+        return view('admin.guru.create', compact('mataPelajarans', 'kelasList'));
     }
 
     public function storeGuru(Request $request)
@@ -308,7 +326,25 @@ class AdminController extends Controller
         try {
             $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with(['guruProfile.kelas'])->findOrFail($id);
 
-            return view('admin.guru.edit', compact('teacher'));
+            // Get active semester
+            $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+
+            // Get mata pelajaran filtered by active semester
+            $mataPelajaranQuery = \App\Models\MataPelajaran::query();
+            if ($activeSemester) {
+                $mataPelajaranQuery->where(function($q) use ($activeSemester) {
+                    $q->where('semester_id', $activeSemester->id)
+                      ->orWhereNull('semester_id');
+                });
+            }
+            $mataPelajarans = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+
+            // Get all kelas
+            $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
+                ->orderBy('nama_kelas', 'asc')
+                ->get();
+
+            return view('admin.guru.edit', compact('teacher', 'mataPelajarans', 'kelasList'));
 
         } catch (\Exception $e) {
             Log::error('Edit guru form error: ' . $e->getMessage());
