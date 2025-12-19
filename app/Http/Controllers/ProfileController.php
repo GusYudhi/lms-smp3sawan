@@ -33,7 +33,10 @@ class ProfileController extends Controller
             ->orderBy('nama_kelas', 'asc')
             ->get();
 
-        return view('profile.profile-section', compact('user', 'kelasList'));
+        // Get all mata pelajaran for selection
+        $mataPelajarans = \App\Models\MataPelajaran::orderBy('nama_mapel', 'asc')->get();
+
+        return view('profile.profile-section', compact('user', 'kelasList', 'mataPelajarans'));
     }
 
     /**
@@ -99,7 +102,7 @@ class ProfileController extends Controller
                     'jenis_kelamin' => 'nullable|in:L,P',
                     'tempat_lahir' => 'nullable|string|max:100',
                     'tanggal_lahir' => 'nullable|date|before:today',
-                    'status_kepegawaian' => 'nullable|string|in:PNS,PPPK,GTT,GTY,GTK',
+                    'status_kepegawaian' => 'nullable|string|in:PNS,PPPK,HONORER',
                     'golongan' => 'nullable|string|max:20',
                     'mata_pelajaran' => 'nullable|string|max:100',
                     'kelas_id' => 'nullable|exists:kelas,id',

@@ -259,14 +259,8 @@
                                         <option value="PPPK" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'PPPK' ? 'selected' : '' }}>
                                             PPPK
                                         </option>
-                                        <option value="GTT" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTT' ? 'selected' : '' }}>
-                                            GTT (Guru Tidak Tetap)
-                                        </option>
-                                        <option value="GTY" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTY' ? 'selected' : '' }}>
-                                            GTY (Guru Tetap Yayasan)
-                                        </option>
-                                        <option value="GTK" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'GTK' ? 'selected' : '' }}>
-                                            GTK (Guru Tenaga Kependidikan)
+                                        <option value="HONORER" {{ old('status_kepegawaian', $teacher->guruProfile->status_kepegawaian ?? '') === 'HONORER' ? 'selected' : '' }}>
+                                            HONORER
                                         </option>
                                     </select>
                                     @error('status_kepegawaian')

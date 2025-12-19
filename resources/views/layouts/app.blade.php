@@ -24,7 +24,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.4.4/qrcode.js" integrity="sha512-oxrVyBhqnzQ0BzuM0A/6dEIk0alz0p4SpDRaWvtuUoarIc8rnL5lVniHG5Dp21MRFojcQcmKHjaskNXhSaUPPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     {{-- link favicon --}}
-    <link rel="icon" type="image/png" href="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
     <style>
         .sidebar {
@@ -133,7 +133,7 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-brand text-center">
-                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
+                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
                     <span class="text-white fw-bold">SMPN 3 SAWAN</span>
                 </div>
 

@@ -409,9 +409,7 @@
                                                 <option value="">Pilih Status Kepegawaian</option>
                                                 <option value="PNS" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'PNS' ? 'selected' : '' }}>PNS</option>
                                                 <option value="PPPK" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                                <option value="GTT" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTT' ? 'selected' : '' }}>GTT (Guru Tidak Tetap)</option>
-                                                <option value="GTY" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTY' ? 'selected' : '' }}>GTY (Guru Tetap Yayasan)</option>
-                                                <option value="GTK" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'GTK' ? 'selected' : '' }}>GTK (Guru Tenaga Kependidikan)</option>
+                                                <option value="HONORER" {{ old('status_kepegawaian', $profile->status_kepegawaian ?? '') == 'HONORER' ? 'selected' : '' }}>HONORER</option>
                                             </select>
                                         </div>
                                     </div>
@@ -446,12 +444,17 @@
                                                 <span class="input-group-text">
                                                     <i class="fas fa-book text-muted"></i>
                                                 </span>
-                                                <input type="text"
-                                                       id="mata_pelajaran"
+                                                <select id="mata_pelajaran"
                                                        name="mata_pelajaran"
-                                                       class="form-control"
-                                                       placeholder="Contoh: Matematika"
-                                                       value="{{ old('mata_pelajaran', is_array($profile->mata_pelajaran ?? null) ? implode(', ', $profile->mata_pelajaran) : ($profile->mata_pelajaran ?? '')) }}">
+                                                       class="form-select">
+                                                    <option value="">Pilih Mata Pelajaran</option>
+                                                    @foreach($mataPelajarans as $mapel)
+                                                        <option value="{{ $mapel->nama_mapel }}"
+                                                            {{ (old('mata_pelajaran') == $mapel->nama_mapel || (isset($profile->mata_pelajaran) && (is_array($profile->mata_pelajaran) ? in_array($mapel->nama_mapel, $profile->mata_pelajaran) : $profile->mata_pelajaran == $mapel->nama_mapel))) ? 'selected' : '' }}>
+                                                            {{ $mapel->nama_mapel }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -613,7 +616,7 @@
                     <span id="kartu-nisn">{{ $profile->nisn ?? '-' }}</span>
                     <span id="kartu-nis">{{ $profile->nis ?? '-' }}</span>
                     <span id="kartu-foto-url">{{ auth()->user()->getProfilePhotoUrl() }}</span>
-                    <span id="kartu-logo-url">{{ asset('assets/image/LogoSMP3SAWAN.webp') }}</span>
+                    <span id="kartu-logo-url">{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}</span>
                 </div>
             </div>
         </div>

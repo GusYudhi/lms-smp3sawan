@@ -9,7 +9,7 @@
 
     <title>{{ config('app.name', 'SMP N 3 SAWAN') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -136,7 +136,7 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-brand text-center">
-                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
+                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
                     <span class="text-white fw-bold">SMPN 3 SAWAN</span>
                 </div>
 

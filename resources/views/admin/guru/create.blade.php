@@ -148,9 +148,7 @@
                                         <option value="">Pilih Status</option>
                                         <option value="PNS" {{ old('status_kepegawaian') == 'PNS' ? 'selected' : '' }}>PNS</option>
                                         <option value="PPPK" {{ old('status_kepegawaian') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                        <option value="GTT" {{ old('status_kepegawaian') == 'GTT' ? 'selected' : '' }}>GTT (Guru Tidak Tetap)</option>
-                                        <option value="GTY" {{ old('status_kepegawaian') == 'GTY' ? 'selected' : '' }}>GTY (Guru Tetap Yayasan)</option>
-                                        <option value="GTK" {{ old('status_kepegawaian') == 'GTK' ? 'selected' : '' }}>GTK (Guru Tenaga Kependidikan)</option>
+
                                         <option value="HONORER" {{ old('status_kepegawaian') == 'HONORER' ? 'selected' : '' }}>HONORER</option>
                                     </select>
                                     @error('status_kepegawaian')
@@ -315,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle golongan field based on status kepegawaian
     statusKepegawaian.addEventListener('change', function() {
-        if (this.value === 'Honorer' || this.value === 'GTT' || this.value === 'GTY' || this.value === 'GTK') {
+        if (this.value === 'HONORER') {
             golonganField.value = '';
             golonganField.disabled = true;
         } else {

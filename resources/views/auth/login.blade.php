@@ -3,7 +3,7 @@
 @section('content')
 <div class="auth-card">
     <div class="auth-header">
-        <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMP 3 SAWAN" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 1rem;">
+        <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 SAWAN" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 1rem;">
         <h3 class="mb-0">Selamat Datang</h3>
         <p class="mb-0 small">Portal SMPN 3 SAWAN</p>
     </div>

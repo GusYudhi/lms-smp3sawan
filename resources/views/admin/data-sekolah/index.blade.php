@@ -13,7 +13,7 @@
                         <div class="col-md-8">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; overflow: hidden;">
-                                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMPN 3 SAWAN" style="width:100%; height:100%; object-fit:cover;">
+                                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMPN 3 SAWAN" style="width:100%; height:100%; object-fit:cover;">
                                 </div>
                                 <div>
                                     <h1 class="h3 mb-1 text-high-contrast">{{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</h1>

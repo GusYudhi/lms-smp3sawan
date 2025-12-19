@@ -120,7 +120,7 @@
                         <i class="fas fa-handshake"></i>
                     </div>
                     <h6 class="card-title text-medium-contrast fw-semibold mb-2">Guru Honorer</h6>
-                    <h2 class="text-warning fw-bold mb-1">{{ \App\Models\GuruProfile::whereIn('status_kepegawaian', ['GTT', 'GTY', 'GTK'])->count() }}</h2>
+                    <h2 class="text-warning fw-bold mb-1">{{ \App\Models\GuruProfile::whereIn('status_kepegawaian', ['HONORER'])->count() }}</h2>
                     <small class="text-subtle fw-medium">Guru Kontrak</small>
                 </div>
             </div>
@@ -317,7 +317,7 @@
                                     <li><strong>Tempat Lahir:</strong> Opsional. Contoh: Sawan, Singaraja</li>
                                     <li><strong>Tanggal Lahir:</strong> Opsional. Format: <code>YYYY-MM-DD</code>, <code>DD-MM-YYYY</code>, atau <code>DD/MM/YYYY</code></li>
                                     <li><strong>Telepon:</strong> Opsional. Format: 081234567890 (tanpa tanda +)</li>
-                                    <li><strong>Status Kepegawaian:</strong> Wajib diisi. Pilih: <code>PNS</code>, <code>PPPK</code>, <code>GTT</code>, <code>GTY</code>, <code>GTK</code>, atau <code>HONORER</code></li>
+                                    <li><strong>Status Kepegawaian:</strong> Wajib diisi. Pilih: <code>PNS</code>, <code>PPPK</code>, atau <code>HONORER</code></li>
                                     <li><strong>Golongan:</strong> Opsional (kosongkan jika Honorer). Contoh: III/a, IV/b</li>
                                     <li><strong>Jabatan di Sekolah:</strong> Opsional. Contoh: Guru, Kepala Sekolah, Wakil Kepala Sekolah Kurikulum, Guru BK</li>
                                     <li><strong>Mata Pelajaran:</strong> Opsional. Isi dengan satu mata pelajaran utama. Contoh: Matematika, IPA</li>

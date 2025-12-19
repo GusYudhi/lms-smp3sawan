@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <link rel="icon" type="image/png" href="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
     <!-- Bootstrap CSS -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -109,7 +109,7 @@
             <!-- Hero Section -->
             <div class="hero-section">
                 <div class="school-logo">
-                    <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMP 3 SAWAN" style="width: 80px; height: 80px; object-fit: contain;">
+                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 SAWAN" style="width: 80px; height: 80px; object-fit: contain;">
                 </div>
                 <h1 class="display-4 fw-bold mb-3">{{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</h1>
                 <p class="lead mb-4">Learning Management System</p>

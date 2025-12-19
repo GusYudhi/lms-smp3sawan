@@ -9,7 +9,7 @@
 
     <title>{{ config('app.name', 'SMP N 3 SAWAN') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
 
     <!-- Fonts -->

@@ -728,7 +728,7 @@ async function fetchStudentCanvasData(studentId) {
             kelas: data.kelas || '-',
             ttl: `${data.tempat_lahir || ''}, ${data.tanggal_lahir || ''}`.trim(),
             fotoUrl: data.foto_url || null, // Set to null if no photo
-            logoUrl: '/assets/image/LogoSMP3SAWAN.webp' // Path logo sekolah yang benar
+            logoUrl: '/assets/image/logo-sekolah-smpn3sawan.webp' // Path logo sekolah yang benar
         };
     } catch (error) {
         console.error('Error fetching student data:', error);
@@ -893,8 +893,8 @@ function drawStudentIdCard(canvas, studentData) {
 
             // Try multiple logo paths
             const logoPaths = [
-                '/assets/image/LogoSMP3SAWAN.webp',
-                '{{ asset("assets/image/LogoSMP3SAWAN.webp") }}'
+                '/assets/image/logo-sekolah-smpn3sawan.webp',
+                '{{ asset("assets/image/logo-sekolah-smpn3sawan.webp") }}'
             ];
 
             logo.src = logoPaths[0];

@@ -10,7 +10,7 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                         <div>
                             <h1 class="h3 text-high-contrast fw-bold mb-2">
-                                <img src="{{ asset('assets/image/LogoSMP3SAWAN.webp') }}" alt="Logo SMPN 3 SAWAN" style="width:40px; height:40px; object-fit:cover;" class="me-2 rounded-circle">
+                                <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMPN 3 SAWAN" style="width:40px; height:40px; object-fit:cover;" class="me-2 rounded-circle">
                                 Edit Data Sekolah
                             </h1>
                             <p class="text-subtle mb-0">Perbarui informasi profil dan data sekolah</p>
