@@ -41,7 +41,7 @@
                             @else
                                 <a href="{{ route('login') }}" class="btn btn-primary shadow-sm">
                                     <i class="fas fa-sign-in-alt me-1"></i>
-                                    Login
+                                    Masuk
                                 </a>
                             @endauth
                         </div>

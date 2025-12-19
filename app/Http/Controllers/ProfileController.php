@@ -99,7 +99,7 @@ class ProfileController extends Controller
                     'jenis_kelamin' => 'nullable|in:L,P',
                     'tempat_lahir' => 'nullable|string|max:100',
                     'tanggal_lahir' => 'nullable|date|before:today',
-                    'status_kepegawaian' => 'nullable|string|in:PNS,Honor,Kontrak',
+                    'status_kepegawaian' => 'nullable|string|in:PNS,PPPK,GTT,GTY,GTK',
                     'golongan' => 'nullable|string|max:20',
                     'mata_pelajaran' => 'nullable|string|max:100',
                     'kelas_id' => 'nullable|exists:kelas,id',

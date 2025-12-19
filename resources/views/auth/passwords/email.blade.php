@@ -46,7 +46,7 @@
 
     <div class="auth-footer">
         <a href="{{ route('login') }}" class="forgot-password">
-            <i class="fas fa-arrow-left me-1"></i>Kembali ke Login
+            <i class="fas fa-arrow-left me-1"></i>Masuk ke Akun Anda
         </a>
     </div>
 </div>

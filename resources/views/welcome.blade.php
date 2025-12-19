@@ -95,7 +95,7 @@
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="btn btn-light">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                            <i class="fas fa-sign-in-alt me-1"></i>Masuk
                         </a>
                     @endauth
                 </div>
