@@ -108,7 +108,7 @@
                                            class="form-control @error('kepala_sekolah') is-invalid @enderror"
                                            value="{{ old('kepala_sekolah', $schoolData['kepala_sekolah'] ?? '') }}"
                                            required
-                                           placeholder="Contoh: Drs. I Made Sutrisna, M.Pd.">
+                                           placeholder="Contoh: Nyoman Paksa Adi Gama, S.Pd., M.Pd.">
                                     @error('kepala_sekolah')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

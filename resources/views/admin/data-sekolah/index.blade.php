@@ -87,7 +87,7 @@
                         <div class="col-md-6">
                             <div class="border-start border-success border-3 ps-3">
                                 <small class="text-subtle fw-medium text-uppercase">Kepala Sekolah</small>
-                                <div class="text-high-contrast fw-semibold">{{ $schoolData['kepala_sekolah'] ?? 'Drs. I Made Sutrisna, M.Pd.' }}</div>
+                                <div class="text-high-contrast fw-semibold">{{ $schoolData['kepala_sekolah'] ?? 'Nyoman Paksa Adi Gama, S.Pd., M.Pd.' }}</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -114,7 +114,7 @@
                         <div class="col-md-6">
                             <div class="border-start border-secondary border-3 ps-3">
                                 <small class="text-subtle fw-medium text-uppercase">Tahun Berdiri</small>
-                                <div class="text-high-contrast fw-semibold">{{ $schoolData['tahun_berdiri'] ?? '1985' }}</div>
+                                <div class="text-high-contrast fw-semibold">{{ $schoolData['tahun_berdiri'] ?? '1995' }}</div>
                             </div>
                         </div>
                         <div class="col-md-6">

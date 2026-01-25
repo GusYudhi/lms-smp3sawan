@@ -36,8 +36,8 @@ class GuestController extends Controller
                 'website' => 'www.smpn3sawan.sch.id',
                 'maps_latitude' => -8.1234567,
                 'maps_longitude' => 115.1234567,
-                'kepala_sekolah' => 'Drs. I Made Sutrisna, M.Pd.',
-                'tahun_berdiri' => 1985,
+                'kepala_sekolah' => 'Nyoman Paksa Adi Gama, S.Pd., M.Pd.',
+                'tahun_berdiri' => 1995,
                 'akreditasi' => 'A',
                 'npsn' => '50100123'
             ];
@@ -55,7 +55,7 @@ class GuestController extends Controller
     {
         $gurus = User::whereIn('role', ['guru', 'kepala_sekolah'])
                      ->with('guruProfile')
-                     ->paginate(12);
+                     ->paginate(16);
         return view('guest.guru-staff', compact('gurus'));
     }
 
@@ -121,6 +121,6 @@ class GuestController extends Controller
 
         Saran::create($request->all());
 
-        return redirect()->back()->with('success', 'Terima kasih atas saran Anda!');
+        return redirect()->back()->with('Terikirim!', 'Terima kasih atas saran Anda!');
     }
 }

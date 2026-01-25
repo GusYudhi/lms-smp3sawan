@@ -145,65 +145,65 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Statistik Tambahan: Absensi Guru dan Tugas -->
     <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card card-stats h-100 border-start">
+        <a href="{{ route('kepala-sekolah.absensi.guru.index') }}" class="col-md-6 text-decoration-none">
+            <div class="card card-stats">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Absensi Guru Hari Ini
+                    </h5>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="text-danger fs-2 me-3">
-                            <i class="fas fa-exclamation-triangle"></i>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="text-success fs-2 mb-2">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <h3 class="text-success">{{ $totalGuruAbsenHariIni }}</h3>
+                            <p class="text-muted mb-0">Guru Hadir</p>
                         </div>
-                        <div>
-                            <h6 class="card-title mb-1">Siswa Sering Absen</h6>
-                            <p class="card-text text-muted">{{ $siswaSeringAbsen }} siswa memerlukan perhatian khusus</p>
-                            <small class="text-muted">Perlu tindak lanjut dari wali kelas</small>
+                        <div class="col-6">
+                            <div class="text-danger fs-2 mb-2">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                            <h3 class="text-danger">{{ $totalGuruTidakHadirHariIni }}</h3>
+                            <p class="text-muted mb-0">Tidak Hadir</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="col-md-4">
-            <div class="card card-stats h-100 border-start">
+        <a href="{{ route('kepala-sekolah.tugas-guru.index') }}" class="col-md-6 text-decoration-none">
+            <div class="card card-stats">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>Statistik Tugas Guru
+                    </h5>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="text-info fs-2 me-3">
-                            <i class="fas fa-calendar-check"></i>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="text-primary fs-2 mb-2">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3 class="text-primary">{{ $totalTugasAktif }}</h3>
+                            <p class="text-muted mb-0">Tugas Aktif</p>
                         </div>
-                        <div>
-                            <h6 class="card-title mb-1">Kehadiran Bulanan</h6>
-                            <p class="card-text text-muted">Rata-rata kehadiran bulan ini: {{ $rataRataKehadiranBulan }}%</p>
-                            <small class="text-muted">Monitoring kehadiran siswa</small>
+                        <div class="col-6">
+                            <div class="text-success fs-2 mb-2">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3 class="text-success">{{ $totalSubmissions }}</h3>
+                            <p class="text-muted mb-0">Total Submission</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card card-stats h-100 border-start">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="text-success fs-2 me-3">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div>
-                            <h6 class="card-title mb-1">Kelas Terbaik</h6>
-                            @if($kelasTerbaik)
-                            <p class="card-text text-muted">
-                                Kelas {{ $kelasTerbaik->tingkat }}{{ $kelasTerbaik->nama_kelas }}
-                                dengan tingkat kehadiran {{ number_format($kelasTerbaik->attendance_rate, 1) }}%
-                            </p>
-                            @else
-                            <p class="card-text text-muted">Belum ada data kehadiran</p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </a>
     </div>
+
 
     <!-- Portal Grid -->
     <div class="row g-4 mb-4">
@@ -280,65 +280,6 @@
                     </div>
                 </div>
             </a>
-        </div>
-    </div>
-
-    <!-- Statistik Tambahan: Absensi Guru dan Tugas -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card card-stats">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chalkboard-teacher me-2"></i>Absensi Guru Hari Ini
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="text-success fs-2 mb-2">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <h3 class="text-success">{{ $totalGuruAbsenHariIni }}</h3>
-                            <p class="text-muted mb-0">Guru Hadir</p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-danger fs-2 mb-2">
-                                <i class="fas fa-user-times"></i>
-                            </div>
-                            <h3 class="text-danger">{{ $totalGuruTidakHadirHariIni }}</h3>
-                            <p class="text-muted mb-0">Tidak Hadir</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card card-stats">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-tasks me-2"></i>Statistik Tugas Guru
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="text-primary fs-2 mb-2">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <h3 class="text-primary">{{ $totalTugasAktif }}</h3>
-                            <p class="text-muted mb-0">Tugas Aktif</p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-success fs-2 mb-2">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <h3 class="text-success">{{ $totalSubmissions }}</h3>
-                            <p class="text-muted mb-0">Total Submission</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
