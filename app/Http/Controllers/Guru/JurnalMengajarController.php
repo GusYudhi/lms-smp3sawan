@@ -337,12 +337,10 @@ class JurnalMengajarController extends Controller
                 $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
 
                 // Determine status based on daily attendance
-                $status = 'alpa';
+                $status = 'hadir'; // Default hadir jika tidak ada scan
                 if ($absensiHarian) {
-                    if (in_array($absensiHarian->status, ['hadir', 'terlambat'])) {
-                        $status = 'hadir';
-                    } elseif (in_array($absensiHarian->status, ['sakit', 'izin'])) {
-                        $status = $absensiHarian->status;
+                    if (in_array($absensiHarian->status, ['sakit', 'izin', 'alpha', 'alpa'])) {
+                        $status = $absensiHarian->status == 'alpha' ? 'alpa' : $absensiHarian->status;
                     }
                 }
 
@@ -576,6 +574,25 @@ class JurnalMengajarController extends Controller
                 'message' => 'Error converting HEIC: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Print jurnal mengajar
+     */
+    public function print(Request $request)
+    {
+        $guru = Auth::user();
+        $bulan = $request->get('bulan', date('m'));
+        $tahun = $request->get('tahun', date('Y'));
+
+        $jurnals = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai'])
+            ->byGuru($guru->id)
+            ->byBulan($bulan, $tahun)
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('jam_ke_mulai', 'asc')
+            ->get();
+
+        return view('guru.jurnal-mengajar.print', compact('jurnals', 'bulan', 'tahun', 'guru'));
     }
 }
 

@@ -166,6 +166,31 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('admin.kegiatan-kokurikuler.index') }}">
+                                    <i class="fas fa-running me-2"></i> Kokurikuler
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.prestasi') ? 'active' : '' }}" href="{{ route('admin.prestasi.index') }}">
+                                    <i class="fas fa-trophy me-2"></i> Prestasi
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.berita') ? 'active' : '' }}" href="{{ route('admin.berita.index') }}">
+                                    <i class="fas fa-newspaper me-2"></i> Berita
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.saran') ? 'active' : '' }}" href="{{ route('admin.saran.index') }}">
+                                    <i class="fas fa-envelope me-2"></i> Kotak Saran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.galeri') ? 'active' : '' }}" href="{{ route('admin.galeri.index') }}">
+                                    <i class="fas fa-images me-2"></i> Galeri Sekolah
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
                                     <i class="fas fa-school me-2"></i> Data Sekolah
                                 </a>
@@ -240,6 +265,33 @@
                                 </a>
                             </li>
 
+                            <!-- Manajemen Konten -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('admin.kegiatan-kokurikuler.index') }}">
+                                    <i class="fas fa-running me-2"></i> Kokurikuler
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.prestasi') ? 'active' : '' }}" href="{{ route('admin.prestasi.index') }}">
+                                    <i class="fas fa-trophy me-2"></i> Prestasi
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.berita') ? 'active' : '' }}" href="{{ route('admin.berita.index') }}">
+                                    <i class="fas fa-newspaper me-2"></i> Berita
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.galeri') ? 'active' : '' }}" href="{{ route('admin.galeri.index') }}">
+                                    <i class="fas fa-images me-2"></i> Galeri Sekolah
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.saran') ? 'active' : '' }}" href="{{ route('admin.saran.index') }}">
+                                    <i class="fas fa-envelope me-2"></i> Kotak Saran
+                                </a>
+                            </li>
+
                             <!-- Data Sekolah -->
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'school.profile' ? 'active' : '' }}" href="{{ route('school.profile') }}">
@@ -292,6 +344,16 @@
                                     <i class="fas fa-tasks me-2"></i> Tugas Guru
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'guru.materi') ? 'active' : '' }}" href="{{ route('guru.materi.index') }}">
+                                    <i class="fas fa-book-open me-2"></i> Materi Pelajaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('kegiatan-kokurikuler.index') }}">
+                                    <i class="fas fa-running me-2"></i> Info Kokurikuler
+                                </a>
+                            </li>
                         @elseif(auth()->user()->isSiswa())
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'siswa.dashboard' ? 'active' : '' }}" href="{{ route('siswa.dashboard') }}">
@@ -306,6 +368,21 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ str_contains(Route::currentRouteName(), 'siswa.jadwal-pelajaran') ? 'active' : '' }}" href="{{ route('siswa.jadwal-pelajaran.index') }}">
                                     <i class="fas fa-calendar-alt me-2"></i> Jadwal Pelajaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'siswa.materi') ? 'active' : '' }}" href="{{ route('siswa.materi.index') }}">
+                                    <i class="fas fa-book-reader me-2"></i> Materi Belajar
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'siswa.absensi-mapel') ? 'active' : '' }}" href="{{ route('siswa.absensi-mapel.index') }}">
+                                    <i class="fas fa-clipboard-list me-2"></i> Absensi Mapel
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('kegiatan-kokurikuler.index') }}">
+                                    <i class="fas fa-running me-2"></i> Info Kokurikuler
                                 </a>
                             </li>
                         @endif

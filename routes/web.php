@@ -15,6 +15,15 @@ use Illuminate\Support\Facades\Auth;
 */
 
 Route::get('/', [App\Http\Controllers\GuestController::class, 'welcome'])->name('welcome');
+Route::post('/saran', [App\Http\Controllers\GuestController::class, 'storeSaran'])->name('guest.saran.store');
+
+Route::get('/guru-staff', [App\Http\Controllers\GuestController::class, 'guruStaff'])->name('guest.guru-staff');
+Route::get('/berita', [App\Http\Controllers\GuestController::class, 'berita'])->name('guest.berita.index');
+Route::get('/berita/{id}', [App\Http\Controllers\GuestController::class, 'showBerita'])->name('guest.berita.show');
+Route::get('/prestasi', [App\Http\Controllers\GuestController::class, 'prestasi'])->name('guest.prestasi.index');
+Route::get('/prestasi/{id}', [App\Http\Controllers\GuestController::class, 'showPrestasi'])->name('guest.prestasi.show');
+Route::get('/galeri', [App\Http\Controllers\GuestController::class, 'galeri'])->name('guest.galeri');
+Route::get('/kontak', [App\Http\Controllers\GuestController::class, 'kontak'])->name('guest.kontak');
 
 Auth::routes(['register' => false]);
 Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout']);
@@ -139,6 +148,23 @@ Route::middleware(['auth'])->group(function () {
         // Route::get('/absensi/guru', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexGuru'])->name('admin.absensi.guru.index');
         // Route::get('/absensi/guru/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailGuru'])->name('admin.absensi.guru.detail');
         // Route::get('/absensi/guru/{id}/monthly', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'monthlyGuru'])->name('admin.absensi.guru.monthly');
+
+        // Kegiatan Kokurikuler
+        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('admin.kegiatan-kokurikuler');
+
+        // Prestasi
+        Route::resource('prestasi', App\Http\Controllers\Admin\PrestasiController::class)->names('admin.prestasi');
+
+        // Berita
+        Route::resource('berita', App\Http\Controllers\Admin\BeritaController::class)->names('admin.berita');
+
+        // Saran
+        Route::get('/saran', [App\Http\Controllers\Admin\SaranController::class, 'index'])->name('admin.saran.index');
+        Route::put('/saran/{id}/status', [App\Http\Controllers\Admin\SaranController::class, 'updateStatus'])->name('admin.saran.update-status');
+        Route::delete('/saran/{id}', [App\Http\Controllers\Admin\SaranController::class, 'destroy'])->name('admin.saran.destroy');
+
+        // Galeri
+        Route::resource('galeri', App\Http\Controllers\Admin\GaleriController::class)->names('admin.galeri');
     });
 
     // Kepala Sekolah routes
@@ -242,6 +268,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/jurnal-mengajar/{id}/absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'showAbsensi'])->name('guru.jurnal-mengajar.absensi');
         Route::post('/jurnal-mengajar/{id}/update-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateAbsensi'])->name('guru.jurnal-mengajar.update-absensi');
         Route::post('/jurnal-mengajar/{id}/update-jurnal-absensi', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'updateJurnalAbsensi'])->name('guru.jurnal-mengajar.update-jurnal-absensi');
+        Route::get('/jurnal-mengajar/print', [App\Http\Controllers\Guru\JurnalMengajarController::class, 'print'])->name('guru.jurnal-mengajar.print');
+
+        // Materi Pelajaran
+        Route::resource('materi', App\Http\Controllers\Guru\MateriPelajaranController::class)->names('guru.materi')->except(['edit', 'update', 'show']);
 
         // Tugas Guru routes
         Route::get('/tugas-guru', [App\Http\Controllers\Guru\TugasGuruController::class, 'index'])->name('guru.tugas-guru.index');
@@ -270,9 +300,17 @@ Route::middleware(['auth'])->group(function () {
 
         // Jadwal Pelajaran routes
         Route::get('/jadwal-pelajaran', [App\Http\Controllers\Siswa\JadwalPelajaranController::class, 'index'])->name('siswa.jadwal-pelajaran.index');
+
+        // Materi Pelajaran
+        Route::get('/materi', [App\Http\Controllers\Siswa\MateriPelajaranController::class, 'index'])->name('siswa.materi.index');
+        Route::get('/materi/{id}', [App\Http\Controllers\Siswa\MateriPelajaranController::class, 'show'])->name('siswa.materi.show');
+
+        // Absensi Mapel
+        Route::get('/absensi-mapel', [App\Http\Controllers\Siswa\AbsensiMapelController::class, 'index'])->name('siswa.absensi-mapel.index');
     });
 
     Route::prefix('/')->middleware('role:all')->group(function () {
+        Route::get('/kegiatan-kokurikuler', [App\Http\Controllers\KegiatanKokurikulerController::class, 'index'])->name('kegiatan-kokurikuler.index');
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/data', [App\Http\Controllers\ProfileController::class, 'getUserData'])->name('profile.data');
         Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
