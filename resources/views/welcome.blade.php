@@ -100,8 +100,8 @@
     <!-- Prestasi Section -->
     <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-warning border-start border-4 border-warning ps-3">Prestasi Siswa</h3>
-            <a href="{{ route('guest.prestasi.index') }}" class="btn btn-outline-warning btn-sm rounded-pill text-dark">Lihat Semua <i class="fas fa-arrow-right ms-1"></i></a>
+            <h3 class="fw-bold text-primary border-start border-4 border-primary ps-3">Prestasi Siswa</h3>
+            <a href="{{ route('guest.prestasi.index') }}" class="btn btn-outline-primary btn-sm rounded-pill text-dark">Lihat Semua <i class="fas fa-arrow-right ms-1"></i></a>
         </div>
         <div class="row">
             @forelse($prestasis as $prestasi)
@@ -150,7 +150,7 @@
 
     <!-- Kotak Saran -->
     <section>
-        <div class="card border-0 shadow-sm bg-primary text-white">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);">
             <div class="card-body p-5 text-center">
                 <h3 class="fw-bold mb-3">Punya Saran atau Masukan?</h3>
                 <p class="mb-4 text-white-50">Kami sangat menghargai setiap masukan untuk kemajuan sekolah kami.</p>
