@@ -91,13 +91,13 @@
                     </li>
                     @auth
                         <li class="nav-item ms-lg-3">
-                            <a href="{{ url('/home') }}" class="btn btn-light btn-sm mt-2 mt-lg-0 rounded-pill px-3">
+                            <a href="{{ url('/home') }}" class="btn btn-light btn-sm mt-2 px-3">
                                 Dashboard
                             </a>
                         </li>
                     @else
                         <li class="nav-item ms-lg-3">
-                            <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm mt-2 mt-lg-0 rounded-pill px-3">
+                            <a href="{{ route('login') }}" class="btn btn-light btn-sm mt-2 px-3">
                                 Masuk
                             </a>
                         </li>
