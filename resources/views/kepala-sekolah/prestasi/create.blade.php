@@ -6,14 +6,14 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Tambah Prestasi</h1>
-        <a href="{{ route('admin.prestasi.index') }}" class="btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('kepala-sekolah.prestasi.index') }}" class="btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
         </a>
     </div>
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('admin.prestasi.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('kepala-sekolah.prestasi.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
                     <label for="judul" class="form-label">Judul Prestasi</label>

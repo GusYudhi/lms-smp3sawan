@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Berita Sekolah</h1>
-        <a href="{{ route('admin.berita.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <a href="{{ route('kepala-sekolah.berita.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Berita
         </a>
     </div>
@@ -45,12 +45,12 @@
                             </td>
                             <td>{{ $item->judul }}</td>
                             <td>{{ $item->tanggal->format('d M Y') }}</td>
-                            <td>{{ $item->penulis->name ?? 'Admin' }}</td>
+                            <td>{{ $item->penulis->name ?? 'kepala-sekolah' }}</td>
                             <td>
-                                <a href="{{ route('admin.berita.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('kepala-sekolah.berita.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('admin.berita.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?');">
+                                <form action="{{ route('kepala-sekolah.berita.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">

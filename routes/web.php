@@ -43,6 +43,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin,kepala_sekolah')->group(function () {
         Route::get('/data-sekolah/edit', [App\Http\Controllers\SchoolController::class, 'edit'])->name('school.edit');
         Route::put('/data-sekolah/update', [App\Http\Controllers\SchoolController::class, 'update'])->name('school.update');
+
     });
 
     // Admin routes
@@ -227,6 +228,23 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'deleteFile'])->name('kepala-sekolah.tugas-guru.delete-file');
         Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'showSubmission'])->name('kepala-sekolah.tugas-guru.show-submission');
         Route::put('/tugas-guru/submission/{id}/feedback', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'updateFeedback'])->name('kepala-sekolah.tugas-guru.update-feedback');
+
+        // Kegiatan Kokurikuler
+        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\KepalaSekolah\KegiatanKokurikulerController::class)->names('kepala-sekolah.kegiatan-kokurikuler');
+
+        // Prestasi
+        Route::resource('prestasi', App\Http\Controllers\KepalaSekolah\PrestasiController::class)->names('kepala-sekolah.prestasi');
+
+        // Berita
+        Route::resource('berita', App\Http\Controllers\KepalaSekolah\BeritaController::class)->names('kepala-sekolah.berita');
+
+        // Saran
+        Route::get('/saran', [App\Http\Controllers\KepalaSekolah\SaranController::class, 'index'])->name('kepala-sekolah.saran.index');
+        Route::put('/saran/{id}/status', [App\Http\Controllers\KepalaSekolah\SaranController::class, 'updateStatus'])->name('kepala-sekolah.saran.update-status');
+        Route::delete('/saran/{id}', [App\Http\Controllers\KepalaSekolah\SaranController::class, 'destroy'])->name('kepala-sekolah.saran.destroy');
+
+        // Galeri
+        Route::resource('galeri', App\Http\Controllers\KepalaSekolah\GaleriController::class)->names('kepala-sekolah.galeri');
     });
 
     // Guru routes

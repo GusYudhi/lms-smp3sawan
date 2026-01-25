@@ -47,7 +47,7 @@
                             </td>
                             <td>
                                 @if($item->status == 'belum_dibaca')
-                                <form action="{{ route('admin.saran.update-status', $item->id) }}" method="POST" class="d-inline">
+                                <form action="{{ route('kepala-sekolah.saran.update-status', $item->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('PUT')
                                     <button type="submit" class="btn btn-info btn-sm" title="Tandai Sudah Dibaca">
@@ -55,7 +55,7 @@
                                     </button>
                                 </form>
                                 @endif
-                                <form action="{{ route('admin.saran.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus saran ini?');">
+                                <form action="{{ route('kepala-sekolah.saran.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus saran ini?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">

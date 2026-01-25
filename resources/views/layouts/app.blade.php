@@ -6,6 +6,8 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Visi: Terwujud Lulusan yang Unggul dalam Prestasi, Berkarakter, dan Berwawasan lingkungan">
+
 
     <title>{{ config('app.name', 'SMP N 3 SAWAN') }}</title>
 
@@ -134,7 +136,7 @@
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-brand text-center">
                     <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
-                    <span class="text-white fw-bold">SMPN 3 SAWAN</span>
+                    <span class="text-white fw-bold">SMP NEGERI 3 SAWAN</span>
                 </div>
 
                 <div class="position-sticky pt-3">
@@ -267,27 +269,27 @@
 
                             <!-- Manajemen Konten -->
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('admin.kegiatan-kokurikuler.index') }}">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kepala-sekolah.kegiatan-kokurikuler') ? 'active' : '' }}" href="{{ route('kepala-sekolah.kegiatan-kokurikuler.index') }}">
                                     <i class="fas fa-running me-2"></i> Kokurikuler
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.prestasi') ? 'active' : '' }}" href="{{ route('admin.prestasi.index') }}">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kepala-sekolah.prestasi') ? 'active' : '' }}" href="{{ route('kepala-sekolah.prestasi.index') }}">
                                     <i class="fas fa-trophy me-2"></i> Prestasi
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.berita') ? 'active' : '' }}" href="{{ route('admin.berita.index') }}">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kepala-sekolah.berita') ? 'active' : '' }}" href="{{ route('kepala-sekolah.berita.index') }}">
                                     <i class="fas fa-newspaper me-2"></i> Berita
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.galeri') ? 'active' : '' }}" href="{{ route('admin.galeri.index') }}">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kepala-sekolah.galeri') ? 'active' : '' }}" href="{{ route('kepala-sekolah.galeri.index') }}">
                                     <i class="fas fa-images me-2"></i> Galeri Sekolah
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.saran') ? 'active' : '' }}" href="{{ route('admin.saran.index') }}">
+                                <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'kepala-sekolah.saran') ? 'active' : '' }}" href="{{ route('kepala-sekolah.saran.index') }}">
                                     <i class="fas fa-envelope me-2"></i> Kotak Saran
                                 </a>
                             </li>
