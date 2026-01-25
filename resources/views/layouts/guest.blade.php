@@ -134,13 +134,16 @@
                 <div class="col-md-4">
                     <h5 class="mb-3">Hubungi Kami</h5>
                     <p class="small text-white-50 mb-1">
-                        <i class="fas fa-map-marker-alt me-2"></i> Jl. Raya Sawan No. 123, Buleleng
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        {{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}
                     </p>
                     <p class="small text-white-50 mb-1">
-                        <i class="fas fa-phone me-2"></i> (0362) 123456
+                        <i class="fas fa-phone me-2"></i>
+                        {{ $schoolData['telepon'] ?? '085850190190' }}
                     </p>
                     <p class="small text-white-50">
-                        <i class="fas fa-envelope me-2"></i> info@smpn3sawan.sch.id
+                        <i class="fas fa-envelope me-2"></i>
+                        {{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}
                     </p>
                 </div>
             </div>

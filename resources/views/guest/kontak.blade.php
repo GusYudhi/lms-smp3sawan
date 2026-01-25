@@ -24,7 +24,7 @@
                         </div>
                         <div class="ms-3">
                             <h6 class="fw-bold mb-1">Alamat</h6>
-                            <p class="text-muted mb-0">{{ $schoolData['alamat'] ?? 'Jl. Raya Sawan No. 123, Buleleng' }}</p>
+                            <p class="text-muted mb-0">{{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}</p>
                         </div>
                     </div>
 
@@ -36,7 +36,7 @@
                         </div>
                         <div class="ms-3">
                             <h6 class="fw-bold mb-1">Telepon</h6>
-                            <p class="text-muted mb-0">{{ $schoolData['telepon'] ?? '(0362) 123456' }}</p>
+                            <p class="text-muted mb-0">{{ $schoolData['telepon'] ?? '085850190190' }}</p>
                         </div>
                     </div>
 

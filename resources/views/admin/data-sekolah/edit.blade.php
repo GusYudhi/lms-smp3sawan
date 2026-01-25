@@ -331,7 +331,7 @@
                                            class="form-control @error('email') is-invalid @enderror"
                                            value="{{ old('email', $schoolData['email'] ?? '') }}"
                                            required
-                                           placeholder="Contoh: info@smpn3sawan.sch.id">
+                                           placeholder="Contoh: admin@smpn3sawan.sch.id">
                                     @error('email')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

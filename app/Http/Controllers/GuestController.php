@@ -30,9 +30,9 @@ class GuestController extends Controller
                     'Menciptakan lingkungan belajar yang kondusif dan menyenangkan',
                     'Meningkatkan profesionalisme tenaga pendidik dan kependidikan'
                 ],
-                'alamat' => 'Jl. Raya Sawan No. 123, Sawan, Buleleng, Bali',
-                'telepon' => '(0362) 123456',
-                'email' => 'info@smpn3sawan.sch.id',
+                'alamat' => 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171',
+                'telepon' => '085850190190',
+                'email' => 'admin@smpn3sawan.sch.id',
                 'website' => 'www.smpn3sawan.sch.id',
                 'maps_latitude' => -8.1234567,
                 'maps_longitude' => 115.1234567,

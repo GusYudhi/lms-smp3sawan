@@ -27,7 +27,7 @@ class SchoolProfileSeeder extends Seeder
                 ],
                 'alamat' => 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171',
                 'telepon' => '085850190190',
-                'email' => 'info@smpn3sawan.sch.id',
+                'email' => 'admin@smpn3sawan.sch.id',
                 'website' => 'smpn3sawan.sch.id',
                 'maps_latitude' => -8.13332,
                 'maps_longitude' => 115.15519,

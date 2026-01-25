@@ -213,7 +213,7 @@
                                 <div>
                                     <small class="text-subtle fw-medium text-uppercase">Alamat</small>
                                     <div class="text-high-contrast fw-medium">
-                                        {{ $schoolData['alamat'] ?? 'Jl. Raya Sawan No. 123, Sawan, Buleleng, Bali' }}
+                                        {{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}
                                     </div>
                                 </div>
                             </div>
@@ -226,9 +226,9 @@
                                 <div>
                                     <small class="text-subtle fw-medium text-uppercase">Telepon</small>
                                     <div class="text-high-contrast fw-medium">
-                                        <a href="tel:{{ $schoolData['telepon'] ?? '(0362) 123456' }}"
+                                        <a href="tel:{{ $schoolData['telepon'] ?? '085850190190' }}"
                                            class="text-decoration-none text-high-contrast">
-                                            {{ $schoolData['telepon'] ?? '(0362) 123456' }}
+                                            {{ $schoolData['telepon'] ?? '(085850190190' }}
                                         </a>
                                     </div>
                                 </div>
