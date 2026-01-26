@@ -97,7 +97,7 @@
                                         $absensiHarian = $absensiPagi->get($siswa->user_id);
                                         $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
                                         // Default: hadir jika absen pagi hadir/terlambat, alpa jika tidak
-                                        $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'alpa';
+                                        $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'hadir';
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>

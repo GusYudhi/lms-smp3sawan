@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
+use illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        Paginator::useBootstrapFive();
         // Add custom HEIC/HEIF mime types for validation
         Validator::extendImplicit('heic_image', function ($attribute, $value, $parameters, $validator) {
             if (!$value instanceof \Illuminate\Http\UploadedFile) {
