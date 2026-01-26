@@ -23,6 +23,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.kelas.*') ? 'active' : '' }}" href="{{ route('admin.kelas.index') }}">
+                        <i class="fas fa-school me-2"></i> Data Kelas
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.tahun-pelajaran.*') || request()->routeIs('admin.semester.*') ? 'active' : '' }}" href="{{ route('admin.tahun-pelajaran.index') }}">
                         <i class="fas fa-calendar-alt me-2"></i> Tahun Pelajaran
                     </a>

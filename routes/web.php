@@ -124,6 +124,14 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'admin.mapel.destroy',
         ])->except(['create', 'edit', 'show']);
 
+        // Data Kelas routes
+        Route::resource('kelas', App\Http\Controllers\Admin\KelasController::class)->names([
+            'index' => 'admin.kelas.index',
+            'store' => 'admin.kelas.store',
+            'update' => 'admin.kelas.update',
+            'destroy' => 'admin.kelas.destroy',
+        ])->except(['create', 'edit', 'show']);
+
         // Jam Pelajaran routes
         Route::resource('jam-pelajaran', App\Http\Controllers\Admin\JamPelajaranController::class)->names([
             'index' => 'admin.jam-pelajaran.index',

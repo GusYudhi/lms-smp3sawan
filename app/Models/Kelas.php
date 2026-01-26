@@ -29,6 +29,14 @@ class Kelas extends Model
         return $this->hasMany(JadwalPelajaran::class);
     }
 
+    /**
+     * Relationship: Kelas has one Wali Kelas (Guru)
+     */
+    public function waliKelas()
+    {
+        return $this->hasOne(GuruProfile::class, 'kelas_id');
+    }
+
     public function students()
     {
         return $this->hasMany(StudentProfile::class, 'kelas_id');
