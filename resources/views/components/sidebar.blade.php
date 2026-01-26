@@ -34,12 +34,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.absensi.*') ? 'active' : '' }}" href="{{ route('admin.absensi.index') }}">
-                        <i class="fas fa-clipboard-check me-2"></i> Data Absensi
+                        <i class="fas fa-clipboard-check me-2"></i> Data Absensi QR Code Siswa
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('rekap-jurnal.*') ? 'active' : '' }}" href="{{ route('rekap-jurnal.index') }}">
-                        <i class="fas fa-book-open me-2"></i> Rekap Jurnal
+                        <i class="fas fa-book-open me-2"></i> Rekap Jurnal & Absensi
                     </a>
                 </li>
                 <li class="nav-item">
@@ -102,8 +102,15 @@
 
                 <!-- Data Absensi -->
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('kepala-sekolah.absensi.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.absensi.index') }}">
+                    <a class="nav-link {{ str_contains(Route::currentRouteName(), 'kepala-sekolah.absensi') ? 'active' : '' }}" href="{{ route('kepala-sekolah.absensi.index') }}">
                         <i class="fas fa-clipboard-check me-2"></i> Data Absensi
+                    </a>
+                </li>
+
+                <!-- Rekap Jurnal & Absensi -->
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('rekap-jurnal.*') ? 'active' : '' }}" href="{{ route('rekap-jurnal.index') }}">
+                        <i class="fas fa-book-open me-2"></i> Rekap Jurnal & Absensi
                     </a>
                 </li>
 
@@ -189,6 +196,11 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('guru.rekap-absensi.siswa*') ? 'active' : '' }}" href="{{ route('guru.rekap-absensi.siswa') }}">
                         <i class="fas fa-clipboard-check me-2"></i> Rekap Absensi Siswa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('rekap-jurnal.*') ? 'active' : '' }}" href="{{ route('rekap-jurnal.index') }}">
+                        <i class="fas fa-book-open me-2"></i> Rekap Jurnal & Absensi
                     </a>
                 </li>
                 <li class="nav-item">

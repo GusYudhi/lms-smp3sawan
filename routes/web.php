@@ -46,6 +46,11 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+    // Shared routes for multiple roles
+    Route::middleware('role:admin,guru,kepala_sekolah')->group(function () {
+        Route::get('/rekap-jurnal', [App\Http\Controllers\Admin\RekapJurnalController::class, 'index'])->name('rekap-jurnal.index');
+    });
+
     // Admin routes
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/', function() {
@@ -149,7 +154,6 @@ Route::middleware(['auth'])->group(function () {
 
         // Rekap Absensi routes
         Route::get('/absensi', function () { return view('admin.absensi.index'); })->name('admin.absensi.index');
-        Route::get('/rekap-jurnal', [App\Http\Controllers\RekapJurnalController::class, 'index'])->name('rekap-jurnal.index');
         Route::get('/absensi/siswa', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexSiswa'])->name('admin.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailSiswa'])->name('admin.absensi.siswa.detail');
         Route::get('/absensi/siswa/{id}/monthly', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'monthlySiswa'])->name('admin.absensi.siswa.monthly');

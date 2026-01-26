@@ -66,7 +66,13 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-chart-pie me-2"></i>Ringkasan Kehadiran
                     </h5>
-                    <small class="text-muted">{{ $dateRange['label'] }}</small>
+                    <small class="text-muted">
+                        @if($absensi->count() > 0)
+                            Bulan: {{ \Carbon\Carbon::parse($absensi->first()->tanggal)->locale('id')->isoFormat('MMMM Y') }}
+                        @else
+                            {{ $dateRange['label'] }}
+                        @endif
+                    </small>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">

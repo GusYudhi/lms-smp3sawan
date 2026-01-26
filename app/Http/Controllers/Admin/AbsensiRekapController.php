@@ -71,7 +71,14 @@ class AbsensiRekapController extends Controller
             ->orderBy('date', 'desc')
             ->paginate(20);
 
-        // Get summary
+        // Calculate stats based on the paginated date range
+        // If pagination has data, use the first and last date of the page to define range
+        // BUT user asked for "MONTHLY" summary based on pagination.
+        // Pagination breaks months apart sometimes.
+        // The instruction says: "ringkasan kehadiran yang ditampilkan dalam rentang waktu 1 bulan (bulan yang tampil sesuai dengan bulan yang tampil di bagian bawah yaitu di bagian pagination Riwayat absensi"
+        // This implies the user wants the summary to reflect the month of the data currently being viewed.
+        // Let's take the month/year from the first record of the pagination (or current if empty)
+        
         $summary = [
             'hadir' => 0,
             'sakit' => 0,
@@ -80,15 +87,23 @@ class AbsensiRekapController extends Controller
             'terlambat' => 0,
         ];
 
-        $summaryData = Attendance::where('user_id', $userId)
-            ->whereBetween('date', [$dateRange['start'], $dateRange['end']])
-            ->select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        if ($absensi->count() > 0) {
+            // Get month and year from the first record displayed
+            $firstRecord = $absensi->first();
+            $currentMonth = $firstRecord->date->month;
+            $currentYear = $firstRecord->date->year;
 
-        foreach ($summaryData as $status => $total) {
-            $summary[$status] = $total;
+            $summaryData = Attendance::where('user_id', $userId)
+                ->whereMonth('date', $currentMonth)
+                ->whereYear('date', $currentYear)
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            foreach ($summaryData as $status => $total) {
+                $summary[$status] = $total;
+            }
         }
 
         // Calculate percentage
@@ -194,7 +209,7 @@ class AbsensiRekapController extends Controller
             ->orderBy('tanggal', 'desc')
             ->paginate(20);
 
-        // Get summary
+        // Get summary based on the month of the displayed records
         $summary = [
             'hadir' => 0,
             'sakit' => 0,
@@ -203,15 +218,23 @@ class AbsensiRekapController extends Controller
             'terlambat' => 0,
         ];
 
-        $summaryData = GuruAttendance::where('user_id', $userId)
-            ->whereBetween('tanggal', [$dateRange['start'], $dateRange['end']])
-            ->select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        if ($absensi->count() > 0) {
+            // Get month and year from the first record displayed
+            $firstRecord = $absensi->first();
+            $currentMonth = $firstRecord->tanggal->month;
+            $currentYear = $firstRecord->tanggal->year;
 
-        foreach ($summaryData as $status => $total) {
-            $summary[$status] = $total;
+            $summaryData = GuruAttendance::where('user_id', $userId)
+                ->whereMonth('tanggal', $currentMonth)
+                ->whereYear('tanggal', $currentYear)
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            foreach ($summaryData as $status => $total) {
+                $summary[$status] = $total;
+            }
         }
 
         // Calculate percentage
