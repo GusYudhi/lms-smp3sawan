@@ -618,7 +618,7 @@ async function confirmAttendance() {
 
     // Prepare form data
     const formData = new FormData();
-    formData.append('photo', capturedPhoto, 'selfie.jpg');
+    formData.append('photo', capturedPhoto, 'selfie.webp');
     formData.append('latitude', currentLocation.latitude);
     formData.append('longitude', currentLocation.longitude);
     formData.append('accuracy', currentLocation.accuracy);

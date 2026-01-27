@@ -248,7 +248,7 @@
         .then(data => {
             if (data.success) {
                 displayCalendar(year, month, data.data);
-                
+
                 // Update Summary Stats
                 document.getElementById('summary-month-label').textContent = 'Bulan: ' + data.month_name;
                 document.getElementById('summary-hadir').textContent = data.summary.hadir;
