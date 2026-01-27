@@ -424,16 +424,9 @@
                                                 <span class="input-group-text">
                                                     <i class="fas fa-award text-muted"></i>
                                                 </span>
-                                                <select class="form-select" id="golongan" name="golongan">
-                                                    <option value="">Pilih Golongan</option>
-                                                    @php
-                                                        $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e'];
-                                                        $currentGolongan = old('golongan', $profile->golongan ?? '');
-                                                    @endphp
-                                                    @foreach($golongans as $gol)
-                                                        <option value="{{ $gol }}" {{ $currentGolongan == $gol ? 'selected' : '' }}>{{ $gol }}</option>
-                                                    @endforeach
-                                                </select>
+                                                <input type="text" id="golongan" name="golongan" 
+                                                       class="form-control" placeholder="Contoh: III/a"
+                                                       value="{{ old('golongan', $profile->golongan ?? '') }}">
                                             </div>
                                         </div>
                                     </div>

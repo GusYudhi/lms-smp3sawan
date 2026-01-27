@@ -271,17 +271,8 @@
 
                                 <div class="col-md-6">
                                     <label for="golongan" class="form-label fw-medium">Golongan</label>
-                                    <select class="form-select @error('golongan') is-invalid @enderror"
-                                            id="golongan" name="golongan">
-                                        <option value="">Pilih Golongan</option>
-                                        @php
-                                            $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e'];
-                                            $currentGolongan = old('golongan', $teacher->guruProfile->golongan ?? '');
-                                        @endphp
-                                        @foreach($golongans as $gol)
-                                            <option value="{{ $gol }}" {{ $currentGolongan == $gol ? 'selected' : '' }}>{{ $gol }}</option>
-                                        @endforeach
-                                    </select>
+                                    <input type="text" class="form-control @error('golongan') is-invalid @enderror"
+                                           id="golongan" name="golongan" value="{{ old('golongan', $teacher->guruProfile->golongan ?? '') }}" placeholder="Contoh: III/a">
                                     <div class="form-text">Kosongkan jika Honorer</div>
                                     @error('golongan')
                                         <div class="invalid-feedback">{{ $message }}</div>
