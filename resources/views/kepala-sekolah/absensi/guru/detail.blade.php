@@ -66,49 +66,51 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-chart-pie me-2"></i>Ringkasan Kehadiran
                     </h5>
-                    <small class="text-muted">{{ $dateRange['label'] }}</small>
+                    <small class="text-muted" id="summary-month-label">
+                        Bulan: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM Y') }}
+                    </small>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-light">
                                 <i class="fas fa-check-circle text-success fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $summary['hadir'] }}</h3>
+                                <h3 class="mb-1" id="summary-hadir">{{ $summary['hadir'] }}</h3>
                                 <p class="text-muted mb-0 small">Hadir</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-light">
                                 <i class="fas fa-procedures text-warning fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $summary['sakit'] }}</h3>
+                                <h3 class="mb-1" id="summary-sakit">{{ $summary['sakit'] }}</h3>
                                 <p class="text-muted mb-0 small">Sakit</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-light">
                                 <i class="fas fa-file-alt text-info fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $summary['izin'] }}</h3>
+                                <h3 class="mb-1" id="summary-izin">{{ $summary['izin'] }}</h3>
                                 <p class="text-muted mb-0 small">Izin</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-light">
                                 <i class="fas fa-times-circle text-danger fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $summary['alpha'] }}</h3>
+                                <h3 class="mb-1" id="summary-alpha">{{ $summary['alpha'] }}</h3>
                                 <p class="text-muted mb-0 small">Alpha</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-light">
                                 <i class="fas fa-clock text-secondary fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $summary['terlambat'] }}</h3>
+                                <h3 class="mb-1" id="summary-terlambat">{{ $summary['terlambat'] }}</h3>
                                 <p class="text-muted mb-0 small">Terlambat</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="border rounded p-3 text-center bg-primary text-white">
                                 <i class="fas fa-percentage fs-2 mb-2"></i>
-                                <h3 class="mb-1">{{ $persentaseHadir }}%</h3>
+                                <h3 class="mb-1" id="summary-persentase">{{ $persentaseHadir }}%</h3>
                                 <p class="mb-0 small">Persentase Hadir</p>
                             </div>
                         </div>
@@ -259,6 +261,15 @@
             console.log('Monthly data:', data);
             if (data.success) {
                 displayCalendar(year, month, data.data);
+                
+                // Update Summary Stats
+                document.getElementById('summary-month-label').textContent = 'Bulan: ' + data.month_name;
+                document.getElementById('summary-hadir').textContent = data.summary.hadir;
+                document.getElementById('summary-sakit').textContent = data.summary.sakit;
+                document.getElementById('summary-izin').textContent = data.summary.izin;
+                document.getElementById('summary-alpha').textContent = data.summary.alpha;
+                document.getElementById('summary-terlambat').textContent = data.summary.terlambat;
+                document.getElementById('summary-persentase').textContent = data.persentase_hadir + '%';
             } else {
                 throw new Error(data.message || 'Gagal memuat data');
             }

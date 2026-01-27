@@ -281,6 +281,7 @@ Route::middleware(['auth'])->group(function () {
         // Student Attendance Recap routes for Guru
         Route::get('/rekap-absensi-siswa', [App\Http\Controllers\Guru\AbsensiRekapController::class, 'indexSiswa'])->name('guru.rekap-absensi.siswa');
         Route::get('/rekap-absensi-siswa/{id}', [App\Http\Controllers\Guru\AbsensiRekapController::class, 'detailSiswa'])->name('guru.rekap-absensi.siswa.detail');
+        Route::get('/rekap-absensi-siswa/{id}/monthly', [App\Http\Controllers\Guru\AbsensiRekapController::class, 'monthlySiswa'])->name('guru.rekap-absensi.siswa.monthly');
 
         // Teaching Schedule routes
         Route::get('/jadwal-mengajar', [App\Http\Controllers\Guru\JadwalMengajarController::class, 'index'])->name('guru.jadwal-mengajar');

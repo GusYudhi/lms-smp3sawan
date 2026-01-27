@@ -192,6 +192,75 @@ class AbsensiRekapController extends Controller
     }
 
     /**
+     * Get monthly attendance data for student calendar view (Guru)
+     */
+    public function monthlySiswa($userId, Request $request)
+    {
+        try {
+            $year = $request->input('year', date('Y'));
+            $month = $request->input('month', date('m'));
+
+            // Get first and last day of the month
+            $firstDay = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $lastDay = $firstDay->copy()->endOfMonth();
+
+            // Get all attendance records for this month
+            $attendances = Attendance::where('user_id', $userId)
+                ->whereBetween('date', [$firstDay, $lastDay])
+                ->get();
+
+            // Map attendance by date
+            $attendanceByDate = [];
+            foreach ($attendances as $attendance) {
+                $date = $attendance->date->format('Y-m-d');
+                $attendanceByDate[$date] = [
+                    'status' => $attendance->status,
+                    'status_label' => ucfirst($attendance->status),
+                    'waktu' => $attendance->time ? $attendance->time->format('H:i') : null,
+                    'notes' => $attendance->notes
+                ];
+            }
+
+            // Calculate summary for this month
+            $summary = [
+                'hadir' => 0,
+                'sakit' => 0,
+                'izin' => 0,
+                'alpha' => 0,
+                'terlambat' => 0,
+            ];
+
+            $summaryData = Attendance::where('user_id', $userId)
+                ->whereBetween('date', [$firstDay, $lastDay])
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            foreach ($summaryData as $status => $total) {
+                $summary[$status] = $total;
+            }
+
+            $totalAbsensi = array_sum($summary);
+            $persentaseHadir = $totalAbsensi > 0 ? round(($summary['hadir'] / $totalAbsensi) * 100, 1) : 0;
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendanceByDate,
+                'summary' => $summary,
+                'persentase_hadir' => $persentaseHadir,
+                'month_name' => $firstDay->locale('id')->isoFormat('MMMM Y')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Helper function to get date range based on filter
      */
     private function getDateRange($filter, $customStart = null, $customEnd = null)

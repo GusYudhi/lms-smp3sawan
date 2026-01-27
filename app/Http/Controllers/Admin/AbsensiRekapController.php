@@ -152,9 +152,35 @@ class AbsensiRekapController extends Controller
                 ];
             }
 
+            // Calculate summary for this month
+            $summary = [
+                'hadir' => 0,
+                'sakit' => 0,
+                'izin' => 0,
+                'alpha' => 0,
+                'terlambat' => 0,
+            ];
+
+            $summaryData = Attendance::where('user_id', $userId)
+                ->whereBetween('date', [$firstDay, $lastDay])
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            foreach ($summaryData as $status => $total) {
+                $summary[$status] = $total;
+            }
+
+            $totalAbsensi = array_sum($summary);
+            $persentaseHadir = $totalAbsensi > 0 ? round(($summary['hadir'] / $totalAbsensi) * 100, 1) : 0;
+
             return response()->json([
                 'success' => true,
-                'data' => $attendanceByDate
+                'data' => $attendanceByDate,
+                'summary' => $summary,
+                'persentase_hadir' => $persentaseHadir,
+                'month_name' => $firstDay->locale('id')->isoFormat('MMMM Y')
             ]);
 
         } catch (\Exception $e) {
@@ -283,9 +309,35 @@ class AbsensiRekapController extends Controller
                 ];
             }
 
+            // Calculate summary for this month
+            $summary = [
+                'hadir' => 0,
+                'sakit' => 0,
+                'izin' => 0,
+                'alpha' => 0,
+                'terlambat' => 0,
+            ];
+
+            $summaryData = GuruAttendance::where('user_id', $userId)
+                ->whereBetween('tanggal', [$firstDay, $lastDay])
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            foreach ($summaryData as $status => $total) {
+                $summary[$status] = $total;
+            }
+
+            $totalAbsensi = array_sum($summary);
+            $persentaseHadir = $totalAbsensi > 0 ? round(($summary['hadir'] / $totalAbsensi) * 100, 1) : 0;
+
             return response()->json([
                 'success' => true,
-                'data' => $attendanceByDate
+                'data' => $attendanceByDate,
+                'summary' => $summary,
+                'persentase_hadir' => $persentaseHadir,
+                'month_name' => $firstDay->locale('id')->isoFormat('MMMM Y')
             ]);
 
         } catch (\Exception $e) {
