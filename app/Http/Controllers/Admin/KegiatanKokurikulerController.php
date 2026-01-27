@@ -12,12 +12,14 @@ class KegiatanKokurikulerController extends Controller
     public function index()
     {
         $kegiatans = KegiatanKokurikuler::latest()->get();
-        return view('admin.kegiatan-kokurikuler.index', compact('kegiatans'));
+        $viewPrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return view($viewPrefix . '.kegiatan-kokurikuler.index', compact('kegiatans'));
     }
 
     public function create()
     {
-        return view('admin.kegiatan-kokurikuler.create');
+        $viewPrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return view($viewPrefix . '.kegiatan-kokurikuler.create');
     }
 
     public function store(Request $request)
@@ -25,7 +27,9 @@ class KegiatanKokurikulerController extends Controller
         $request->validate([
             'nama' => 'required',
             'deskripsi' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'tipe' => 'required|in:foto,pdf,link',
+            'foto' => 'nullable|required_if:tipe,foto,pdf|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'link' => 'nullable|required_if:tipe,link|url',
             'tanggal' => 'required|date',
         ]);
 
@@ -33,17 +37,24 @@ class KegiatanKokurikulerController extends Controller
 
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('kegiatan-kokurikuler', 'public');
+        } else {
+            // Jika tipe link, pastikan foto null
+            if ($request->tipe == 'link') {
+                $data['foto'] = null;
+            }
         }
 
         KegiatanKokurikuler::create($data);
 
-        return redirect()->route('admin.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil ditambahkan');
+        $routePrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return redirect()->route($routePrefix . '.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil ditambahkan');
     }
 
     public function edit($id)
     {
         $kegiatan = KegiatanKokurikuler::findOrFail($id);
-        return view('admin.kegiatan-kokurikuler.edit', compact('kegiatan'));
+        $viewPrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return view($viewPrefix . '.kegiatan-kokurikuler.edit', compact('kegiatan'));
     }
 
     public function update(Request $request, $id)
@@ -53,22 +64,42 @@ class KegiatanKokurikulerController extends Controller
         $request->validate([
             'nama' => 'required',
             'deskripsi' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'tipe' => 'required|in:foto,pdf,link',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'link' => 'nullable|required_if:tipe,link|url',
             'tanggal' => 'required|date',
         ]);
 
         $data = $request->all();
 
-        if ($request->hasFile('foto')) {
+        if ($request->tipe == 'link') {
+            // Jika ganti ke link, hapus foto lama jika ada dan set null
             if ($kegiatan->foto) {
                 Storage::disk('public')->delete($kegiatan->foto);
             }
-            $data['foto'] = $request->file('foto')->store('kegiatan-kokurikuler', 'public');
+            $data['foto'] = null;
+        } else {
+            // Jika tipe foto/pdf
+            if ($request->hasFile('foto')) {
+                // Ada upload baru
+                if ($kegiatan->foto) {
+                    Storage::disk('public')->delete($kegiatan->foto);
+                }
+                $data['foto'] = $request->file('foto')->store('kegiatan-kokurikuler', 'public');
+            } else {
+                // Tidak ada upload baru, pertahankan foto lama
+                // Hapus key 'foto' dari data agar tidak terupdate null
+                unset($data['foto']);
+            }
+            
+            // Link harus null jika tipe bukan link
+            $data['link'] = null;
         }
 
         $kegiatan->update($data);
 
-        return redirect()->route('admin.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil diperbarui');
+        $routePrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return redirect()->route($routePrefix . '.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil diperbarui');
     }
 
     public function destroy($id)
@@ -79,6 +110,7 @@ class KegiatanKokurikulerController extends Controller
         }
         $kegiatan->delete();
 
-        return redirect()->route('admin.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil dihapus');
+        $routePrefix = auth()->user()->isGuru() ? 'guru' : (auth()->user()->isKepalaSekolah() ? 'kepala-sekolah' : 'admin');
+        return redirect()->route($routePrefix . '.kegiatan-kokurikuler.index')->with('success', 'Kegiatan berhasil dihapus');
     }
 }

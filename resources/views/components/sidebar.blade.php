@@ -239,6 +239,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('guru.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('guru.kegiatan-kokurikuler.index') }}">
+                        <i class="fas fa-running me-2"></i> Kegiatan Kokurikuler
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kegiatan-kokurikuler.index') }}">
                         <i class="fas fa-running me-2"></i> Info Kokurikuler
                     </a>

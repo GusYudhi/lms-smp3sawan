@@ -318,6 +318,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/agenda', [App\Http\Controllers\Guru\AgendaGuruController::class, 'store'])->name('guru.agenda.store');
         Route::put('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'update'])->name('guru.agenda.update');
         Route::delete('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'destroy'])->name('guru.agenda.destroy');
+
+        // Kegiatan Kokurikuler
+        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('guru.kegiatan-kokurikuler');
     });
 
     // Siswa routes

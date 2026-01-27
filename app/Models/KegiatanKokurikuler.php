@@ -15,6 +15,8 @@ class KegiatanKokurikuler extends Model
         'nama',
         'deskripsi',
         'foto',
+        'link',
+        'tipe',
         'tanggal',
     ];
 

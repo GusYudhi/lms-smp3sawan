@@ -25,7 +25,9 @@ class KegiatanKokurikulerController extends Controller
         $request->validate([
             'nama' => 'required',
             'deskripsi' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'tipe' => 'required|in:foto,pdf,link',
+            'foto' => 'required_if:tipe,foto,pdf|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'link' => 'required_if:tipe,link|url',
             'tanggal' => 'required|date',
         ]);
 
@@ -53,7 +55,9 @@ class KegiatanKokurikulerController extends Controller
         $request->validate([
             'nama' => 'required',
             'deskripsi' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'tipe' => 'required|in:foto,pdf,link',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'link' => 'required_if:tipe,link|url',
             'tanggal' => 'required|date',
         ]);
 
