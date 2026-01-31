@@ -193,7 +193,9 @@
                             <select class="form-select select2" id="guru_id" name="guru_id" required>
                                 <option value="">Pilih Guru</option>
                                 @foreach($gurus as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }}</option>
+                                    <option value="{{ $g->id }}" data-mapel-id="{{ $g->guruProfile->mata_pelajaran_id ?? '' }}">
+                                        {{ $g->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -242,6 +244,103 @@ $(document).ready(function() {
         dropdownParent: $('#scheduleModal'),
         width: '100%'
     });
+
+    // Auto-focus search input on open
+    $(document).on('select2:open', () => {
+        document.querySelector('.select2-search__field').focus();
+    });
+
+    // Also for Copy Modal (if used)
+    $('#copyModal .form-select').select2({
+        theme: 'bootstrap-5',
+        dropdownParent: $('#copyModal'),
+        width: '100%'
+    });
+
+    // --- Dynamic Dropdown Logic ---
+    const $guruSelect = $('#guru_id');
+    const $mapelSelect = $('#mata_pelajaran_id');
+    
+    // Store original teacher options for filtering
+    let allGuruOptions = [];
+    $guruSelect.find('option').each(function() {
+        if ($(this).val()) { // Skip placeholder
+            allGuruOptions.push({
+                id: $(this).val(),
+                text: $(this).text(),
+                mapelId: $(this).data('mapel-id')
+            });
+        }
+    });
+
+    // 1. When Subject Changes -> Filter Teachers
+    $mapelSelect.on('change', function() {
+        const selectedMapelId = $(this).val();
+        
+        // Save current teacher selection if it matches the new mapel
+        const currentGuruId = $guruSelect.val();
+        
+        // Clear current options (except placeholder)
+        $guruSelect.empty().append('<option value="">Pilih Guru</option>');
+        
+        let foundCurrent = false;
+
+        if (selectedMapelId) {
+            // Filter teachers who teach this subject
+            allGuruOptions.forEach(guru => {
+                // Loose comparison (==) because data attr might be string/int
+                if (guru.mapelId == selectedMapelId) {
+                    const newOption = new Option(guru.text, guru.id, false, false);
+                    $(newOption).attr('data-mapel-id', guru.mapelId);
+                    $guruSelect.append(newOption);
+                    
+                    if (guru.id == currentGuruId) foundCurrent = true;
+                }
+            });
+        } else {
+            // If no subject selected, show all teachers
+            allGuruOptions.forEach(guru => {
+                const newOption = new Option(guru.text, guru.id, false, false);
+                $(newOption).attr('data-mapel-id', guru.mapelId);
+                $guruSelect.append(newOption);
+                if (guru.id == currentGuruId) foundCurrent = true;
+            });
+        }
+
+        // Restore selection if valid, otherwise clear
+        if (foundCurrent) {
+            $guruSelect.val(currentGuruId);
+        } else {
+            $guruSelect.val('');
+        }
+        
+        // Re-trigger Select2 update
+        $guruSelect.trigger('change.select2'); 
+        
+        // Trigger conflict check
+        checkScheduleConflict();
+    });
+
+    // 2. When Teacher Changes -> Auto-select Subject
+    $guruSelect.on('change', function() {
+        const selectedGuruId = $(this).val();
+        
+        // Prevent infinite loop if triggered by script
+        if (!selectedGuruId) return;
+
+        const selectedOption = $(this).find('option:selected');
+        const mapelId = selectedOption.data('mapel-id');
+
+        if (mapelId) {
+            // Check if current mapel is different to avoid unnecessary triggers
+            if ($mapelSelect.val() != mapelId) {
+                $mapelSelect.val(mapelId).trigger('change');
+            }
+        }
+        
+        checkScheduleConflict();
+    });
+    // --- End Dynamic Dropdown Logic ---
 
     // Conflict Detection
     function checkScheduleConflict() {

@@ -28,7 +28,10 @@ class JadwalPelajaranController extends Controller
         }
 
         $kelas = Kelas::all();
-        $gurus = User::where('role', 'guru')->get();
+        $gurus = User::where('role', 'guru')
+            ->with('guruProfile') // Eager load profile to get mata_pelajaran_id
+            ->orderBy('name')
+            ->get();
 
         return view('admin.jadwal-mapel.jadwal', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester'));
     }
