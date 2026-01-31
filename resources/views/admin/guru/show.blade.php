@@ -54,7 +54,13 @@
                                 <div class="col-md-4">
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Mata Pelajaran</span>
-                                        <span class="fw-semibold">{{ $teacher->guruProfile->subjects_string ?? '-' }}</span>
+                                        <div class="mt-1">
+                                            @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
+                                                <span class="badge bg-primary-subtle text-primary border me-1 mb-1">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                                            @else
+                                                <span class="fw-semibold">-</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -172,11 +178,13 @@
                         <div class="col-12">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Mata Pelajaran</span>
-                                @if($teacher->guruProfile && $teacher->guruProfile->subjects_string)
-                                    <span class="badge bg-primary-subtle text-primary border mt-1 align-self-start">{{ $teacher->guruProfile->subjects_string }}</span>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
+                                <div class="mt-1">
+                                    @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
+                                        <span class="badge bg-primary-subtle text-primary border me-1 mb-1">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         <div class="col-12">

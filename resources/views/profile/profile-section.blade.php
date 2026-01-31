@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -443,11 +447,11 @@
                                                 </span>
                                                 <select id="mata_pelajaran"
                                                        name="mata_pelajaran"
-                                                       class="form-select">
-                                                    <option value="">Tidak Ada</option>
+                                                       class="form-select select2">
+                                                    <option value="">Pilih Mata Pelajaran</option>
                                                     @foreach($mataPelajarans as $mapel)
-                                                        <option value="{{ $mapel->nama_mapel }}"
-                                                            {{ (old('mata_pelajaran') == $mapel->nama_mapel || (isset($profile->mata_pelajaran) && (is_array($profile->mata_pelajaran) ? in_array($mapel->nama_mapel, $profile->mata_pelajaran) : $profile->mata_pelajaran == $mapel->nama_mapel))) ? 'selected' : '' }}>
+                                                        <option value="{{ $mapel->id }}"
+                                                            {{ old('mata_pelajaran', $profile->mata_pelajaran_id ?? '') == $mapel->id ? 'selected' : '' }}>
                                                             {{ $mapel->nama_mapel }}
                                                         </option>
                                                     @endforeach
@@ -620,6 +624,18 @@
     </div>
 </div>
 @endif
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Select2
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Pilih Mata Pelajaran'
+        });
+    });
+</script>
 
 <script>
         // Generate QR Code when modal is shown

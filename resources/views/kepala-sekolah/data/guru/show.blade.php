@@ -55,12 +55,8 @@
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Mata Pelajaran</span>
                                         <span class="fw-semibold">
-                                            @if($user->guruProfile && $user->guruProfile->mata_pelajaran)
-                                                @if(is_array($user->guruProfile->mata_pelajaran))
-                                                    {{ implode(', ', $user->guruProfile->mata_pelajaran) }}
-                                                @else
-                                                    {{ $user->guruProfile->mata_pelajaran }}
-                                                @endif
+                                            @if($user->guruProfile && $user->guruProfile->mataPelajaran)
+                                                {{ $user->guruProfile->mataPelajaran->nama_mapel }}
                                             @else
                                                 -
                                             @endif
@@ -188,12 +184,8 @@
                             <td class="text-muted">Mata Pelajaran</td>
                             <td>:</td>
                             <td class="fw-semibold">
-                                @if($user->guruProfile && $user->guruProfile->mata_pelajaran)
-                                    @if(is_array($user->guruProfile->mata_pelajaran))
-                                        {{ implode(', ', $user->guruProfile->mata_pelajaran) }}
-                                    @else
-                                        {{ $user->guruProfile->mata_pelajaran }}
-                                    @endif
+                                @if($user->guruProfile && $user->guruProfile->mataPelajaran)
+                                    {{ $user->guruProfile->mataPelajaran->nama_mapel }}
                                 @else
                                     -
                                 @endif

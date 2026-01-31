@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -196,16 +200,16 @@
 
                                 <div class="col-md-6">
                                     <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran (opsional)</label>
-                                    <select class="form-select @error('mata_pelajaran') is-invalid @enderror"
+                                    <select class="form-select select2 @error('mata_pelajaran') is-invalid @enderror"
                                             id="mata_pelajaran" name="mata_pelajaran">
-                                        <option value="">Tidak Ada</option>
+                                        <option value="">Pilih Mata Pelajaran</option>
                                         @foreach($mataPelajarans as $mapel)
-                                            <option value="{{ $mapel->nama_mapel }}" {{ old('mata_pelajaran') == $mapel->nama_mapel ? 'selected' : '' }}>
+                                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran') == $mapel->id ? 'selected' : '' }}>
                                                 {{ $mapel->nama_mapel }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="form-text">Kosongkan jika Guru BK atau jabatan non-pengajar</div>
+                                    <div class="form-text">Pilih satu mata pelajaran utama</div>
                                     @error('mata_pelajaran')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -291,8 +295,16 @@
     </div>
 @endif
 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Pilih Mata Pelajaran'
+    });
+
     const statusKepegawaian = document.getElementById('status_kepegawaian');
     const golonganField = document.getElementById('golongan');
 

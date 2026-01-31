@@ -81,14 +81,10 @@ class TeachersExport implements FromCollection, WithHeadings, WithMapping, WithS
                 $jenisKelamin = $profile->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
             }
 
-            // Mata Pelajaran adalah array, bukan relasi
+            // Mata Pelajaran (Relation)
             $mataPelajaran = '-';
-            if ($profile && $profile->mata_pelajaran) {
-                if (is_array($profile->mata_pelajaran)) {
-                    $mataPelajaran = implode(', ', $profile->mata_pelajaran);
-                } else {
-                    $mataPelajaran = $profile->mata_pelajaran;
-                }
+            if ($profile && $profile->mataPelajaran) {
+                $mataPelajaran = $profile->mataPelajaran->nama_mapel;
             }
 
             $waliKelas = '-';

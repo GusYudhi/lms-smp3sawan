@@ -46,8 +46,8 @@ class AdminController extends Controller
 
         // Filter by mata pelajaran
         if ($mataPelajaranFilter) {
-            $query->whereHas('guruProfile', function($q) use ($mataPelajaranFilter) {
-                $q->where('mata_pelajaran', 'like', "%{$mataPelajaranFilter}%");
+            $query->whereHas('guruProfile.mataPelajaran', function($q) use ($mataPelajaranFilter) {
+                $q->where('nama_mapel', 'like', "%{$mataPelajaranFilter}%");
             });
         }
 
@@ -93,7 +93,9 @@ class AdminController extends Controller
                   ->orWhere('email', 'LIKE', "%{$search}%")
                   ->orWhereHas('guruProfile', function($sub) use ($search) {
                       $sub->where('nip', 'LIKE', "%{$search}%")
-                          ->orWhere('mata_pelajaran', 'LIKE', "%{$search}%");
+                          ->orWhereHas('mataPelajaran', function($mp) use ($search) {
+                              $mp->where('nama_mapel', 'LIKE', "%{$search}%");
+                          });
                   });
             });
         }
@@ -173,7 +175,7 @@ class AdminController extends Controller
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'golongan' => 'nullable|string|max:10',
                 'jabatan_di_sekolah' => 'required|string|max:100',
-                'mata_pelajaran' => 'nullable|string|max:100',
+                'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'password' => 'required|string|min:8|confirmed',
                 'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
@@ -209,7 +211,7 @@ class AdminController extends Controller
                 'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
                 'golongan' => $validatedData['golongan'],
                 'jabatan_di_sekolah' => $validatedData['jabatan_di_sekolah'] ?? null,
-                'mata_pelajaran' => $validatedData['mata_pelajaran'] ?? null,
+                'mata_pelajaran_id' => $validatedData['mata_pelajaran'] ?? null,
                 'kelas_id' => $validatedData['kelas_id'] ?? null,
                 'foto_profil' => $fotoProfilPath, // Simpan ke guru_profiles.foto_profil
             ];
@@ -369,7 +371,7 @@ class AdminController extends Controller
                 'jenis_kelamin' => 'required|in:L,P',
                 'nomor_telepon' => 'nullable|string|max:20',
                 'jabatan_di_sekolah' => 'nullable|string|max:100',
-                'mata_pelajaran' => 'nullable|string|max:100',
+                'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -427,7 +429,7 @@ class AdminController extends Controller
                     'status_kepegawaian' => $request->input('status_kepegawaian'),
                     'golongan' => $request->input('golongan'),
                     'jabatan_di_sekolah' => $request->input('jabatan_di_sekolah'),
-                    'mata_pelajaran' => $request->input('mata_pelajaran') ? [$request->input('mata_pelajaran')] : null,
+                    'mata_pelajaran_id' => $request->input('mata_pelajaran'),
                     'kelas_id' => $request->input('kelas_id'),
                     'foto_profil' => $photoPath,
                     'password' => $request->filled('password') ? Hash::make($request->input('password')) : ($teacher->guruProfile->password ?? $teacher->password),

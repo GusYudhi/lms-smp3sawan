@@ -20,4 +20,12 @@ class MataPelajaran extends Model
     {
         return $this->belongsTo(Semester::class);
     }
+
+    /**
+     * The teachers that teach this subject.
+     */
+    public function guruProfiles()
+    {
+        return $this->hasMany(GuruProfile::class, 'mata_pelajaran_id');
+    }
 }

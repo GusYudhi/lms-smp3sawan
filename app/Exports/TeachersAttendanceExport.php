@@ -117,20 +117,15 @@ class TeachersAttendanceExport implements FromCollection, WithTitle, WithHeading
             // Get NIP or NIK
             $nipNik = $guruProfile->nip ?? '-';
 
-            // Get mata pelajaran (convert array to string)
-            $mataPelajaran = '';
-            if (is_array($guruProfile->mata_pelajaran)) {
-                $mataPelajaran = implode(', ', $guruProfile->mata_pelajaran);
-            } elseif (is_string($guruProfile->mata_pelajaran)) {
-                $mataPelajaran = $guruProfile->mata_pelajaran;
-            }
+            // Get mata pelajaran (Relation)
+            $mataPelajaran = $guruProfile->mataPelajaran ? $guruProfile->mataPelajaran->nama_mapel : '-';
 
             $row = [
                 $no++,
                 $nipNik,
                 $teacher->name ?? '-',
                 $guruProfile->jenis_kelamin == 'laki-laki' ? 'L' : 'P',
-                $mataPelajaran ?: '-',
+                $mataPelajaran,
             ];
 
             // Add attendance status for each date

@@ -83,10 +83,10 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
             // Normalize status kepegawaian
             $status_kepegawaian = $this->normalizeStatus($status_kepegawaian);
 
-            // Parse mata pelajaran (could be comma-separated)
-            $mata_pelajaran_array = [];
+            // Resolve mata pelajaran ID
+            $mata_pelajaran_id = null;
             if ($mata_pelajaran) {
-                $mata_pelajaran_array = array_map('trim', explode(',', $mata_pelajaran));
+                $mata_pelajaran_id = $this->findMataPelajaranId($mata_pelajaran);
             }
 
             // Determine role based on jabatan
@@ -122,7 +122,7 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
                 'status_kepegawaian' => $status_kepegawaian,
                 'golongan' => $golongan,
                 'jabatan_di_sekolah' => $jabatan_di_sekolah,
-                'mata_pelajaran' => $mata_pelajaran_array,
+                'mata_pelajaran_id' => $mata_pelajaran_id,
                 'kelas_id' => $kelas_id,
             ];
 
@@ -139,6 +139,29 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
             Log::error('Teacher Import Error: ' . $errorMsg);
             return null;
         }
+    }
+
+    /**
+     * Find Mata Pelajaran ID by name
+     */
+    private function findMataPelajaranId($name)
+    {
+        if (empty($name)) {
+            return null;
+        }
+
+        $name = trim($name);
+        
+        // Find subject in database
+        $mapel = \App\Models\MataPelajaran::where('nama_mapel', 'LIKE', $name)
+            ->first();
+
+        if ($mapel) {
+            return $mapel->id;
+        }
+
+        Log::warning("Mata Pelajaran tidak ditemukan: {$name}");
+        return null;
     }
 
     private function generateEmail($name)

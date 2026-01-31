@@ -186,17 +186,13 @@
                                         </div>
                                     </td>
                                     <td>{{ $user->guruProfile->nip ?? '-' }}</td>
-                                    <td>
-                                        @if($user->guruProfile && $user->guruProfile->mata_pelajaran)
-                                            @if(is_array($user->guruProfile->mata_pelajaran))
-                                                {{ implode(', ', $user->guruProfile->mata_pelajaran) }}
-                                            @else
-                                                {{ $user->guruProfile->mata_pelajaran }}
-                                            @endif
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
+                <td class="text-center">
+                    @if($user->guruProfile && $user->guruProfile->mataPelajaran)
+                        <span class="badge bg-primary-subtle text-primary border">{{ $user->guruProfile->mataPelajaran->nama_mapel }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
+                </td>
                                     <td>
                                         @if($user->guruProfile)
                                         <span class="badge

@@ -14,36 +14,46 @@ class GuruProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'nama',
         'nip',
+        'nama', // redundant with user but kept for history
+        'tempat_lahir',
+        'tanggal_lahir',
+        'alamat',
+        'status_kepegawaian',
+        'golongan',
+        'jabatan_di_sekolah',
+        'kelas_id', // wali kelas
+        'mata_pelajaran_id', // Single subject
+        'pendidikan_terakhir',
+        'tahun_mulai_mengajar',
+        'sertifikat',
         'foto_profil',
         'nomor_telepon',
         'email',
         'jenis_kelamin',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'status_kepegawaian',
-        'golongan',
-        'mata_pelajaran',
-        'kelas_id',
-        'jabatan_di_sekolah',
-        'password',
         'is_active',
+        'password'
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'mata_pelajaran' => 'array',
         'is_active' => 'boolean',
-        'password' => 'hashed',
     ];
 
     /**
-     * Get the user that owns the guru profile.
+     * Get the subject taught by the teacher.
      */
-    public function user()
+    public function mataPelajaran()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran_id');
+    }
+
+    /**
+     * Get subjects as a comma-separated string (backward compatibility).
+     */
+    public function getSubjectsStringAttribute()
+    {
+        return $this->mataPelajaran ? $this->mataPelajaran->nama_mapel : '-';
     }
 
     /**
@@ -52,14 +62,6 @@ class GuruProfile extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    /**
-     * Get subjects as comma-separated string
-     */
-    public function getSubjectsStringAttribute()
-    {
-        return is_array($this->mata_pelajaran) ? implode(', ', $this->mata_pelajaran) : '';
     }
 
     /**

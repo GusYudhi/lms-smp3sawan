@@ -116,7 +116,7 @@ class ProfileController extends Controller
                     'tanggal_lahir' => 'nullable|date|before:today',
                     'status_kepegawaian' => 'nullable|string|in:PNS,PPPK,HONORER',
                     'golongan' => 'nullable|string|max:20',
-                    'mata_pelajaran' => 'nullable|string|max:100',
+                    'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                     'kelas_id' => 'nullable|exists:kelas,id',
                     'profile_photo' => 'nullable|file|mimes:jpeg,jpg,png,webp,heic,heif|max:5120', // 5MB
                 ], [
@@ -134,7 +134,6 @@ class ProfileController extends Controller
                     'tanggal_lahir.before' => 'Tanggal lahir harus sebelum hari ini',
                     'status_kepegawaian.in' => 'Status kepegawaian harus PNS, Honor, atau Kontrak',
                     'golongan.max' => 'Golongan maksimal 20 karakter',
-                    'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
                     'kelas_id.exists' => 'Kelas tidak valid',
                 ]);
 
@@ -210,7 +209,7 @@ class ProfileController extends Controller
                         'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
                         'status_kepegawaian' => $validated['status_kepegawaian'] ?? null,
                         'golongan' => $validated['golongan'] ?? null,
-                        'mata_pelajaran' => $validated['mata_pelajaran'] ?? null,
+                        'mata_pelajaran_id' => $validated['mata_pelajaran'] ?? null,
                         'kelas_id' => $validated['kelas_id'] ?? null,
                     ];
 
@@ -219,7 +218,7 @@ class ProfileController extends Controller
                         $profileData['foto_profil'] = $validated['foto_profil'];
                     }
 
-                    $user->guruProfile()->updateOrCreate(
+                    $guruProfile = $user->guruProfile()->updateOrCreate(
                         ['user_id' => $user->id],
                         $profileData
                     );

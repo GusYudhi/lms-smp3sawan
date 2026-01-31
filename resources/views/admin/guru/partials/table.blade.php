@@ -44,7 +44,11 @@
                     @endif
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-primary-subtle text-primary border">{{ $teacher->guruProfile->subjects_string ?? '-' }}</span>
+                    @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
+                        <span class="badge bg-primary-subtle text-primary border">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                    @else
+                        <span class="text-muted fst-italic">-</span>
+                    @endif
                 </td>
                 <td class="text-center">
                     @php $status = $teacher->guruProfile->status_kepegawaian ?? '-'; @endphp

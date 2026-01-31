@@ -34,8 +34,8 @@ class DataViewController extends Controller
         }
 
         if ($mataPelajaranFilter) {
-            $query->whereHas('guruProfile', function($q) use ($mataPelajaranFilter) {
-                $q->where('mata_pelajaran', 'like', "%{$mataPelajaranFilter}%");
+            $query->whereHas('guruProfile.mataPelajaran', function($q) use ($mataPelajaranFilter) {
+                $q->where('nama_mapel', 'like', "%{$mataPelajaranFilter}%");
             });
         }
 

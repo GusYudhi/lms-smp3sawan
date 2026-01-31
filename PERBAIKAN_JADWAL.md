@@ -2,45 +2,30 @@
 
 Tujuannya adalah untuk mempermudah proses input jadwal pelajaran agar lebih cepat dan intuitif.
 
-## 1. Perubahan UI/UX pada Modal Input
+## 1. Perubahan UI/UX pada Modal Input [SELESAI]
 
-Saat ini, modal input masih standar. Kita akan meningkatkannya dengan:
+*   **[Γ£ô] Pencarian Cerdas (Select2):** Mengganti dropdown standar `Mata Pelajaran` dan `Guru Pengampu` dengan dropdown searchable menggunakan Select2 (Bootstrap 5 theme).
+*   **[Γ£ô] Indikator Konflik Jadwal (Real-time):** Sistem mengecek ketersediaan Guru, bentrokan slot Kelas, dan Jadwal Tetap (Upacara/Istirahat) secara real-time via Ajax.
+*   **[Γ£ô] Integrasi SweetAlert2:** Menggunakan standar notifikasi proyek untuk feedback yang lebih modern.
 
-*   **Pencarian Cerdas (Select2/TomSelect):** Mengganti dropdown standar `Mata Pelajaran` dan `Guru Pengampu` dengan dropdown yang bisa dicari (searchable). Ini sangat membantu jika daftarnya panjang.
-*   **Indikator Konflik Jadwal (Real-time):** Saat memilih Guru dan Jam, sistem secara otomatis mengecek apakah guru tersebut sudah mengajar di kelas lain pada jam yang sama. Jika ya, tampilkan peringatan langsung di modal sebelum disubmit.
-*   **Preset Jadwal (Opsional):** Menambahkan opsi untuk menduplikasi jadwal dari hari lain atau kelas lain (fitur lanjutan).
+## 2. Fitur "Drag & Drop" [SELESAI]
 
-## 2. Fitur "Drag & Drop" (Jangka Panjang/Kompleksitas Tinggi)
+*   **[Γ£ô] Interaksi Visual:** Memungkinkan pengguna untuk memindahkan jadwal antar slot waktu atau menukar (swap) jadwal antar guru/mapel hanya dengan menarik (drag) kotak jadwal.
+*   **[Γ£ô] Validasi Backend:** Setiap perpindahan divalidasi ulang untuk memastikan tidak ada konflik di slot tujuan.
 
-*   Memungkinkan pengguna untuk memindahkan jadwal antar slot waktu hanya dengan menarik (drag) kotak jadwal.
-*   Membutuhkan library seperti `FullCalendar` atau implementasi custom JavaScript drag-and-drop.
+## 3. Bulk Action (Input Masal) [DALAM PROSES/IDEP]
 
-## 3. Bulk Action (Input Masal)
+*   **Mode Edit Cepat:** Ide untuk menggunakan popover/inline editor agar tidak perlu membuka modal besar terus-menerus.
+*   **Copy-Paste Jadwal:** (Dibatalkan/Revert karena jadwal antar kelas unik).
 
-*   **Mode Edit Cepat:** Alih-alih membuka modal satu per satu, buat mode di mana pengguna bisa mengklik slot kosong dan langsung memilih mapel+guru dari dropdown kecil (popover) tanpa menutup tampilan grid.
-*   **Copy-Paste Jadwal:** Fitur untuk menyalin jadwal hari Senin ke hari Selasa, dll.
+## 4. Perbaikan Teknis pada `jadwal.blade.php` [SELESAI]
 
-## 4. Perbaikan Teknis pada `jadwal.blade.php`
-
-### A. Update Modal Form
-*   Menambahkan library `Select2` atau sejenisnya untuk dropdown.
-*   Menambahkan AJAX request saat dropdown Guru berubah untuk mengecek ketersediaan.
-
-### B. Validasi Frontend
-*   Pastikan input `jumlah_jam` tidak melebihi sisa slot yang tersedia di hari itu.
-
-## Implementasi Tahap 1 (Fokus Utama)
-
-Kita akan fokus pada **Poin 1 (UI Modal)** dan **Poin 3 (Mode Edit Cepat)** karena ini memberikan dampak paling signifikan dengan usaha yang wajar.
-
-### Rincian Perubahan Kode:
-
-1.  **Include Library Select2:** Tambahkan CSS dan JS Select2 di layout atau stack scripts.
-2.  **Update Modal HTML:** Ubah `<select>` menjadi compatible dengan Select2.
-3.  **AJAX Check:** Tambahkan route baru di backend untuk cek ketersediaan guru (`check-guru-availability`).
-4.  **JavaScript Logic:** Update script untuk handle inisialisasi Select2 dan event listener.
+*   **[Γ£ô] Update Modal Form:** Inisialisasi Select2 dengan `dropdownParent` yang benar.
+*   **[Γ£ô] AJAX Check:** Route khusus `check-schedule-conflict` dan `move-schedule`.
+*   **[Γ£ô] Bypass Global Auto-Dismiss:** Menggunakan utility classes Bootstrap untuk peringatan persisten di modal.
 
 ---
 
-**Status:** Draft Rencana
-**Target File:** `resources/views/admin/jadwal-mapel/jadwal.blade.php`
+**Status:** Tahap 1 & 2 Selesai (UI Modal & Drag-Drop)
+**Target Berikutnya:** Optimasi performa grid atau Mode Edit Cepat (Inline).
+**Last Updated:** Sabtu, 31 Januari 2026

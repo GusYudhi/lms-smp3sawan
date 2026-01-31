@@ -71,7 +71,7 @@ class UserManagementService
             ]);
 
             // Create teacher profile
-            $user->teacherProfile()->create([
+            $user->guruProfile()->create([
                 'nama' => $userData['name'], // Added to guru_profiles
                 'nip' => $profileData['nip'] ?? null,
                 'email' => $userData['email'], // Added to guru_profiles
@@ -85,7 +85,7 @@ class UserManagementService
                 'status_kepegawaian' => $profileData['status_kepegawaian'] ?? null,
                 'jabatan_di_sekolah' => $profileData['jabatan_di_sekolah'] ?? null,
                 'golongan' => $profileData['golongan'] ?? null,
-                'mata_pelajaran' => $profileData['mata_pelajaran'] ?? [],
+                'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                 'kelas_id' => $profileData['kelas_id'] ?? null,
                 'pendidikan_terakhir' => $profileData['pendidikan_terakhir'] ?? null,
                 'tahun_mulai_mengajar' => $profileData['tahun_mulai_mengajar'] ?? null,
@@ -93,7 +93,7 @@ class UserManagementService
                 'is_active' => true,
             ]);
 
-            return $user->load('teacherProfile');
+            return $user->load('guruProfile');
         });
     }
 
@@ -191,7 +191,7 @@ class UserManagementService
             $user->update($userUpdate);
 
             // Update or create teacher profile
-            $user->teacherProfile()->updateOrCreate(
+            $user->guruProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'nip' => $profileData['nip'] ?? null,
@@ -200,7 +200,7 @@ class UserManagementService
                     'alamat' => $profileData['alamat'] ?? null,
                     'status_kepegawaian' => $profileData['status_kepegawaian'] ?? null,
                     'golongan' => $profileData['golongan'] ?? null,
-                    'mata_pelajaran' => $profileData['mata_pelajaran'] ?? [],
+                    'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                     'kelas_id' => $profileData['kelas_id'] ?? null,
                     'pendidikan_terakhir' => $profileData['pendidikan_terakhir'] ?? null,
                     'tahun_mulai_mengajar' => $profileData['tahun_mulai_mengajar'] ?? null,
@@ -208,7 +208,7 @@ class UserManagementService
                 ]
             );
 
-            return $user->load('teacherProfile');
+            return $user->load('guruProfile');
         });
     }
 
@@ -291,7 +291,7 @@ class UserManagementService
      */
     public function getTeachersWithProfiles($search = null, $filters = [])
     {
-        $query = User::with('teacherProfile')
+        $query = User::with('guruProfile')
             ->whereIn('role', ['guru', 'kepala_sekolah'])
             ->orderBy('name');
 
@@ -299,14 +299,14 @@ class UserManagementService
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhereHas('teacherProfile', function ($sub) use ($search) {
+                  ->orWhereHas('guruProfile', function ($sub) use ($search) {
                       $sub->where('nip', 'like', "%{$search}%");
                   });
             });
         }
 
         if (isset($filters['status_kepegawaian'])) {
-            $query->whereHas('teacherProfile', function ($q) use ($filters) {
+            $query->whereHas('guruProfile', function ($q) use ($filters) {
                 $q->where('status_kepegawaian', $filters['status_kepegawaian']);
             });
         }
