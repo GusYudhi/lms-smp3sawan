@@ -7,6 +7,27 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
+<style>
+    .draggable-item {
+        cursor: grab;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .draggable-item:active {
+        cursor: grabbing;
+    }
+    .draggable-item.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    .drop-zone {
+        transition: background-color 0.2s ease;
+    }
+    .drop-zone.drag-over {
+        background-color: #e9ecef !important;
+        border: 2px dashed #0d6efd !important;
+    }
+</style>
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -300,6 +321,10 @@ $(document).ready(function() {
     });
 
     // Load Schedules via AJAX
+    window.loadSchedulesGlobal = function(kelasId, hari) {
+        loadSchedules(kelasId, hari);
+    };
+
     function loadSchedules(kelasId, hari) {
         $('#loading-indicator').removeClass('d-none');
 
@@ -321,14 +346,26 @@ $(document).ready(function() {
                         const cell = $(`#cell-${hari}-${i}`);
                         const item = slots[i];
 
+                        // Add Drop Zone attributes
+                        cell.addClass('drop-zone')
+                            .attr('data-hari', hari)
+                            .attr('data-jam', i)
+                            .attr('ondragover', 'allowDrop(event)')
+                            .attr('ondrop', 'handleDrop(event)')
+                            .attr('ondragenter', 'handleDragEnter(event)')
+                            .attr('ondragleave', 'handleDragLeave(event)');
+
                         let content = '';
+                        // Default Click for Add
                         let onClick = `onclick="openAddModal('${hari}', ${i})"`;
-                        let style = 'cursor: pointer; height: 100%; width: 100%; min-height: 80px;';
+                        
+                        // Default styling
+                        let style = 'height: 100%; width: 100%; min-height: 80px;';
 
                         if (item) {
                             if (item.type === 'fixed') {
                                 onClick = '';
-                                style = 'height: 100%; width: 100%; min-height: 80px; background-color: #f8f9fa;';
+                                style += 'background-color: #f8f9fa; cursor: default;';
                                 content = `
                                     <div class="d-flex align-items-center justify-content-center h-100 w-100 text-center">
                                         <div>
@@ -339,9 +376,13 @@ $(document).ready(function() {
                                 `;
                             } else if (item.type === 'lesson') {
                                 onClick = `onclick='openEditModal(${JSON.stringify(item)}, "${hari}")'`;
-                                style = 'cursor: pointer; height: 100%; width: 100%; min-height: 80px;';
+                                
+                                // Draggable Item
                                 content = `
-                                    <div class="card border-start border-4 border-primary shadow-sm h-100 w-100 border-0">
+                                    <div class="card border-start border-4 border-primary shadow-sm h-100 w-100 border-0 draggable-item" 
+                                         draggable="true" 
+                                         ondragstart='handleDragStart(event, ${JSON.stringify(item)})'
+                                         data-id="${item.id}">
                                         <div class="card-body p-2">
                                             <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">${item.mata_pelajaran.nama_mapel}</h6>
                                             <div class="small text-secondary">
@@ -354,13 +395,22 @@ $(document).ready(function() {
                         } else {
                             // Empty slot
                             content = `
-                                <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted" style="border: 2px dashed #dee2e6; border-radius: 4px;">
+                                <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted" style="border: 2px dashed #dee2e6; border-radius: 4px; cursor: pointer;">
                                     <i class="fas fa-plus"></i>
                                 </div>
                             `;
                         }
 
-                        cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
+                        // Only add onclick to the WRAPPER if it's NOT a draggable lesson (to prevent click when dragging starts)
+                        // Actually, click works fine with drag if handled correctly.
+                        // But to be safe, let's put onclick on the content div for empty slots, and on the card for lessons.
+                        // Simplified:
+                        
+                        if (item && item.type === 'lesson') {
+                             cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
+                        } else {
+                             cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
+                        }
                     }
                 });
             })
@@ -455,25 +505,143 @@ $(document).ready(function() {
 
     // Handle Delete
     $('#btn-delete').click(function() {
-        if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+        // Use SweetAlert2 for confirmation
+        Swal.fire({
+            title: 'Yakin ingin menghapus jadwal ini?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const id = $('#schedule_id').val();
 
-        const id = $('#schedule_id').val();
-
-        $.ajax({
-            url: `{{ route('admin.jadwal.destroy', ['semester_id' => $semester->id, 'jadwal_mapel' => 'ID']) }}`.replace('ID', id),
-            type: 'DELETE',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                scheduleModal.hide();
-                loadSchedules(currentKelasId);
-            },
-            error: function(xhr) {
-                alert('Gagal menghapus jadwal');
+                $.ajax({
+                    url: `{{ route('admin.jadwal.destroy', ['semester_id' => $semester->id, 'jadwal_mapel' => 'ID']) }}`.replace('ID', id),
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        scheduleModal.hide();
+                        loadSchedules(currentKelasId);
+                        Swal.fire(
+                            'Terhapus!',
+                            'Jadwal telah berhasil dihapus.',
+                            'success'
+                        );
+                    },
+                    error: function(xhr) {
+                        Swal.fire(
+                            'Gagal!',
+                            'Gagal menghapus jadwal.',
+                            'error'
+                        );
+                    }
+                });
             }
         });
     });
 });
+
+// Drag and Drop Functions (Global Scope)
+let draggedItem = null;
+
+function handleDragStart(e, item) {
+    draggedItem = item;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    // Use a small delay to keep the element visible while dragging ghost image
+    setTimeout(() => e.target.style.opacity = '0.5', 0);
+}
+
+function allowDrop(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    // Find closest TD
+    const cell = e.target.closest('td.drop-zone');
+    if (cell) {
+        cell.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    const cell = e.target.closest('td.drop-zone');
+    if (cell) {
+        cell.classList.remove('drag-over');
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const cell = e.target.closest('td.drop-zone');
+    if (!cell) return;
+
+    cell.classList.remove('drag-over');
+    
+    // Get target coordinates
+    const targetHari = cell.getAttribute('data-hari');
+    const targetJam = cell.getAttribute('data-jam');
+    
+    // If dropped on same slot, do nothing
+    if (draggedItem.hari === targetHari && draggedItem.jam_ke == targetJam) {
+        return;
+    }
+
+    // Call Backend to Move
+    moveSchedule(draggedItem.id, targetHari, targetJam);
+}
+
+function moveSchedule(id, targetHari, targetJam) {
+    $('#loading-indicator').removeClass('d-none');
+    
+    const semesterId = $('input[name="semester_id"]').val();
+    const kelasId = $('#filter_kelas').val(); // Assuming current filter is the class
+
+    $.post("{{ route('admin.jadwal.move') }}", {
+        _token: "{{ csrf_token() }}",
+        id: id,
+        hari: targetHari,
+        jam_ke: targetJam,
+        semester_id: semesterId,
+        kelas_id: kelasId
+    })
+    .done(function(response) {
+        // Expose loadSchedules to window
+        if (window.loadSchedulesGlobal) {
+            window.loadSchedulesGlobal(kelasId);
+        } else {
+            location.reload(); 
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: response.message,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    })
+    .fail(function(xhr) {
+        const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal memindahkan jadwal';
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg
+        });
+        // Reload to reset UI state
+        if (window.loadSchedulesGlobal) window.loadSchedulesGlobal(kelasId);
+    })
+    .always(function() {
+        $('#loading-indicator').addClass('d-none');
+    });
+}
 </script>
 @endpush

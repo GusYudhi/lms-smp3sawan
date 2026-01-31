@@ -41,24 +41,26 @@ The project follows the standard Laravel MVC architecture with role-based segreg
 3.  **Guru (Teacher):** Daily operations, attendance, teaching journals, grading.
 4.  **Siswa (Student):** View schedule, attendance, and academic results.
 
-## ✨ Key Features
+## Γ£¿ Key Features
 
 ### 1. Teacher Attendance (Absensi Guru)
 *   **Mechanism:** Selfie + GPS Location Verification.
-*   **Constraints:** Must be within a configured radius of the school.
-*   **Configuration:** School coordinates and radius set in `.env` (`SCHOOL_LATITUDE`, `SCHOOL_LONGITUDE`).
+*   **Real-time Monitoring:** Principal dashboard features a real-time table (Ajax polling every 5s) showing today's attendance with status mapping (Hadir, Ijin, Terlambat, Alpha).
 *   **Docs:** See `ABSENSI_GURU_README.md`.
 
-### 2. HEIC Image Support
+### 2. Schedule Management (Jadwal Pelajaran)
+*   **UX Enhancements:** Uses **Select2** with Bootstrap 5 theme for searchable dropdowns.
+*   **Conflict Detection:** Real-time Ajax validation checking for Teacher availability, Class slot overlaps, and Fixed schedules (Upacara/Istirahat).
+*   **Drag & Drop:** Interactive interface to move or swap schedules visually.
+
+### 3. HEIC Image Support
 *   **Problem:** iPhones save images in HEIC format, which web browsers don't natively support.
 *   **Solution:** Automatic backend conversion of HEIC/HEIF to JPG/WebP on upload.
 *   **Implementation:** Used in Profile photos and Teaching Journals (`JurnalMengajar`).
 *   **Docs:** See `HEIC_SUPPORT_README.md`.
 
-### 3. Teaching Journal (Jurnal Mengajar)
-*   Teachers record daily teaching activities.
-*   Supports photo evidence uploads (with HEIC support).
-*   Linked to class schedules.
+### 4. Teaching Journal (Jurnal Mengajar)
+*   Teachers record daily teaching activities with photo evidence.
 
 ## 🚀 Building & Running
 
@@ -107,6 +109,10 @@ npm run build
 ## 📝 Conventions & Standards
 
 *   **Role-Based Access:** Always ensure new routes/features are protected by the appropriate role middleware.
-*   **Image Handling:** Use the `ImageCompressor` helper for handling uploads to ensure consistency and HEIC support.
+*   **Image Handling:** Use the `ImageCompressor` helper for consistency and HEIC support.
+*   **Alerts & Confirmations:** **ALWAYS** use **SweetAlert2** for user notifications and action confirmations. Avoid standard `window.confirm` or basic browser alerts.
+*   **Flash Messages vs UI Alerts:**
+    *   Standard Bootstrap `.alert` classes are often targeted by global "auto-dismiss" scripts.
+    *   For persistent UI messages (like conflict warnings in modals), use utility classes (e.g., `bg-warning bg-opacity-10 border border-warning`) instead of the semantic `.alert` class to prevent accidental removal.
 *   **Formatting:** Follow PSR-12 for PHP.
 *   **Routes:** Named routes are preferred (e.g., `route('guru.jurnal-mengajar.index')`).

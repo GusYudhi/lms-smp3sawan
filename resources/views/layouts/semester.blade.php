@@ -9,7 +9,11 @@
 
     <title>{{ config('app.name', 'SMP N 3 SAWAN') }}</title>
 
+    {{-- link favicon --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -308,6 +312,42 @@
             window.closeSidebar();
         }
     </script>
+    <script>
+        // Bootstrap collapse functionality for mobile sidebar
+        // ... (existing code) ...
+    </script>
+
+    <!-- SweetAlert2 Session Handling -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: "{{ session('error') }}",
+                });
+            @endif
+
+            @if(session('warning'))
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian!',
+                    text: "{{ session('warning') }}",
+                });
+            @endif
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

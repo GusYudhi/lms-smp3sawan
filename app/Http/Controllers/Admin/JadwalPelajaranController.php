@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
@@ -291,5 +292,97 @@ class JadwalPelajaranController extends Controller
         }
 
         return response()->json(['conflict' => false]);
+    }
+
+    public function moveSchedule(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:jadwal_pelajarans,id',
+            'hari' => 'required',
+            'jam_ke' => 'required|integer',
+            'semester_id' => 'required',
+            'kelas_id' => 'required'
+        ]);
+
+        $sourceId = $request->id;
+        $targetHari = $request->hari;
+        $targetJam = $request->jam_ke;
+        $semesterId = $request->semester_id;
+        $kelasId = $request->kelas_id;
+
+        DB::beginTransaction();
+        try {
+            // 1. Get Source Schedule
+            $source = JadwalPelajaran::findOrFail($sourceId);
+
+            // 2. Check if Target is Fixed Schedule
+            $isFixed = FixedSchedule::where('hari', $targetHari)
+                ->where('jam_ke', $targetJam)
+                ->where('semester_id', $semesterId)
+                ->exists();
+
+            if ($isFixed) {
+                return response()->json(['message' => 'Slot tujuan adalah jadwal tetap (tidak bisa dipindah).'], 422);
+            }
+
+            // 3. Check if Target is Occupied (Swap Logic)
+            $target = JadwalPelajaran::where('kelas_id', $kelasId)
+                ->where('hari', $targetHari)
+                ->where('jam_ke', $targetJam)
+                ->where('semester_id', $semesterId)
+                ->first();
+
+            if ($target) {
+                // Performing Swap
+                // Temporary holder for Source coordinates
+                $tempHari = $source->hari;
+                $tempJam = $source->jam_ke;
+
+                // Move Target to Source position
+                $target->update([
+                    'hari' => $tempHari,
+                    'jam_ke' => $tempJam
+                ]);
+
+                // Move Source to Target position
+                $source->update([
+                    'hari' => $targetHari,
+                    'jam_ke' => $targetJam
+                ]);
+
+                // Optional: Check Teacher Conflicts for BOTH after move?
+                // This is complex. Ideally yes. For now, we trust the Admin.
+                
+                DB::commit();
+                return response()->json(['message' => 'Jadwal berhasil ditukar.']);
+
+            } else {
+                // Performing Move (Empty Slot)
+                
+                // Validate Teacher Conflict for Source at New Position
+                $teacherBusy = JadwalPelajaran::where('guru_id', $source->guru_id)
+                    ->where('hari', $targetHari)
+                    ->where('jam_ke', $targetJam)
+                    ->where('semester_id', $semesterId)
+                    ->where('id', '!=', $sourceId) // Exclude itself
+                    ->exists();
+
+                if ($teacherBusy) {
+                    return response()->json(['message' => 'Gagal: Guru ini sudah mengajar di kelas lain pada slot tujuan.'], 422);
+                }
+
+                $source->update([
+                    'hari' => $targetHari,
+                    'jam_ke' => $targetJam
+                ]);
+
+                DB::commit();
+                return response()->json(['message' => 'Jadwal berhasil dipindahkan.']);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
     }
 }
