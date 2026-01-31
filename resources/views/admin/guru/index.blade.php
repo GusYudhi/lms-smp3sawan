@@ -166,7 +166,7 @@
                     <form method="GET" action="{{ route('admin.guru.index') }}" id="filterForm">
                         <div class="row g-3 align-items-end">
                             <!-- Search Input -->
-                            <div class="col-md-5">
+                            <div class="col-md-3">
                                 <label for="teacherSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">
@@ -176,7 +176,7 @@
                                            name="search"
                                            id="teacherSearch"
                                            class="form-control border-start-0 search-input"
-                                           placeholder="Cari nama, email, atau NIP..."
+                                           placeholder="Cari nama..."
                                            value="{{ $search ?? '' }}">
                                 </div>
                             </div>
@@ -202,6 +202,16 @@
                                     <option value="PNS" {{ ($statusKepegawaianFilter ?? '') === 'PNS' ? 'selected' : '' }}>PNS</option>
                                     <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
                                     <option value="Honorer" {{ ($statusKepegawaianFilter ?? '') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
+                                </select>
+                            </div>
+
+                            <!-- Gender Filter -->
+                            <div class="col-md-2">
+                                <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Gender</label>
+                                <select name="gender" id="genderFilter" class="form-select auto-submit">
+                                    <option value="">Semua Gender</option>
+                                    <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
                             </div>
 
@@ -415,7 +425,8 @@ function performAjaxSearch() {
 
     const searchValue = document.getElementById('teacherSearch').value;
     const statusValue = document.getElementById('statusFilter').value;
-    const genderValue = document.getElementById('genderFilter').value;
+    const genderElement = document.getElementById('genderFilter');
+    const genderValue = genderElement ? genderElement.value : '';
 
     const params = new URLSearchParams({
         search: searchValue,
