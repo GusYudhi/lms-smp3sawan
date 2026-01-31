@@ -19,15 +19,15 @@ class JadwalPelajaranController extends Controller
     {
         if ($semesterId) {
             $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
-            $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
+            $mapels = MataPelajaran::where('semester_id', $semesterId)->orderBy('nama_mapel')->get();
             $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
         } else {
             $semester = null;
-            $mapels = MataPelajaran::all();
+            $mapels = MataPelajaran::orderBy('nama_mapel')->get();
             $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
         }
 
-        $kelas = Kelas::all();
+        $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $gurus = User::where('role', 'guru')
             ->with('guruProfile') // Eager load profile to get mata_pelajaran_id
             ->orderBy('name')
