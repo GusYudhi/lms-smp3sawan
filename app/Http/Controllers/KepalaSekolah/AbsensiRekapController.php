@@ -464,27 +464,25 @@ class AbsensiRekapController extends AdminAbsensiRekapController
             $query->orderBy('waktu_absen', 'desc');
         }
 
-        $attendances = $query->get()->map(function($item) {
-            $statusBadge = '';
-            $statusCode = strtoupper(substr($item->status, 0, 1));
-            
-            // Map status code to single letter
-            if ($item->status == 'sakit') $statusCode = 'S';
-            if ($item->status == 'izin') $statusCode = 'I';
-            if ($item->status == 'alpha') $statusCode = 'A';
-            if ($item->status == 'hadir') $statusCode = 'H';
-            if ($item->status == 'terlambat') $statusCode = 'T';
-
-            return [
-                'jam_absen' => $item->waktu_absen ? $item->waktu_absen->format('H:i') : '-',
-                'nama' => $item->user->name,
-                'nip' => $item->user->guruProfile->nip ?? '-',
-                'status' => $statusCode,
-                'status_full' => $item->status,
-                'keterangan' => $item->keterangan
-            ];
-        });
-
+                $attendances = $query->get()->map(function($item) {
+                    $statusLabel = ucfirst($item->status);
+                    
+                    // Map status code to full label
+                    if ($item->status == 'hadir') $statusLabel = 'Hadir';
+                    if ($item->status == 'terlambat') $statusLabel = 'Terlambat';
+                    if ($item->status == 'izin') $statusLabel = 'Ijin';
+                    if ($item->status == 'sakit') $statusLabel = 'Sakit';
+                    if ($item->status == 'alpha') $statusLabel = 'Alpha';
+        
+                    return [
+                        'jam_absen' => $item->waktu_absen ? $item->waktu_absen->format('H:i') : '-',
+                        'nama' => $item->user->name,
+                        'nip' => $item->user->guruProfile->nip ?? '-',
+                        'status' => $statusLabel,
+                        'status_full' => $item->status,
+                        'keterangan' => $item->keterangan
+                    ];
+                });
         return response()->json([
             'date_string' => Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y'),
             'data' => $attendances

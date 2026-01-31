@@ -177,7 +177,7 @@
                                 </td>
                                 <td>${item.nip}</td>
                                 <td class="text-center">
-                                    <span class="badge ${statusClass} rounded-pill" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">
+                                    <span class="badge ${statusClass} rounded-pill px-3 py-2" style="font-size: 12px; min-width: 80px;">
                                         ${item.status}
                                     </span>
                                 </td>
