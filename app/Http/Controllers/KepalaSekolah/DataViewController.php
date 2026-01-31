@@ -20,7 +20,7 @@ class DataViewController extends Controller
         $mataPelajaranFilter = $request->get('mata_pelajaran');
         $statusKepegawaianFilter = $request->get('status_kepegawaian');
 
-        $query = User::with(['guruProfile.kelas'])
+        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
             ->whereIn('role', ['guru', 'kepala_sekolah']);
 
         if ($search) {

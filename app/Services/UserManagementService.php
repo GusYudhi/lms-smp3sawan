@@ -225,7 +225,7 @@ class UserManagementService
 
             // Delete profiles (cascade should handle this, but being explicit)
             $user->studentProfile()?->delete();
-            $user->teacherProfile()?->delete();
+            $user->guruProfile()?->delete();
 
             // Delete user
             return $user->delete();

@@ -29,8 +29,8 @@ class AdminController extends Controller
         $mataPelajaranFilter = $request->get('mata_pelajaran');
         $statusKepegawaianFilter = $request->get('status_kepegawaian');
 
-        // get user with profile guru
-        $query = User::with(['guruProfile.kelas'])
+        // get user with profile guru and mata pelajaran to avoid N+1
+        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
             ->whereIn('role', ['guru', 'kepala_sekolah']);
 
         // Search functionality
@@ -83,7 +83,8 @@ class AdminController extends Controller
      */
     public function searchGuru(Request $request)
     {
-        $query = User::whereIn('role', ['guru', 'kepala_sekolah'])->with('guruProfile');
+        $query = User::whereIn('role', ['guru', 'kepala_sekolah'])
+            ->with(['guruProfile.mataPelajaran']);
 
         // Search functionality
         if ($request->filled('search')) {
@@ -127,14 +128,22 @@ class AdminController extends Controller
             ]);
         }
 
-        // Get unique subjects for filter dropdown
-        $subjects = collect([
-            'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA Fisika',
-            'IPA Biologi', 'IPS Sejarah', 'PKN', 'Pendidikan Jasmani',
-            'Seni Budaya', 'Prakarya'
-        ]);
+        // Get active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
 
-        return view('admin.guru.index', compact('teachers', 'subjects'));
+        // Get list mata pelajaran untuk filter
+        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
+
+        if ($activeSemester) {
+            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id)
+                  ->orWhereNull('semester_id');
+            });
+        }
+
+        $mataPelajaranList = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+
+        return view('admin.guru.index', compact('teachers', 'mataPelajaranList'));
     }
 
     public function createGuru()
