@@ -3,6 +3,10 @@
 @section('title', 'Jadwal Pelajaran')
 
 @section('content')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -154,7 +158,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Mata Pelajaran</label>
-                        <select class="form-select" id="mata_pelajaran_id" name="mata_pelajaran_id" required>
+                        <select class="form-select select2" id="mata_pelajaran_id" name="mata_pelajaran_id" required>
                             <option value="">Tidak Ada</option>
                             @foreach($mapels as $m)
                                 <option value="{{ $m->id }}">{{ $m->nama_mapel }} ({{ $m->kode_mapel }})</option>
@@ -164,7 +168,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Guru Pengampu</label>
-                        <select class="form-select" id="guru_id" name="guru_id" required>
+                        <select class="form-select select2" id="guru_id" name="guru_id" required>
                             <option value="">Pilih Guru</option>
                             @foreach($gurus as $g)
                                 <option value="{{ $g->id }}">{{ $g->name }}</option>
@@ -191,8 +195,18 @@
 @endsection
 
 @push('scripts')
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 $(document).ready(function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        dropdownParent: $('#scheduleModal'),
+        width: '100%'
+    });
+
     const scheduleModal = new bootstrap.Modal(document.getElementById('scheduleModal'));
     let currentKelasId = null;
     let selectedHari = null;
@@ -310,6 +324,9 @@ $(document).ready(function() {
         $('#hari').val(hari);
         $('#jam_ke').val(jamKe);
 
+        // Reset Select2
+        $('.select2').val('').trigger('change');
+
         // Show Duration Field
         $('#div-jumlah-jam').removeClass('d-none');
         $('#jumlah_jam').val(1);
@@ -330,8 +347,10 @@ $(document).ready(function() {
         $('#kelas_id').val(currentKelasId); // Should be same
         $('#hari').val(hari);
         $('#jam_ke').val(data.jam_ke);
-        $('#mata_pelajaran_id').val(data.mata_pelajaran.id);
-        $('#guru_id').val(data.guru.id);
+        
+        // Update Select2 values
+        $('#mata_pelajaran_id').val(data.mata_pelajaran.id).trigger('change');
+        $('#guru_id').val(data.guru.id).trigger('change');
 
         // Hide Duration Field (Edit only single slot)
         $('#div-jumlah-jam').addClass('d-none');
