@@ -102,6 +102,7 @@ Route::middleware(['auth'])->group(function () {
                 'destroy' => 'admin.jadwal.destroy',
             ])->except(['create', 'edit', 'show']);
             Route::get('/{semester_id}/jadwal-mapel/get-by-kelas/{kelasId}', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'getByKelas'])->name('admin.jadwal.get-by-kelas');
+            Route::post('/check-schedule-conflict', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'checkConflict'])->name('admin.jadwal.check-conflict');
         });
         // Siswa management routes
         Route::get('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'index'])->name('admin.siswa.index');

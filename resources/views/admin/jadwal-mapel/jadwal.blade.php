@@ -168,18 +168,33 @@
 
                     <div class="mb-3">
                         <label class="form-label">Guru Pengampu</label>
-                        <select class="form-select select2" id="guru_id" name="guru_id" required>
-                            <option value="">Pilih Guru</option>
-                            @foreach($gurus as $g)
-                                <option value="{{ $g->id }}">{{ $g->name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="w-100">
+                            <select class="form-select select2" id="guru_id" name="guru_id" required>
+                                <option value="">Pilih Guru</option>
+                                @foreach($gurus as $g)
+                                    <option value="{{ $g->id }}">{{ $g->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-3" id="div-jumlah-jam">
                         <label class="form-label">Jumlah Jam (Durasi)</label>
                         <input type="number" class="form-control" id="jumlah_jam" name="jumlah_jam" value="1" min="1" max="7" required>
                         <small class="text-muted">Masukkan jumlah jam pelajaran (misal: 2 untuk 2 jam pelajaran berturut-turut)</small>
+                    </div>
+
+                    <!-- Conflict Alert -->
+                    <div id="conflict-alert" class="bg-warning bg-opacity-10 border border-warning rounded p-3 mt-3 d-none">
+                        <div class="d-flex">
+                            <div class="me-2 text-warning">
+                                <i class="fas fa-exclamation-triangle fa-lg mt-1"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Konflik Jadwal!</h6>
+                                <p class="mb-0 small text-dark" id="conflict-message"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -206,6 +221,50 @@ $(document).ready(function() {
         dropdownParent: $('#scheduleModal'),
         width: '100%'
     });
+
+    // Conflict Detection
+    function checkScheduleConflict() {
+        const guruId = $('#guru_id').val();
+        const hari = $('#hari').val();
+        const jamKe = $('#jam_ke').val();
+        const scheduleId = $('#schedule_id').val();
+        const semesterId = $('input[name="semester_id"]').val();
+        const kelasId = $('#kelas_id').val();
+        const jumlahJam = $('#jumlah_jam').val();
+
+        if (guruId && hari && jamKe && kelasId) {
+            $.post("{{ route('admin.jadwal.check-conflict') }}", {
+                _token: "{{ csrf_token() }}",
+                guru_id: guruId,
+                hari: hari,
+                jam_ke: jamKe,
+                semester_id: semesterId,
+                kelas_id: kelasId,
+                jumlah_jam: jumlahJam,
+                ignore_id: scheduleId
+            })
+            .done(function(data) {
+                if (data.conflict) {
+                    $('#conflict-message').text(data.message);
+                    $('#conflict-alert').removeClass('d-none').show(); // Ensure it's visible
+                    $('#btn-save').prop('disabled', true);
+                } else {
+                    $('#conflict-alert').addClass('d-none').hide();
+                    $('#btn-save').prop('disabled', false);
+                }
+            })
+            .fail(function() {
+                // Optional: Handle server error
+                console.error('Failed to check conflict');
+            });
+        } else {
+            $('#conflict-alert').addClass('d-none');
+            $('#btn-save').prop('disabled', false);
+        }
+    }
+
+    $('#guru_id').on('change', checkScheduleConflict);
+    $('#jumlah_jam').on('input change', checkScheduleConflict);
 
     const scheduleModal = new bootstrap.Modal(document.getElementById('scheduleModal'));
     let currentKelasId = null;
@@ -326,6 +385,8 @@ $(document).ready(function() {
 
         // Reset Select2
         $('.select2').val('').trigger('change');
+        $('#conflict-alert').addClass('d-none');
+        $('#btn-save').prop('disabled', false);
 
         // Show Duration Field
         $('#div-jumlah-jam').removeClass('d-none');
@@ -347,10 +408,12 @@ $(document).ready(function() {
         $('#kelas_id').val(currentKelasId); // Should be same
         $('#hari').val(hari);
         $('#jam_ke').val(data.jam_ke);
-        
+
         // Update Select2 values
         $('#mata_pelajaran_id').val(data.mata_pelajaran.id).trigger('change');
         $('#guru_id').val(data.guru.id).trigger('change');
+        $('#conflict-alert').addClass('d-none');
+        $('#btn-save').prop('disabled', false);
 
         // Hide Duration Field (Edit only single slot)
         $('#div-jumlah-jam').addClass('d-none');

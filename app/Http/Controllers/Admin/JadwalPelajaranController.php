@@ -218,4 +218,78 @@ class JadwalPelajaranController extends Controller
         JadwalPelajaran::findOrFail($id)->delete();
         return response()->json(['message' => 'Jadwal berhasil dihapus']);
     }
+
+    public function checkConflict(Request $request)
+    {
+        $request->validate([
+            'guru_id' => 'required',
+            'hari' => 'required',
+            'jam_ke' => 'required',
+            'semester_id' => 'required',
+            'kelas_id' => 'required'
+        ]);
+
+        $guruId = $request->guru_id;
+        $hari = $request->hari;
+        $startJam = (int)$request->jam_ke;
+        $semesterId = $request->semester_id;
+        $kelasId = $request->kelas_id;
+        $jumlahJam = (int)$request->get('jumlah_jam', 1);
+        $ignoreId = $request->ignore_id; // For edit mode
+
+        for ($i = 0; $i < $jumlahJam; $i++) {
+            $currentJam = $startJam + $i;
+
+            // 1. Check Fixed Schedule
+            $fixed = FixedSchedule::where('hari', $hari)
+                ->where('jam_ke', $currentJam)
+                ->where('semester_id', $semesterId)
+                ->first();
+
+            if ($fixed) {
+                return response()->json([
+                    'conflict' => true,
+                    'message' => "Jam ke-$currentJam adalah jadwal tetap: {$fixed->keterangan}"
+                ]);
+            }
+
+            // 2. Check Class Slot Overlap
+            $classConflict = JadwalPelajaran::with(['mataPelajaran'])
+                ->where('kelas_id', $kelasId)
+                ->where('hari', $hari)
+                ->where('jam_ke', $currentJam)
+                ->where('semester_id', $semesterId)
+                ->when($ignoreId, function($q) use ($ignoreId) {
+                    return $q->where('id', '!=', $ignoreId);
+                })
+                ->first();
+
+            if ($classConflict) {
+                return response()->json([
+                    'conflict' => true,
+                    'message' => "Slot jam ke-$currentJam sudah terisi: {$classConflict->mataPelajaran->nama_mapel}"
+                ]);
+            }
+
+            // 3. Check Teacher Conflict
+            $teacherConflict = JadwalPelajaran::with(['kelas'])
+                ->where('guru_id', $guruId)
+                ->where('hari', $hari)
+                ->where('jam_ke', $currentJam)
+                ->where('semester_id', $semesterId)
+                ->when($ignoreId, function($q) use ($ignoreId) {
+                    return $q->where('id', '!=', $ignoreId);
+                })
+                ->first();
+
+            if ($teacherConflict) {
+                return response()->json([
+                    'conflict' => true,
+                    'message' => "Guru ini sedang mengajar di kelas {$teacherConflict->kelas->nama_kelas} pada jam ke-$currentJam"
+                ]);
+            }
+        }
+
+        return response()->json(['conflict' => false]);
+    }
 }
