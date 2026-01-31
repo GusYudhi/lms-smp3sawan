@@ -447,4 +447,47 @@ class AbsensiRekapController extends AdminAbsensiRekapController
             return $currentYear + 1;
         }
     }
+
+    /**
+     * Get today's guru attendance for dashboard/index
+     */
+    public function getTodayGuruAttendance(Request $request)
+    {
+        $sort = $request->get('sort', 'terbaru'); // terbaru or terlama
+
+        $query = GuruAttendance::with(['user.guruProfile'])
+            ->whereDate('tanggal', Carbon::today());
+
+        if ($sort == 'terlama') {
+            $query->orderBy('waktu_absen', 'asc');
+        } else {
+            $query->orderBy('waktu_absen', 'desc');
+        }
+
+        $attendances = $query->get()->map(function($item) {
+            $statusBadge = '';
+            $statusCode = strtoupper(substr($item->status, 0, 1));
+            
+            // Map status code to single letter
+            if ($item->status == 'sakit') $statusCode = 'S';
+            if ($item->status == 'izin') $statusCode = 'I';
+            if ($item->status == 'alpha') $statusCode = 'A';
+            if ($item->status == 'hadir') $statusCode = 'H';
+            if ($item->status == 'terlambat') $statusCode = 'T';
+
+            return [
+                'jam_absen' => $item->waktu_absen ? $item->waktu_absen->format('H:i') : '-',
+                'nama' => $item->user->name,
+                'nip' => $item->user->guruProfile->nip ?? '-',
+                'status' => $statusCode,
+                'status_full' => $item->status,
+                'keterangan' => $item->keterangan
+            ];
+        });
+
+        return response()->json([
+            'date_string' => Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y'),
+            'data' => $attendances
+        ]);
+    }
 }

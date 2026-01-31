@@ -28,35 +28,27 @@
     </div>
 
     <!-- Selection Cards -->
-    <div class="row g-4">
+    <div class="row g-3">
         <!-- Absensi Siswa -->
         <div class="col-md-6">
             <a href="{{ route('kepala-sekolah.absensi.siswa.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
-                    <div class="card-body text-center p-5">
-                        <div class="mb-4">
-                            <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
-                                 style="width: 100px; height: 100px;">
-                                <i class="fas fa-user-graduate text-primary" style="font-size: 48px;"></i>
+                <div class="card border-0 shadow-sm hover-card overflow-hidden" style="transition: all 0.3s ease;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user-graduate text-primary fs-4"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold text-dark">Rekap Absensi Siswa</h6>
+                                <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Monitor kehadiran siswa per kelas/individu.</p>
+                            </div>
+                            <div class="ms-2">
+                                <i class="fas fa-chevron-right text-muted small"></i>
                             </div>
                         </div>
-                        <h3 class="h4 mb-3 text-dark">Rekap Absensi Siswa</h3>
-                        <p class="text-muted mb-4">
-                            Lihat rekap kehadiran siswa dengan filter periode (hari ini, minggu ini, bulan ini, semester ini)
-                        </p>
-                        <div class="d-flex justify-content-around mt-4 text-start">
-                            <div>
-                                <small class="text-muted d-block">Filter</small>
-                                <strong class="text-primary">Per Kelas</strong>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Detail</small>
-                                <strong class="text-primary">Per Siswa</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-primary text-white text-center py-3">
-                        <i class="fas fa-arrow-right me-2"></i>Lihat Rekap Siswa
                     </div>
                 </div>
             </a>
@@ -65,67 +57,67 @@
         <!-- Absensi Guru -->
         <div class="col-md-6">
             <a href="{{ route('kepala-sekolah.absensi.guru.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
-                    <div class="card-body text-center p-5">
-                        <div class="mb-4">
-                            <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center"
-                                 style="width: 100px; height: 100px;">
-                                <i class="fas fa-chalkboard-teacher text-success" style="font-size: 48px;"></i>
+                <div class="card border-0 shadow-sm hover-card overflow-hidden" style="transition: all 0.3s ease;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-3 bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-chalkboard-teacher text-success fs-4"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold text-dark">Rekap Absensi Guru</h6>
+                                <p class="text-muted small mb-0 mt-1" style="font-size: 0.75rem;">Pantau persentase dan detail kehadiran guru.</p>
+                            </div>
+                            <div class="ms-2">
+                                <i class="fas fa-chevron-right text-muted small"></i>
                             </div>
                         </div>
-                        <h3 class="h4 mb-3 text-dark">Rekap Absensi Guru</h3>
-                        <p class="text-muted mb-4">
-                            Lihat rekap kehadiran guru dengan filter periode (hari ini, minggu ini, bulan ini, semester ini)
-                        </p>
-                        <div class="d-flex justify-content-around mt-4 text-start">
-                            <div>
-                                <small class="text-muted d-block">Persentase</small>
-                                <strong class="text-success">Kehadiran</strong>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Detail</small>
-                                <strong class="text-success">Per Guru</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-success text-white text-center py-3">
-                        <i class="fas fa-arrow-right me-2"></i>Lihat Rekap Guru
                     </div>
                 </div>
             </a>
         </div>
     </div>
-
-    <!-- Info Section -->
-    <div class="row mt-5">
+    <div class="row mt-4">
         <div class="col-12">
-            <div class="card border-0 bg-light">
-                <div class="card-body p-4">
-                    <h5 class="card-title mb-3">
-                        <i class="fas fa-info-circle text-info me-2"></i>Informasi Fitur
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-success" id="today-title">
+                        <i class="fas fa-calendar-day me-2"></i>Absensi Guru Hari ini
                     </h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary"><i class="fas fa-filter me-2"></i>Filter Periode</h6>
-                            <ul class="list-unstyled ps-3">
-                                <li><i class="fas fa-check text-success me-2"></i>Hari Ini</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Minggu Ini</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Bulan Ini</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Semester Ini</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Custom (Pilih Tanggal)</li>
-                            </ul>
+                    <div class="d-flex align-items-center">
+                        <label for="sort-select" class="me-2 text-muted small">Urutkan:</label>
+                        <select id="sort-select" class="form-select form-select-sm" style="width: 120px;">
+                            <option value="terbaru">Terbaru</option>
+                            <option value="terlama">Terlama</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Jam Absen</th>
+                                    <th>Nama</th>
+                                    <th>NIP</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-list">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="loading-spinner" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-primary"><i class="fas fa-chart-bar me-2"></i>Data yang Ditampilkan</h6>
-                            <ul class="list-unstyled ps-3">
-                                <li><i class="fas fa-check text-success me-2"></i>Total Hadir</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Total Sakit</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Total Izin</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Total Alpha</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Total Terlambat</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Persentase Kehadiran</li>
-                            </ul>
-                        </div>
+                    </div>
+                     <div id="empty-state" class="text-center py-5 d-none">
+                        <img src="{{ asset('assets/image/no-data.svg') }}" alt="No Data" style="width: 120px; opacity: 0.5" onerror="this.style.display='none'">
+                        <p class="text-muted mt-3">Belum ada data absensi guru hari ini</p>
                     </div>
                 </div>
             </div>
@@ -139,4 +131,84 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
 }
 </style>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const attendanceList = document.getElementById('attendance-list');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const emptyState = document.getElementById('empty-state');
+        const todayTitle = document.getElementById('today-title');
+        const sortSelect = document.getElementById('sort-select');
+        let currentSort = 'terbaru';
+
+        // Function to fetch data
+        function fetchAttendanceData() {
+            fetch(`{{ route('kepala-sekolah.api.absensi-guru-today') }}?sort=${currentSort}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update Title with Date
+                    todayTitle.innerHTML = `<i class="fas fa-calendar-day me-2"></i>Absensi Guru Hari ini (${data.date_string})`;
+
+                    // Handle Empty Data
+                    if (data.data.length === 0) {
+                        attendanceList.innerHTML = '';
+                        loadingSpinner.classList.add('d-none');
+                        emptyState.classList.remove('d-none');
+                        return;
+                    }
+
+                    // Populate Table
+                    let html = '';
+                    data.data.forEach(item => {
+                        let statusClass = 'bg-secondary';
+                        if (item.status_full === 'hadir') statusClass = 'bg-success';
+                        else if (item.status_full === 'terlambat') statusClass = 'bg-warning text-dark';
+                        else if (item.status_full === 'izin') statusClass = 'bg-info text-dark';
+                        else if (item.status_full === 'sakit') statusClass = 'bg-danger';
+                        else if (item.status_full === 'alpha') statusClass = 'bg-danger';
+
+                        html += `
+                            <tr>
+                                <td class="ps-4 fw-medium">${item.jam_absen}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">${item.nama}</div>
+                                    <small class="text-muted d-block d-md-none">NIP: ${item.nip}</small>
+                                </td>
+                                <td>${item.nip}</td>
+                                <td class="text-center">
+                                    <span class="badge ${statusClass} rounded-pill" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">
+                                        ${item.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    attendanceList.innerHTML = html;
+                    loadingSpinner.classList.add('d-none');
+                    emptyState.classList.add('d-none');
+                })
+                .catch(error => {
+                    console.error('Error fetching attendance:', error);
+                    // Don't show error state in UI for polling, just log it
+                });
+        }
+
+        // Initial Load
+        fetchAttendanceData();
+
+        // Polling every 5 seconds
+        setInterval(fetchAttendanceData, 5000);
+
+        // Sort Event Listener
+        sortSelect.addEventListener('change', function() {
+            currentSort = this.value;
+            loadingSpinner.classList.remove('d-none');
+            attendanceList.innerHTML = ''; // Clear list while loading
+            fetchAttendanceData();
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -203,6 +203,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Rekap Absensi routes (Read Only)
         Route::get('/absensi', function () { return view('kepala-sekolah.absensi.index'); })->name('kepala-sekolah.absensi.index');
+        Route::get('/api/absensi-guru-hari-ini', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'getTodayGuruAttendance'])->name('kepala-sekolah.api.absensi-guru-today');
         Route::get('/absensi/siswa', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexSiswa'])->name('kepala-sekolah.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailSiswa'])->name('kepala-sekolah.absensi.siswa.detail');
         Route::get('/absensi/siswa/{id}/monthly', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'monthlySiswa'])->name('kepala-sekolah.absensi.siswa.monthly');
