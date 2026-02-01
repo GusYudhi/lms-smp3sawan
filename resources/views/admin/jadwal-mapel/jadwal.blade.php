@@ -41,75 +41,159 @@
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <form id="filterForm" method="GET">
+        <!-- Filter Section -->
+
+        <div class="card shadow mb-4">
+
+            <div class="card-body">
+
                 <div class="row align-items-end g-3">
-                    <div class="col-md-4">
-                        <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
-                        <select class="form-select auto-submit" id="filter_kelas" name="kelas_id">
-                            <option value="">-- Pilih Kelas --</option>
-                            @foreach($kelas as $k)
-                                <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->full_name }}</option>
-                            @endforeach
-                        </select>
+
+                    <div class="col-md-7">
+
+                        <form id="filterForm" method="GET" class="row g-3 align-items-end">
+
+                            <div class="col-md-7">
+
+                                <label for="filter_kelas" class="form-label fw-bold">Pilih Kelas:</label>
+
+                                <select class="form-select auto-submit" id="filter_kelas" name="kelas_id">
+
+                                    <option value="">-- Pilih Kelas --</option>
+
+                                    @foreach($kelas as $k)
+
+                                        <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->full_name }}</option>
+
+                                    @endforeach
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-5">
+
+                                <label for="filter_hari" class="form-label fw-bold">Tampilan:</label>
+
+                                <select class="form-select auto-submit" id="filter_hari" name="hari">
+
+                                    <option value="">Semua Hari</option>
+
+                                    <option value="hari-ini" {{ request('hari') == 'hari-ini' ? 'selected' : '' }}>Jadwal Hari Ini</option>
+
+                                    <option value="Senin" {{ request('hari') == 'Senin' ? 'selected' : '' }}>Senin</option>
+
+                                    <option value="Selasa" {{ request('hari') == 'Selasa' ? 'selected' : '' }}>Selasa</option>
+
+                                    <option value="Rabu" {{ request('hari') == 'Rabu' ? 'selected' : '' }}>Rabu</option>
+
+                                    <option value="Kamis" {{ request('hari') == 'Kamis' ? 'selected' : '' }}>Kamis</option>
+
+                                    <option value="Jumat" {{ request('hari') == 'Jumat' ? 'selected' : '' }}>Jumat</option>
+
+                                    <option value="Sabtu" {{ request('hari') == 'Sabtu' ? 'selected' : '' }}>Sabtu</option>
+
+                                </select>
+
+                            </div>
+
+                        </form>
+
                     </div>
-                    <div class="col-md-3">
-                        <label for="filter_hari" class="form-label fw-bold">Tampilan:</label>
-                        <select class="form-select auto-submit" id="filter_hari" name="hari">
-                            <option value="">Semua Hari</option>
-                            <option value="hari-ini" {{ request('hari') == 'hari-ini' ? 'selected' : '' }}>Jadwal Hari Ini</option>
-                            <option value="Senin" {{ request('hari') == 'Senin' ? 'selected' : '' }}>Senin</option>
-                            <option value="Selasa" {{ request('hari') == 'Selasa' ? 'selected' : '' }}>Selasa</option>
-                            <option value="Rabu" {{ request('hari') == 'Rabu' ? 'selected' : '' }}>Rabu</option>
-                            <option value="Kamis" {{ request('hari') == 'Kamis' ? 'selected' : '' }}>Kamis</option>
-                            <option value="Jumat" {{ request('hari') == 'Jumat' ? 'selected' : '' }}>Jumat</option>
-                            <option value="Sabtu" {{ request('hari') == 'Sabtu' ? 'selected' : '' }}>Sabtu</option>
-                        </select>
-                    </div>
+
+    
+
                     <div class="col-md-5 text-end">
-                        <div class="d-inline-flex gap-2">
-                            <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary" title="Reset Filter">
+
+                        <div class="d-inline-flex gap-2 align-items-center">
+
+                            <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester ? $semester->id : '']) }}" class="btn btn-secondary" title="Reset Filter">
+
                                 <i class="fas fa-redo"></i>
+
                             </a>
 
-                            <form action="{{ route('admin.jadwal.export') }}" method="POST" target="_blank">
-                                @csrf
-                                <input type="hidden" name="semester_id" value="{{ $semester ? $semester->id : '' }}">
-                                <button type="submit" class="btn btn-info text-white">
-                                    <i class="fas fa-file-export me-1"></i>Export
-                                </button>
-                            </form>
-                            
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
-                                <i class="fas fa-file-import me-1"></i>Import
-                            </button>
+    
 
-                            <button type="button" class="btn btn-danger" id="btn-reset-jadwal">
-                                <i class="fas fa-trash-alt me-1"></i>Reset
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <div id="loading-indicator" class="d-none">
-                            <div class="spinner-border text-primary spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                            @if($semester)
+
+                                <form action="{{ route('admin.jadwal.export') }}" method="POST" target="_blank" class="d-inline">
+
+                                    @csrf
+
+                                    <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+
+                                    <button type="submit" class="btn btn-info text-white">
+
+                                        <i class="fas fa-file-export me-1"></i>Export
+
+                                    </button>
+
+                                </form>
+
+                                
+
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+
+                                    <i class="fas fa-file-import me-1"></i>Import
+
+                                </button>
+
+    
+
+                                <button type="button" class="btn btn-danger" id="btn-reset-jadwal">
+
+                                    <i class="fas fa-trash-alt me-1"></i>Reset
+
+                                </button>
+
+                            @else
+
+                                <button class="btn btn-secondary" disabled title="Pilih semester terlebih dahulu">Export</button>
+
+                                <button class="btn btn-secondary" disabled title="Pilih semester terlebih dahulu">Import</button>
+
+                                <button class="btn btn-secondary" disabled title="Pilih semester terlebih dahulu">Reset</button>
+
+                            @endif
+
+                            
+
+                            <div id="loading-indicator" class="d-none ms-2">
+
+                                <div class="spinner-border text-primary spinner-border-sm" role="status">
+
+                                    <span class="visually-hidden">Loading...</span>
+
+                                </div>
+
                             </div>
-                            <span class="ms-2 text-muted">Memuat...</span>
+
                         </div>
+
                     </div>
+
                 </div>
+
+                
+
                 <div class="row mt-2">
+
                     <div class="col-12">
+
                         <small class="text-muted">
+
                             <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis
+
                         </small>
+
                     </div>
+
                 </div>
-            </form>
+
+            </div>
+
         </div>
-    </div>
 
     <!-- Schedule Grid -->
     <div id="schedule-grid" class="d-none" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
