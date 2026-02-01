@@ -383,6 +383,16 @@
                             </div>
                         </div>
 
+                        <!-- Errors Section -->
+                        <div id="errors-section" class="d-none mb-3">
+                            <h6 class="fw-bold text-danger"><i class="fas fa-times-circle me-1"></i>Detail Error</h6>
+                            <div class="alert alert-danger p-0" style="max-height: 150px; overflow-y: auto;">
+                                <ul class="list-group list-group-flush list-group-item-danger small" id="errors-list">
+                                    <!-- Injected by JS -->
+                                </ul>
+                            </div>
+                        </div>
+
                         <div id="changes-section" class="d-none">
                             <h6 class="fw-bold text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Perubahan Kode Guru</h6>
                             <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
@@ -837,6 +847,20 @@ $(document).ready(function() {
                     // Update Stats
                     $('#preview-success').text(response.success_count);
                     $('#preview-fail').text(response.failure_count);
+
+                    // Show Errors
+                    const errors = response.errors || [];
+                    const errorList = $('#errors-list');
+                    errorList.empty();
+
+                    if (errors.length > 0) {
+                        $('#errors-section').removeClass('d-none');
+                        errors.forEach(err => {
+                            errorList.append(`<li class="list-group-item bg-transparent text-danger py-1"><i class="fas fa-angle-right me-2"></i>${err}</li>`);
+                        });
+                    } else {
+                        $('#errors-section').addClass('d-none');
+                    }
 
                     // Show Changes
                     const changes = response.changes || [];
