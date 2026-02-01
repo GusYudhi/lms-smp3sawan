@@ -137,13 +137,13 @@
                                         <a href="{{ route('kepala-sekolah.tugas-guru.edit', $tugas->id) }}" class="btn btn-sm btn-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('kepala-sekolah.tugas-guru.destroy', $tugas->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus tugas ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                            <form action="{{ route('kepala-sekolah.tugas-guru.destroy', $tugas->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus tugas ini?">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                     </td>
                                 </tr>
                                 @empty

@@ -93,13 +93,13 @@
                                             <button class="btn btn-sm btn-info me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ $mapel->id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('admin.mapel.destroy', $mapel->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus mata pelajaran ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                        <form action="{{ route('admin.mapel.destroy', $mapel->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus mata pelajaran ini?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                         </td>
                                     </tr>
                                     @empty

@@ -131,15 +131,13 @@
                                         <a href="{{ asset('storage/' . $file->file_path) }}" class="btn btn-sm btn-primary" download>
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <form action="{{ route('guru.tugas-guru.delete-file', $file->id) }}"
-                                              method="POST" class="d-inline"
-                                              onsubmit="return confirm('Yakin ingin menghapus file ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                                <form action="{{ route('guru.tugas-guru.delete-file', $file->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus file ini?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                     </div>
                                 </li>
                                 @endforeach
@@ -164,15 +162,13 @@
                         <button type="button" class="btn btn-warning" data-bs-toggle="collapse" data-bs-target="#resubmitForm">
                             <i class="fas fa-edit"></i> Edit Submission
                         </button>
-                        <form action="{{ route('guru.tugas-guru.delete-submission', $submission->id) }}"
-                              method="POST" class="d-inline"
-                              onsubmit="return confirm('Yakin ingin menghapus submission ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Hapus Submission
-                            </button>
-                        </form>
+                                            <form action="{{ route('guru.tugas-guru.delete-submission', $submission->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus submission ini?">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-1"></i>Hapus Submission
+                                </button>
+                            </form>
 
                         <div class="collapse mt-3" id="resubmitForm">
                             <div class="card">

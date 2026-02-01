@@ -193,9 +193,20 @@
     });
 
     function confirmDelete(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus jurnal ini?')) {
-            document.getElementById('delete-form-' + id).submit();
-        }
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Jurnal ini akan dihapus permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
     }
 </script>
 @endpush

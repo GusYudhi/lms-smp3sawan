@@ -37,11 +37,11 @@ class InputJadwalSheet implements FromCollection, WithHeadings, WithTitle, WithS
         $classCount = $classes->count();
 
         foreach ($days as $day) {
-            for ($jam = 1; $jam <= 10; $jam++) {
+            for ($jam = 1; $jam <= 7; $jam++) {
                 $row = [
                     $jam === 1 ? $day : '', // Only show day on first row (visual merge)
                     $jam,
-                    '07.00 - 07.40', // Example time
+                    '07.30 - 08.10', // Default example time
                 ];
                 
                 // Fill empty slots for classes

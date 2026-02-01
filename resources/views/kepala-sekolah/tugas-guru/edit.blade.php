@@ -82,15 +82,13 @@
                                         <a href="{{ asset('storage/' . $file->file_path) }}" class="btn btn-sm btn-primary" download>
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <form action="{{ route('kepala-sekolah.tugas-guru.delete-file', $file->id) }}"
-                                              method="POST" class="d-inline"
-                                              onsubmit="return confirm('Yakin ingin menghapus file ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                                <form action="{{ route('kepala-sekolah.tugas-guru.delete-file', $file->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus file ini?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                     </div>
                                 </li>
                                 @endforeach

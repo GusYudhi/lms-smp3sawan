@@ -6,7 +6,10 @@ use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\GuruProfile;
+use App\Models\JamPelajaran;
+use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -27,8 +30,77 @@ class JadwalImport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            0 => new JadwalSheetImport($this->semesterId, $this)
+            'KODE_MAPEL' => new MapelSheetImport($this->semesterId, $this),
+            'KODE_GURU' => new GuruSheetImport($this),
+            'INPUT_JADWAL' => new JadwalSheetImport($this->semesterId, $this)
         ];
+    }
+}
+
+class MapelSheetImport implements ToCollection, WithHeadingRow
+{
+    protected $semesterId;
+    protected $parent;
+
+    public function __construct($semesterId, $parent)
+    {
+        $this->semesterId = $semesterId;
+        $this->parent = $parent;
+    }
+
+    public function collection(Collection $rows)
+    {
+        foreach ($rows as $row) {
+            $kode = strtoupper($row['kode_mapel'] ?? '');
+            $nama = $row['nama_mapel'] ?? '';
+
+            if ($kode && $nama) {
+                MataPelajaran::updateOrCreate(
+                    ['kode_mapel' => $kode, 'semester_id' => $this->semesterId],
+                    ['nama_mapel' => $nama]
+                );
+            }
+        }
+    }
+}
+
+class GuruSheetImport implements ToCollection, WithHeadingRow
+{
+    protected $parent;
+
+    public function __construct($parent)
+    {
+        $this->parent = $parent;
+    }
+
+    public function collection(Collection $rows)
+    {
+        foreach ($rows as $row) {
+            $kode = strtoupper($row['kode_guru'] ?? '');
+            $nama = $row['nama_guru'] ?? '';
+
+            if ($kode && $nama) {
+                // Try to find teacher by name
+                $user = User::where('role', 'guru')
+                    ->where('name', 'like', "%{$nama}%")
+                    ->first();
+                
+                if ($user && $user->guruProfile) {
+                    // Check if this code is already used by ANOTHER teacher
+                    $existingOwner = GuruProfile::where('kode_guru', $kode)
+                        ->where('id', '!=', $user->guruProfile->id)
+                        ->first();
+
+                    if ($existingOwner) {
+                        // "Steal" the code: Set existing owner's code to null
+                        $existingOwner->update(['kode_guru' => null]);
+                    }
+
+                    // Update current teacher
+                    $user->guruProfile->update(['kode_guru' => $kode]);
+                }
+            }
+        }
     }
 }
 
@@ -43,17 +115,22 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
         $this->parent = $parent;
     }
 
+    public function headingRow(): int
+    {
+        return 2;
+    }
+
     public function collection(Collection $rows)
     {
-        // 1. Prepare Maps for Lookups
+        // 1. Prepare Maps for Lookups (Refreshed after Mapel import)
         $kelasMap = Kelas::all()->mapWithKeys(function ($k) {
-            // Slugify class name to match Excel header (e.g. "7A" -> "7a")
             return [Str::slug($k->tingkat . $k->nama_kelas, '_') => $k->id];
         });
 
-        $mapelMap = MataPelajaran::pluck('id', 'kode_mapel')->mapWithKeys(function ($item, $key) {
-            return [strtoupper($key) => $item];
-        });
+        $mapelMap = MataPelajaran::where('semester_id', $this->semesterId)
+            ->pluck('id', 'kode_mapel')->mapWithKeys(function ($item, $key) {
+                return [strtoupper($key) => $item];
+            });
 
         $guruMap = GuruProfile::whereNotNull('kode_guru')->pluck('user_id', 'kode_guru')->mapWithKeys(function ($item, $key) {
             return [strtoupper($key) => $item];
@@ -63,10 +140,9 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
 
         foreach ($rows as $index => $row) {
             try {
-                $rowNumber = $index + 3; // Row in Excel (Header is row 2, Data starts row 3)
+                $rowNumber = $index + 3;
 
-                // 2. Handle Hari (Fill Down)
-                // Note: Maatwebsite uses slugified keys. 'HARI' -> 'hari'
+                // 2. Handle Hari
                 $rawHari = $row['hari'] ?? null;
                 if (!empty($rawHari)) {
                     $lastHari = ucfirst(strtolower($rawHari));
@@ -74,30 +150,25 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                 $hari = $lastHari;
 
                 $jamKe = $row['jam_ke'] ?? null;
+                $waktu = $row['waktu'] ?? null;
 
                 if (!$hari || !$jamKe) continue;
 
-                // 3. Iterate Columns to find Classes
-                // $row is a Collection or Array.
-                foreach ($row as $key => $value) {
-                    // Skip non-class columns
-                    if (in_array($key, ['hari', 'jam_ke', 'waktu'])) continue;
-                    
-                    // Skip empty cells
-                    if (empty($value)) continue;
+                // 2.5 Auto-Import Jam Pelajaran (Waktu)
+                if ($waktu && $this->semesterId) {
+                    $this->syncJamPelajaran($jamKe, $waktu);
+                }
 
-                    // Check if column key corresponds to a class
+                // 3. Iterate Columns to find Classes
+                foreach ($row as $key => $value) {
+                    if (in_array($key, ['hari', 'jam_ke', 'waktu'])) continue;
+                    if (empty($value)) continue;
                     if (!isset($kelasMap[$key])) continue;
                     
                     $kelasId = $kelasMap[$key];
                     $cellValue = trim($value);
 
-                    // 4. Parse Cell Value "MAPEL GURU" or "GURU MAPEL"
-                    // Handle "UPACARA" etc
-                    if (strtoupper($cellValue) === 'UPACARA' || strtoupper($cellValue) === 'ISTIRAHAT') {
-                        // Optional: Create Fixed Schedule
-                        continue; 
-                    }
+                    if (strtoupper($cellValue) === 'UPACARA' || strtoupper($cellValue) === 'ISTIRAHAT') continue; 
 
                     $parts = preg_split('/\s+/', $cellValue);
                     if (count($parts) < 2) {
@@ -111,12 +182,10 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                     $mapelId = null;
                     $guruId = null;
 
-                    // Try Strategy A: Code1=Mapel, Code2=Guru
                     if (isset($mapelMap[$code1]) && isset($guruMap[$code2])) {
                         $mapelId = $mapelMap[$code1];
                         $guruId = $guruMap[$code2];
                     } 
-                    // Try Strategy B: Code1=Guru, Code2=Mapel
                     elseif (isset($guruMap[$code1]) && isset($mapelMap[$code2])) {
                         $guruId = $guruMap[$code1];
                         $mapelId = $mapelMap[$code2];
@@ -127,7 +196,6 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                         continue;
                     }
 
-                    // 5. Save to DB
                     JadwalPelajaran::updateOrCreate(
                         [
                             'semester_id' => $this->semesterId,
@@ -148,6 +216,25 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                 $this->parent->failureCount++;
                 $this->parent->errors[] = "Baris $rowNumber: " . $e->getMessage();
             }
+        }
+    }
+
+    /**
+     * Sync Jam Pelajaran based on WAKTU column
+     */
+    protected function syncJamPelajaran($jamKe, $waktu)
+    {
+        // Format: "07.30 - 08.10" or "07:30-08:10"
+        $times = preg_split('/[-\s]+/', str_replace('.', ':', $waktu));
+        
+        if (count($times) >= 2) {
+            $mulai = date('H:i:s', strtotime($times[0]));
+            $selesai = date('H:i:s', strtotime($times[1]));
+
+            JamPelajaran::updateOrCreate(
+                ['semester_id' => $this->semesterId, 'jam_ke' => $jamKe],
+                ['jam_mulai' => $mulai, 'jam_selesai' => $selesai]
+            );
         }
     }
 }

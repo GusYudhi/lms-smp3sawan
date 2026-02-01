@@ -204,11 +204,22 @@
 @push('scripts')
 <script>
 function confirmDelete(id, nama) {
-    if (confirm(`Apakah Anda yakin ingin menghapus Tahun Pelajaran "${nama}"?\n\nSemua data semester dan jadwal yang terkait akan ikut terhapus!`)) {
-        const form = document.getElementById('deleteForm');
-        form.action = `/admin/tahun-pelajaran/${id}`;
-        form.submit();
-    }
+    Swal.fire({
+        title: 'Hapus Tahun Pelajaran?',
+        html: `Apakah Anda yakin ingin menghapus Tahun Pelajaran <strong>"${nama}"</strong>?<br><br><span class="text-danger small">Semua data semester dan jadwal yang terkait akan ikut terhapus!</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus Permanen!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('deleteForm');
+            form.action = `/admin/tahun-pelajaran/${id}`;
+            form.submit();
+        }
+    });
 }
 </script>
 @endpush

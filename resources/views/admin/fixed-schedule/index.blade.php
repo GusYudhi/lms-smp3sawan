@@ -96,7 +96,7 @@
                                         <td>Jam ke-{{ $fs->jam_ke }}</td>
                                         <td>{{ $fs->keterangan }}</td>
                                         <td>
-                                            <form action="{{ route('admin.fixed-schedule.destroy', $fs->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?')">
+                                            <form action="{{ route('admin.fixed-schedule.destroy', $fs->id) }}" method="POST" class="d-inline delete-form">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger">

@@ -68,13 +68,28 @@
                             <option value="Sabtu" {{ request('hari') == 'Sabtu' ? 'selected' : '' }}>Sabtu</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary me-2">
-                            <i class="fas fa-redo me-1"></i>Reset
-                        </a>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
-                            <i class="fas fa-file-import me-1"></i>Import
-                        </button>
+                    <div class="col-md-5 text-end">
+                        <div class="d-inline-flex gap-2">
+                            <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary" title="Reset Filter">
+                                <i class="fas fa-redo"></i>
+                            </a>
+
+                            <form action="{{ route('admin.jadwal.export') }}" method="POST" target="_blank">
+                                @csrf
+                                <input type="hidden" name="semester_id" value="{{ $semester ? $semester->id : '' }}">
+                                <button type="submit" class="btn btn-info text-white">
+                                    <i class="fas fa-file-export me-1"></i>Export
+                                </button>
+                            </form>
+                            
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                                <i class="fas fa-file-import me-1"></i>Import
+                            </button>
+
+                            <button type="button" class="btn btn-danger" id="btn-reset-jadwal">
+                                <i class="fas fa-trash-alt me-1"></i>Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-2 text-end">
                         <div id="loading-indicator" class="d-none">
@@ -644,9 +659,12 @@ $(document).ready(function() {
         });
     });
 
+
+
     // Handle Import Form
     $('#importForm').submit(function(e) {
         e.preventDefault();
+        console.log('Import form submitted');
         
         const btn = $('#btn-import');
         const originalText = btn.html();
@@ -661,6 +679,7 @@ $(document).ready(function() {
             contentType: false,
             processData: false,
             success: function(response) {
+                console.log('Import success:', response);
                 $('#importModal').modal('hide');
                 Swal.fire({
                     icon: 'success',
@@ -671,6 +690,7 @@ $(document).ready(function() {
                 });
             },
             error: function(xhr) {
+                console.error('Import error:', xhr);
                 let msg = 'Terjadi kesalahan server';
                 if (xhr.responseJSON) {
                     if (xhr.responseJSON.errors) {
@@ -678,8 +698,12 @@ $(document).ready(function() {
                     } else {
                         msg = xhr.responseJSON.message;
                     }
+                } else {
+                    if (xhr.responseText) {
+                        console.error(xhr.responseText); 
+                    }
                 }
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Import',
@@ -691,6 +715,57 @@ $(document).ready(function() {
             },
             complete: function() {
                 btn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+
+    // Handle Reset Jadwal
+    $('#btn-reset-jadwal').click(function() {
+        const kelasId = $('#filter_kelas').val();
+        
+        if (!kelasId) {
+            Swal.fire('Peringatan', 'Silakan pilih kelas terlebih dahulu untuk mereset jadwal kelas tersebut.', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Reset Jadwal Kelas Ini?',
+            text: "Semua jadwal (kecuali Jadwal Tetap) untuk kelas yang dipilih akan dihapus! Data tidak bisa dikembalikan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Reset Semuanya!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const semesterId = $('input[name="semester_id"]').val();
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('admin.jadwal.reset') }}",
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        semester_id: semesterId,
+                        kelas_id: kelasId
+                    },
+                    success: function(response) {
+                        Swal.fire('Berhasil!', response.message, 'success');
+                        loadSchedules(kelasId);
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal!', 'Gagal mereset jadwal.', 'error');
+                    }
+                });
             }
         });
     });

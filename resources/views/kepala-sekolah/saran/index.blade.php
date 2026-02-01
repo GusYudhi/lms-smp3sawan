@@ -55,13 +55,13 @@
                                     </button>
                                 </form>
                                 @endif
-                                <form action="{{ route('kepala-sekolah.saran.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus saran ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                            <form action="{{ route('kepala-sekolah.saran.destroy', $item->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus saran ini?">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                             </td>
                         </tr>
                         @endforeach

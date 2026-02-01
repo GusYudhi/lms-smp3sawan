@@ -104,6 +104,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{semester_id}/jadwal-mapel/get-by-kelas/{kelasId}', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'getByKelas'])->name('admin.jadwal.get-by-kelas');
             Route::get('/jadwal-mapel/template', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'downloadTemplate'])->name('admin.jadwal.template');
             Route::post('/jadwal-mapel/import', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'import'])->name('admin.jadwal.import');
+            Route::post('/jadwal-mapel/export', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'export'])->name('admin.jadwal.export');
+            Route::post('/jadwal-mapel/reset', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'reset'])->name('admin.jadwal.reset');
             Route::post('/check-schedule-conflict', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'checkConflict'])->name('admin.jadwal.check-conflict');
             Route::post('/move-schedule', [App\Http\Controllers\Admin\JadwalPelajaranController::class, 'moveSchedule'])->name('admin.jadwal.move');
         });

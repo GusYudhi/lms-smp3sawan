@@ -87,7 +87,7 @@
                                             <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal{{ $jam->id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('admin.jam-pelajaran.destroy', $jam->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?')">
+                                            <form action="{{ route('admin.jam-pelajaran.destroy', $jam->id) }}" method="POST" class="d-inline delete-form">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger">

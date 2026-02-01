@@ -57,14 +57,13 @@
                                 <a href="{{ route('kepala-sekolah.galeri.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('kepala-sekolah.galeri.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
+                                                                            <form action="{{ route('kepala-sekolah.galeri.destroy', $item->id) }}" method="POST" class="d-inline delete-form">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                                                    <i class="fas fa-trash"></i>
+                                                                                </button>
+                                                                            </form>                            </td>
                         </tr>
                         @endforeach
                     </tbody>

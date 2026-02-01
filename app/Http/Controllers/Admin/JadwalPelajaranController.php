@@ -14,6 +14,7 @@ use App\Models\JamPelajaran;
 use App\Models\Semester;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\JadwalTemplateExport;
+use App\Exports\JadwalExport;
 use App\Imports\JadwalImport;
 
 class JadwalPelajaranController extends Controller
@@ -424,6 +425,43 @@ class JadwalPelajaranController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['message' => 'Gagal import: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'semester_id' => 'required|exists:semester,id'
+        ]);
+        
+        return Excel::download(new JadwalExport($request->semester_id), 'jadwal_pelajaran_full.xlsx');
+    }
+
+    public function reset(Request $request)
+    {
+        $request->validate([
+            'semester_id' => 'required|exists:semester,id',
+            'kelas_id' => 'required|exists:kelas,id'
+        ]);
+
+        try {
+            // Delete only non-fixed schedules for this class & semester
+            // Assuming 'fixed_schedule_id' being null means it's a regular lesson
+            // Or if you don't use that column, just delete all from JadwalPelajaran table for this class
+            // The prompt says "kecuali jadwal tetap", usually FixedSchedule model stores templates like "Istirahat", "Upacara"
+            // But if FixedSchedule items are inserted into JadwalPelajaran, we need a way to distinguish.
+            // Based on previous code: `getByKelas` checks `FixedSchedule` table separately.
+            // So `JadwalPelajaran` table ONLY contains lessons.
+            // Therefore, we can delete ALL entries in `jadwal_pelajarans` for this class/semester.
+            
+            JadwalPelajaran::where('semester_id', $request->semester_id)
+                ->where('kelas_id', $request->kelas_id)
+                ->delete();
+
+            return response()->json(['message' => 'Jadwal kelas ini berhasil direset.']);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mereset jadwal: ' . $e->getMessage()], 500);
         }
     }
 }
