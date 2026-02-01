@@ -67,8 +67,8 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <h6 class="mb-0">{{ $schedule->nama_mapel }}</h6>
-                                                <small class="text-muted">{{ $schedule->kode_mapel }}</small>
+                                                <h6 class="mb-0">{{ $schedule->mataPelajaran->nama_mapel ?? '-' }}</h6>
+                                                <small class="text-muted">{{ $schedule->mataPelajaran->kode_mapel ?? '-' }}</small>
                                             </div>
                                         </td>
                                         <td>
