@@ -21,6 +21,8 @@ class JadwalImport implements WithMultipleSheets
     public $successCount = 0;
     public $failureCount = 0;
     public $errors = [];
+    public $missingTeachers = []; 
+    public $changes = []; // Track modifications
 
     public function __construct($semesterId)
     {
@@ -51,8 +53,8 @@ class MapelSheetImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $kode = strtoupper($row['kode_mapel'] ?? '');
-            $nama = $row['nama_mapel'] ?? '';
+            $kode = strtoupper(trim($row['kode_mapel'] ?? ''));
+            $nama = trim($row['nama_mapel'] ?? '');
 
             if ($kode && $nama) {
                 MataPelajaran::updateOrCreate(
@@ -75,9 +77,9 @@ class GuruSheetImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows)
     {
-        foreach ($rows as $row) {
-            $kode = strtoupper($row['kode_guru'] ?? '');
-            $nama = $row['nama_guru'] ?? '';
+        foreach ($rows as $index => $row) {
+            $kode = strtoupper(trim($row['kode_guru'] ?? ''));
+            $nama = trim($row['nama_guru'] ?? '');
 
             if ($kode && $nama) {
                 // Try to find teacher by name
@@ -86,18 +88,35 @@ class GuruSheetImport implements ToCollection, WithHeadingRow
                     ->first();
                 
                 if ($user && $user->guruProfile) {
-                    // Check if this code is already used by ANOTHER teacher
-                    $existingOwner = GuruProfile::where('kode_guru', $kode)
-                        ->where('id', '!=', $user->guruProfile->id)
-                        ->first();
+                    $oldCode = $user->guruProfile->kode_guru;
+                    
+                    // Normalize for comparison
+                    $isDifferent = (strtoupper(trim($oldCode ?? '')) !== $kode);
 
-                    if ($existingOwner) {
-                        // "Steal" the code: Set existing owner's code to null
-                        $existingOwner->update(['kode_guru' => null]);
+                    if ($isDifferent) {
+                        // Check collision
+                        $existingOwner = GuruProfile::where('kode_guru', $kode)
+                            ->where('id', '!=', $user->guruProfile->id)
+                            ->first();
+
+                        if ($existingOwner) {
+                            $existingOwner->update(['kode_guru' => null]);
+                        }
+
+                        $user->guruProfile->update(['kode_guru' => $kode]);
+                        
+                        // Log Change
+                        $this->parent->changes[] = [
+                            'type' => 'guru_code',
+                            'name' => $user->name,
+                            'old' => $oldCode ?? '-',
+                            'new' => $kode
+                        ];
                     }
-
-                    // Update current teacher
-                    $user->guruProfile->update(['kode_guru' => $kode]);
+                } else {
+                    // Track missing teacher
+                    $this->parent->errors[] = "Sheet KODE_GURU: Guru '$nama' tidak ditemukan di database.";
+                    $this->parent->failureCount++;
                 }
             }
         }
@@ -120,6 +139,27 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
         return 2;
     }
 
+    /**
+     * Flexible Code Lookup (Handles '7' vs '07')
+     */
+    protected function lookupCode($map, $code)
+    {
+        $code = strtoupper(trim($code));
+        
+        // 1. Exact Match
+        if (isset($map[$code])) return $map[$code];
+
+        // 2. Try removing leading zeros (e.g. '07' -> '7')
+        $noZeros = ltrim($code, '0');
+        if (isset($map[$noZeros])) return $map[$noZeros];
+
+        // 3. Try adding leading zero (e.g. '7' -> '07') - assuming max 2 digits for simple cases
+        $padded = str_pad($code, 2, '0', STR_PAD_LEFT);
+        if (isset($map[$padded])) return $map[$padded];
+
+        return null;
+    }
+
     public function collection(Collection $rows)
     {
         // 1. Prepare Maps for Lookups (Refreshed after Mapel import)
@@ -127,13 +167,14 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
             return [Str::slug($k->tingkat . $k->nama_kelas, '_') => $k->id];
         });
 
+        // Store keys as uppercase strings
         $mapelMap = MataPelajaran::where('semester_id', $this->semesterId)
             ->pluck('id', 'kode_mapel')->mapWithKeys(function ($item, $key) {
-                return [strtoupper($key) => $item];
+                return [strtoupper((string)$key) => $item];
             });
 
         $guruMap = GuruProfile::whereNotNull('kode_guru')->pluck('user_id', 'kode_guru')->mapWithKeys(function ($item, $key) {
-            return [strtoupper($key) => $item];
+            return [strtoupper((string)$key) => $item];
         });
 
         $lastHari = null;
@@ -173,26 +214,37 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                     $parts = preg_split('/\s+/', $cellValue);
                     if (count($parts) < 2) {
                         $this->parent->errors[] = "Baris $rowNumber, Kelas $key: Format salah '$cellValue'. Gunakan 'KODE_MAPEL KODE_GURU'";
+                        $this->parent->failureCount++; 
                         continue;
                     }
 
-                    $code1 = strtoupper($parts[0]);
-                    $code2 = strtoupper($parts[1]);
+                    $code1 = $parts[0];
+                    $code2 = $parts[1];
 
                     $mapelId = null;
                     $guruId = null;
 
-                    if (isset($mapelMap[$code1]) && isset($guruMap[$code2])) {
-                        $mapelId = $mapelMap[$code1];
-                        $guruId = $guruMap[$code2];
-                    } 
-                    elseif (isset($guruMap[$code1]) && isset($mapelMap[$code2])) {
-                        $guruId = $guruMap[$code1];
-                        $mapelId = $mapelMap[$code2];
+                    // Try Strategy A: Code1=Mapel, Code2=Guru
+                    $m1 = $this->lookupCode($mapelMap, $code1);
+                    $g1 = $this->lookupCode($guruMap, $code2);
+                    
+                    if ($m1 && $g1) {
+                        $mapelId = $m1;
+                        $guruId = $g1;
+                    } else {
+                        // Try Strategy B: Code1=Guru, Code2=Mapel
+                        $g2 = $this->lookupCode($guruMap, $code1);
+                        $m2 = $this->lookupCode($mapelMap, $code2);
+                        
+                        if ($g2 && $m2) {
+                            $guruId = $g2;
+                            $mapelId = $m2;
+                        }
                     }
 
                     if (!$mapelId || !$guruId) {
                         $this->parent->errors[] = "Baris $rowNumber, Kelas $key: Kode Mapel/Guru tidak valid ($cellValue)";
+                        $this->parent->failureCount++; 
                         continue;
                     }
 

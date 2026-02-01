@@ -409,12 +409,32 @@ class JadwalPelajaranController extends Controller
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:5120',
-            'semester_id' => 'required|exists:semester,id'
+            'semester_id' => 'required|exists:semester,id',
+            'dry_run' => 'nullable|boolean'
         ]);
 
+        $isDryRun = $request->boolean('dry_run');
+
+        DB::beginTransaction();
         try {
             $import = new JadwalImport($request->semester_id);
             Excel::import($import, $request->file('file'));
+
+            if ($isDryRun) {
+                // Rollback changes for preview
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'preview',
+                    'success_count' => $import->successCount,
+                    'failure_count' => $import->failureCount,
+                    'errors' => $import->errors,
+                    'changes' => $import->changes
+                ]);
+            }
+
+            // Commit for real run
+            DB::commit();
 
             $message = "Import selesai! Berhasil: {$import->successCount}, Gagal: {$import->failureCount}.";
             
@@ -425,12 +445,13 @@ class JadwalPelajaranController extends Controller
                 return response()->json([
                     'message' => $message,
                     'errors' => $errorList
-                ], 422); // Return 422 to show warning in frontend
+                ], 422); 
             }
 
             return response()->json(['message' => $message]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(['message' => 'Gagal import: ' . $e->getMessage()], 500);
         }
     }

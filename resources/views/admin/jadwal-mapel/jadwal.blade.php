@@ -343,27 +343,79 @@
             <form id="importForm" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="semester_id" value="{{ $semester ? $semester->id : '' }}">
+                <input type="hidden" name="dry_run" id="dry_run" value="1">
+                
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">1. Download Template</label>
-                        <p class="small text-muted">Unduh template Excel yang berisi format import dan daftar kode referensi (Guru, Mapel, Kelas).</p>
-                        <a href="{{ route('admin.jadwal.template') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-download me-1"></i> Download Template (.xlsx)
-                        </a>
-                    </div>
-                    
-                    <hr>
+                    <!-- Step 1: Upload -->
+                    <div id="import-step-1">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">1. Download Template</label>
+                            <p class="small text-muted">Unduh template Excel yang berisi format import dan daftar kode referensi (Guru, Mapel, Kelas).</p>
+                            <a href="{{ route('admin.jadwal.template') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-1"></i> Download Template (.xlsx)
+                            </a>
+                        </div>
+                        
+                        <hr>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">2. Upload File</label>
-                        <input type="file" class="form-control" name="file" accept=".xlsx, .xls" required>
-                        <div class="form-text">Pastikan Kode Guru dan Kode Mapel sesuai dengan Referensi.</div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">2. Upload File</label>
+                            <input type="file" class="form-control" name="file" accept=".xlsx, .xls" required>
+                            <div class="form-text">Sistem akan mengecek perubahan kode guru terlebih dahulu.</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Review -->
+                    <div id="import-step-2" class="d-none">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading fw-bold"><i class="fas fa-info-circle me-1"></i>Hasil Pengecekan</h6>
+                            <p class="mb-0 small">Berikut adalah ringkasan perubahan yang akan terjadi jika Anda melanjutkan:</p>
+                        </div>
+
+                        <div class="row text-center mb-3">
+                            <div class="col-6 border-end">
+                                <h3 class="text-success mb-0" id="preview-success">0</h3>
+                                <small class="text-muted">Data Valid</small>
+                            </div>
+                            <div class="col-6">
+                                <h3 class="text-danger mb-0" id="preview-fail">0</h3>
+                                <small class="text-muted">Data Gagal/Error</small>
+                            </div>
+                        </div>
+
+                        <div id="changes-section" class="d-none">
+                            <h6 class="fw-bold text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Perubahan Kode Guru</h6>
+                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-striped font-small">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Nama Guru</th>
+                                            <th>Kode Lama</th>
+                                            <th>Kode Baru</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="changes-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="alert alert-warning py-2 mt-2">
+                                <small><strong>Perhatian:</strong> Mengubah kode guru dapat mempengaruhi jadwal di semester lain yang menggunakan kode lama.</small>
+                            </div>
+                        </div>
+                        
+                        <div id="no-changes-msg" class="text-center py-3 d-none">
+                            <span class="text-muted fst-italic">Tidak ada perubahan kode guru yang terdeteksi.</span>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success" id="btn-import">
-                        <i class="fas fa-upload me-1"></i> Import Sekarang
+                    <button type="submit" class="btn btn-primary" id="btn-check">
+                        <i class="fas fa-search me-1"></i> Cek File
+                    </button>
+                    <button type="button" class="btn btn-success d-none" id="btn-execute">
+                        <i class="fas fa-file-import me-1"></i> Lanjutkan Import
                     </button>
                 </div>
             </form>
@@ -749,14 +801,26 @@ $(document).ready(function() {
 
 
 
-    // Handle Import Form
+    // Reset Import Modal on Close
+    $('#importModal').on('hidden.bs.modal', function () {
+        $('#importForm')[0].reset();
+        $('#import-step-1').removeClass('d-none');
+        $('#import-step-2').addClass('d-none');
+        $('#btn-check').removeClass('d-none');
+        $('#btn-execute').addClass('d-none');
+        $('#dry_run').val('1');
+        $('#changes-table-body').empty();
+    });
+
+    // Handle Import Form (2-Step)
     $('#importForm').submit(function(e) {
         e.preventDefault();
-        console.log('Import form submitted');
         
-        const btn = $('#btn-import');
+        const isDryRun = $('#dry_run').val() === '1';
+        const btn = isDryRun ? $('#btn-check') : $('#btn-execute');
         const originalText = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Mengimport...').prop('disabled', true);
+        
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Memproses...').prop('disabled', true);
 
         const formData = new FormData(this);
 
@@ -767,15 +831,62 @@ $(document).ready(function() {
             contentType: false,
             processData: false,
             success: function(response) {
-                console.log('Import success:', response);
-                $('#importModal').modal('hide');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: response.message,
-                }).then(() => {
-                    location.reload();
-                });
+                if (response.status === 'preview') {
+                    // --- STEP 1: PREVIEW ---
+                    
+                    // Update Stats
+                    $('#preview-success').text(response.success_count);
+                    $('#preview-fail').text(response.failure_count);
+
+                    // Show Changes
+                    const changes = response.changes || [];
+                    const tbody = $('#changes-table-body');
+                    tbody.empty();
+
+                    if (changes.length > 0) {
+                        $('#changes-section').removeClass('d-none');
+                        $('#no-changes-msg').addClass('d-none');
+                        
+                        changes.forEach(change => {
+                            tbody.append(`
+                                <tr>
+                                    <td>${change.name}</td>
+                                    <td><span class="badge bg-secondary">${change.old}</span></td>
+                                    <td><span class="badge bg-primary">${change.new}</span></td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        $('#changes-section').addClass('d-none');
+                        $('#no-changes-msg').removeClass('d-none');
+                    }
+
+                    // Switch View
+                    $('#import-step-1').addClass('d-none');
+                    $('#import-step-2').removeClass('d-none');
+                    
+                    // Switch Buttons
+                    $('#btn-check').addClass('d-none');
+                    $('#btn-execute').removeClass('d-none');
+                    
+                    // Set flag for next submit
+                    $('#dry_run').val('0');
+                    
+                    // Enable button back
+                    btn.html(originalText).prop('disabled', false);
+
+                } else {
+                    // --- STEP 2: EXECUTE ---
+                    
+                    $('#importModal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Import Selesai',
+                        text: response.message,
+                    }).then(() => {
+                        location.reload();
+                    });
+                }
             },
             error: function(xhr) {
                 console.error('Import error:', xhr);
@@ -794,17 +905,23 @@ $(document).ready(function() {
 
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal Import',
+                    title: 'Gagal',
                     text: msg,
                     customClass: {
                         popup: 'swal-wide'
                     }
                 });
-            },
-            complete: function() {
+                
+                // Enable button back
                 btn.html(originalText).prop('disabled', false);
             }
         });
+    });
+
+    // Handle Import Form (Secondary Button Trigger)
+    $('#btn-execute').click(function(e) {
+        // Trigger form submit again
+        $('#importForm').submit();
     });
 
     // Handle Reset Jadwal
