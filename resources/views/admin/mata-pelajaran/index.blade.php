@@ -58,6 +58,13 @@
                             <input type="text" class="form-control" id="kode_mapel" name="kode_mapel" required>
                         </div>
 
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_universal" name="is_universal">
+                            <label class="form-check-label" for="is_universal">
+                                Mapel Umum / Multi-Guru <small class="text-muted">(Bisa diampu oleh banyak guru, misal: Kokurikuler)</small>
+                            </label>
+                        </div>
+
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Simpan
@@ -119,5 +126,42 @@
     </div>
 </div>
 
+<!-- Edit Modals -->
+@foreach($mapels as $mapel)
+<div class="modal fade" id="editModal{{ $mapel->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Mata Pelajaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.mapel.update', $mapel->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Mata Pelajaran</label>
+                        <input type="text" class="form-control" name="nama_mapel" value="{{ $mapel->nama_mapel }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kode Mapel</label>
+                        <input type="text" class="form-control" name="kode_mapel" value="{{ $mapel->kode_mapel }}" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_universal_{{ $mapel->id }}" name="is_universal" {{ $mapel->is_universal ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_universal_{{ $mapel->id }}">
+                            Mapel Umum / Multi-Guru
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
 
 @endsection

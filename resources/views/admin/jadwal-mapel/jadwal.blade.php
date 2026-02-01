@@ -200,7 +200,7 @@
                         <select class="form-select select2" id="mata_pelajaran_id" name="mata_pelajaran_id" required>
                             <option value="">Tidak Ada</option>
                             @foreach($mapels as $m)
-                                <option value="{{ $m->id }}">{{ $m->nama_mapel }} ({{ $m->kode_mapel }})</option>
+                                <option value="{{ $m->id }}" data-multi-teacher="{{ $m->is_universal }}">{{ $m->nama_mapel }} ({{ $m->kode_mapel }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -333,6 +333,8 @@ $(document).ready(function() {
     // 1. When Subject Changes -> Filter Teachers
     $mapelSelect.on('change', function() {
         const selectedMapelId = $(this).val();
+        const selectedOption = $(this).find('option:selected');
+        const isMultiTeacher = selectedOption.data('multi-teacher');
         
         // Save current teacher selection if it matches the new mapel
         const currentGuruId = $guruSelect.val();
@@ -343,10 +345,12 @@ $(document).ready(function() {
         let foundCurrent = false;
 
         if (selectedMapelId) {
-            // Filter teachers who teach this subject
+            // Filter teachers
             allGuruOptions.forEach(guru => {
-                // Loose comparison (==) because data attr might be string/int
-                if (guru.mapelId == selectedMapelId) {
+                // Show teacher IF:
+                // 1. Subject is Multi-Teacher (Universal) -> Show Everyone
+                // 2. OR Teacher teaches this subject
+                if (isMultiTeacher || guru.mapelId == selectedMapelId) {
                     const newOption = new Option(guru.text, guru.id, false, false);
                     $(newOption).attr('data-mapel-id', guru.mapelId);
                     $guruSelect.append(newOption);

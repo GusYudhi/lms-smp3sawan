@@ -9,9 +9,18 @@ class MataPelajaran extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama_mapel', 'kode_mapel', 'semester_id'];
+    protected $fillable = [
+        'kode_mapel',
+        'nama_mapel',
+        'semester_id',
+        'is_universal'
+    ];
 
-    public function jadwal()
+    protected $casts = [
+        'is_universal' => 'boolean',
+    ];
+
+    public function jadwalPelajarans()
     {
         return $this->hasMany(JadwalPelajaran::class);
     }

@@ -17,8 +17,21 @@ class MataPelajaranController extends Controller
             $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
             $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
         } else {
-            $semester = null;
-            $mapels = MataPelajaran::all();
+            // Default to active semester context if available
+            $semester = Semester::where('is_active', true)->with('tahunPelajaran')->first();
+            
+            if ($semester) {
+                // If we found an active semester, show mapels for it (or all? Usually per semester)
+                // If the goal is just to show the SIDEBAR, we pass $semester.
+                // But logically, if we are in "Semester Context", we should probably show mapels for THAT semester.
+                // However, previous logic for 'else' was MataPelajaran::all(). 
+                // Let's stick to showing relevant mapels for consistency.
+                $mapels = MataPelajaran::where('semester_id', $semester->id)
+                    ->orWhereNull('semester_id') // Include global mapels if any
+                    ->get();
+            } else {
+                $mapels = MataPelajaran::all();
+            }
         }
 
         return view('admin.mata-pelajaran.index', compact('mapels', 'semester'));
@@ -27,28 +40,41 @@ class MataPelajaranController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'kode_mapel' => 'required|string|max:10', // Unique check removed globally as per requirement
             'nama_mapel' => 'required|string|max:255',
-            'kode_mapel' => 'required|string|max:10|unique:mata_pelajarans,kode_mapel',
-            'semester_id' => 'nullable|exists:semester,id',
         ]);
 
-        MataPelajaran::create($request->all());
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
 
-        return redirect()->back()->with('success', 'Mata Pelajaran berhasil ditambahkan');
+        MataPelajaran::create([
+            'kode_mapel' => $request->kode_mapel,
+            'nama_mapel' => $request->nama_mapel,
+            'semester_id' => $activeSemester ? $activeSemester->id : null,
+            'is_universal' => $request->has('is_universal'),
+        ]);
+
+        return redirect()->route('admin.mapel.index')->with('success', 'Mata pelajaran berhasil ditambahkan');
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
     {
         $request->validate([
+            'kode_mapel' => 'required|string|max:10',
             'nama_mapel' => 'required|string|max:255',
-            'kode_mapel' => 'required|string|max:10|unique:mata_pelajarans,kode_mapel,' . $id,
-            'semester_id' => 'nullable|exists:semester,id',
         ]);
 
         $mapel = MataPelajaran::findOrFail($id);
-        $mapel->update($request->all());
+        
+        $mapel->update([
+            'kode_mapel' => $request->kode_mapel,
+            'nama_mapel' => $request->nama_mapel,
+            'is_universal' => $request->has('is_universal'),
+        ]);
 
-        return redirect()->back()->with('success', 'Mata Pelajaran berhasil diperbarui');
+        return redirect()->route('admin.mapel.index')->with('success', 'Mata pelajaran berhasil diperbarui');
     }
 
     public function destroy($id)
