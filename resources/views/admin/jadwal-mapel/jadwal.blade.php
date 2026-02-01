@@ -69,9 +69,12 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}" class="btn btn-secondary me-2">
                             <i class="fas fa-redo me-1"></i>Reset
                         </a>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="fas fa-file-import me-1"></i>Import
+                        </button>
                     </div>
                     <div class="col-md-2 text-end">
                         <div id="loading-indicator" class="d-none">
@@ -224,6 +227,45 @@
                     <button type="button" class="btn btn-danger d-none" id="btn-delete">Hapus</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary" id="btn-save">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Schedule Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Jadwal Pelajaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="semester_id" value="{{ $semester ? $semester->id : '' }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">1. Download Template</label>
+                        <p class="small text-muted">Unduh template Excel yang berisi format import dan daftar kode referensi (Guru, Mapel, Kelas).</p>
+                        <a href="{{ route('admin.jadwal.template') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-1"></i> Download Template (.xlsx)
+                        </a>
+                    </div>
+                    
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">2. Upload File</label>
+                        <input type="file" class="form-control" name="file" accept=".xlsx, .xls" required>
+                        <div class="form-text">Pastikan Kode Guru dan Kode Mapel sesuai dengan Referensi.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success" id="btn-import">
+                        <i class="fas fa-upload me-1"></i> Import Sekarang
+                    </button>
                 </div>
             </form>
         </div>
@@ -598,6 +640,57 @@ $(document).ready(function() {
             error: function(xhr) {
                 const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan';
                 alert(msg);
+            }
+        });
+    });
+
+    // Handle Import Form
+    $('#importForm').submit(function(e) {
+        e.preventDefault();
+        
+        const btn = $('#btn-import');
+        const originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Mengimport...').prop('disabled', true);
+
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: "{{ route('admin.jadwal.import') }}",
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                $('#importModal').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: response.message,
+                }).then(() => {
+                    location.reload();
+                });
+            },
+            error: function(xhr) {
+                let msg = 'Terjadi kesalahan server';
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        msg = xhr.responseJSON.message + "\n\n" + xhr.responseJSON.errors;
+                    } else {
+                        msg = xhr.responseJSON.message;
+                    }
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Import',
+                    text: msg,
+                    customClass: {
+                        popup: 'swal-wide'
+                    }
+                });
+            },
+            complete: function() {
+                btn.html(originalText).prop('disabled', false);
             }
         });
     });

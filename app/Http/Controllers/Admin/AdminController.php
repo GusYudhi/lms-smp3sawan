@@ -176,6 +176,7 @@ class AdminController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'nomor_induk' => 'required|string|max:50|unique:guru_profiles,nip',
+                'kode_guru' => 'nullable|string|max:10|unique:guru_profiles,kode_guru',
                 'email' => 'required|email|unique:users,email',
                 'nomor_telepon' => 'nullable|string|max:20',
                 'jenis_kelamin' => 'required|in:L,P',
@@ -215,6 +216,7 @@ class AdminController extends Controller
 
             $profileData = [
                 'nip' => $validatedData['nomor_induk'],
+                'kode_guru' => $validatedData['kode_guru'] ?? null,
                 'tempat_lahir' => $validatedData['tempat_lahir'],
                 'tanggal_lahir' => $validatedData['tanggal_lahir'],
                 'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
@@ -376,6 +378,7 @@ class AdminController extends Controller
             $rules = [
                 'name' => 'required|string|max:255',
                 'nomor_induk' => 'required|string|max:50|unique:guru_profiles,nip,' . $profileId,
+                'kode_guru' => 'nullable|string|max:10|unique:guru_profiles,kode_guru,' . $profileId,
                 'email' => 'required|email|unique:users,email,' . $id,
                 'jenis_kelamin' => 'required|in:L,P',
                 'nomor_telepon' => 'nullable|string|max:20',
@@ -430,6 +433,7 @@ class AdminController extends Controller
                 [
                     'nama' => $request->input('name'),
                     'nip' => $request->input('nomor_induk'),
+                    'kode_guru' => $request->input('kode_guru'),
                     'email' => $request->input('email'),
                     'nomor_telepon' => $request->input('nomor_telepon'),
                     'jenis_kelamin' => $request->input('jenis_kelamin'),

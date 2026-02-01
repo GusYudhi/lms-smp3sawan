@@ -51,7 +51,7 @@
                             </h6>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="name" class="form-label fw-medium">Nama Lengkap <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                                            id="name" name="name" value="{{ old('name') }}" required>
@@ -60,12 +60,21 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="nomor_induk" class="form-label fw-medium">NIP/NIK <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('nomor_induk') is-invalid @enderror"
                                            id="nomor_induk" name="nomor_induk" value="{{ old('nomor_induk') }}" required>
-                                    <div class="form-text">Masukkan NIP untuk PNS/PPPK atau NIK untuk Honorer</div>
                                     @error('nomor_induk')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="kode_guru" class="form-label fw-medium">Kode Guru</label>
+                                    <input type="text" class="form-control @error('kode_guru') is-invalid @enderror"
+                                           id="kode_guru" name="kode_guru" value="{{ old('kode_guru') }}" placeholder="Contoh: AHM">
+                                    <div class="form-text">Kode singkat untuk jadwal (Opsional)</div>
+                                    @error('kode_guru')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

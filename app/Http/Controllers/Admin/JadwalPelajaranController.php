@@ -12,6 +12,9 @@ use App\Models\User;
 use App\Models\FixedSchedule;
 use App\Models\JamPelajaran;
 use App\Models\Semester;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\JadwalTemplateExport;
+use App\Imports\JadwalImport;
 
 class JadwalPelajaranController extends Controller
 {
@@ -386,6 +389,41 @@ class JadwalPelajaranController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new JadwalTemplateExport, 'template_jadwal_pelajaran.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:5120',
+            'semester_id' => 'required|exists:semester,id'
+        ]);
+
+        try {
+            $import = new JadwalImport($request->semester_id);
+            Excel::import($import, $request->file('file'));
+
+            $message = "Import selesai! Berhasil: {$import->successCount}, Gagal: {$import->failureCount}.";
+            
+            if (!empty($import->errors)) {
+                $errorList = implode("\n", array_slice($import->errors, 0, 5));
+                if (count($import->errors) > 5) $errorList .= "\n...dan lainnya.";
+                
+                return response()->json([
+                    'message' => $message,
+                    'errors' => $errorList
+                ], 422); // Return 422 to show warning in frontend
+            }
+
+            return response()->json(['message' => $message]);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal import: ' . $e->getMessage()], 500);
         }
     }
 }

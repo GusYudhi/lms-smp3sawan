@@ -31,7 +31,12 @@
                 <td>
                     <div class="text-start">
                         <div class="fw-semibold mb-1">{{ $teacher->name }}</div>
-                        <small class="text-muted fst-italic">NIP: {{ $teacher->guruProfile->nip ?? '-' }}</small>
+                        <div class="small">
+                            <span class="text-muted fst-italic">NIP: {{ $teacher->guruProfile->nip ?? '-' }}</span>
+                            @if($teacher->guruProfile->kode_guru)
+                                <span class="badge bg-light text-dark border ms-1">{{ $teacher->guruProfile->kode_guru }}</span>
+                            @endif
+                        </div>
                     </div>
                 </td>
                 <td class="text-center">

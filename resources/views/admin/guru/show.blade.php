@@ -115,6 +115,12 @@
                         </div>
                         <div class="col-12">
                             <div class="d-flex flex-column">
+                                <span class="small text-muted">Kode Guru</span>
+                                <span class="fw-semibold text-primary">{{ $teacher->guruProfile->kode_guru ?? '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
                                 <span class="small text-muted">Email</span>
                                 <a href="mailto:{{ $teacher->email }}" class="text-primary text-decoration-none">
                                     {{ $teacher->email }}

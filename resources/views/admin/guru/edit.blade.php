@@ -70,7 +70,7 @@
                             </h6>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="name" class="form-label fw-medium">Nama Lengkap <span class="text-danger">*</span></label>
                                     <input type="text"
                                            class="form-control @error('name') is-invalid @enderror"
@@ -83,7 +83,7 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="nomor_induk" class="form-label fw-medium">Nomor Induk Guru <span class="text-danger">*</span></label>
                                     <input type="text"
                                            class="form-control @error('nomor_induk') is-invalid @enderror"
@@ -92,6 +92,19 @@
                                            value="{{ old('nomor_induk', $teacher->guruProfile->nip ?? '') }}"
                                            required>
                                     @error('nomor_induk')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="kode_guru" class="form-label fw-medium">Kode Guru</label>
+                                    <input type="text"
+                                           class="form-control @error('kode_guru') is-invalid @enderror"
+                                           id="kode_guru"
+                                           name="kode_guru"
+                                           value="{{ old('kode_guru', $teacher->guruProfile->kode_guru ?? '') }}"
+                                           placeholder="Contoh: AHM">
+                                    @error('kode_guru')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

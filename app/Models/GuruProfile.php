@@ -15,6 +15,7 @@ class GuruProfile extends Model
     protected $fillable = [
         'user_id',
         'nip',
+        'kode_guru',
         'nama', // redundant with user but kept for history
         'tempat_lahir',
         'tanggal_lahir',
@@ -39,6 +40,14 @@ class GuruProfile extends Model
         'tanggal_lahir' => 'date',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Get the user that owns the guru profile.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Get the subject taught by the teacher.
