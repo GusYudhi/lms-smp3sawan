@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\JadwalPelajaran;
+use App\Models\FixedSchedule;
+use App\Models\Kelas;
+use App\Models\JamPelajaran;
+use App\Models\Semester;
 use Illuminate\Support\Facades\DB;
 
 class JadwalMengajarController extends Controller
@@ -19,28 +24,25 @@ class JadwalMengajarController extends Controller
         }
 
         // Get active semester
-        $activeSemester = DB::table('semester')
-            ->where('is_active', 1)
-            ->first();
+        $activeSemester = Semester::where('is_active', true)->first();
 
         $semesterId = $activeSemester ? $activeSemester->id : null;
         $tahunPelajaranId = $activeSemester ? $activeSemester->tahun_pelajaran_id : null;
 
-        // Get all classes with tingkat (filter by active tahun pelajaran if available)
-        $kelasQuery = DB::table('kelas')
-            ->select('kelas.*', DB::raw('CONCAT(tingkat, " ", nama_kelas) as full_name'))
-            ->orderBy('tingkat')
-            ->orderBy('nama_kelas');
+        // Get all classes with tingkat
+        $kelasQuery = Kelas::orderBy('tingkat')->orderBy('nama_kelas');
 
         if ($tahunPelajaranId) {
             $kelasQuery->where('tahun_pelajaran_id', $tahunPelajaranId);
         }
 
-        $kelas = $kelasQuery->get();
+        $kelas = $kelasQuery->get()->map(function($k) {
+            $k->full_name = $k->tingkat . ' ' . $k->nama_kelas;
+            return $k;
+        });
 
-        // Get jam pelajaran (filter by active semester)
-        $jamQuery = DB::table('jam_pelajarans')
-            ->orderBy('jam_ke');
+        // Get jam pelajaran
+        $jamQuery = JamPelajaran::orderBy('jam_ke');
 
         if ($semesterId) {
             $jamQuery->where('semester_id', $semesterId);
@@ -60,37 +62,21 @@ class JadwalMengajarController extends Controller
             $currentUserId = auth()->id();
 
             // Get current active semester
-            $semesterId = DB::table('semester')
-                ->where('is_active', 1)
-                ->value('id');
+            $activeSemester = Semester::where('is_active', true)->first();
+            $semesterId = $activeSemester ? $activeSemester->id : null;
 
-            // Get all schedules for the class (filtered by active semester)
-            $query = DB::table('jadwal_pelajarans as jp')
-                ->join('mata_pelajarans as mp', 'jp.mata_pelajaran_id', '=', 'mp.id')
-                ->join('users as u', 'jp.guru_id', '=', 'u.id')
-                ->where('jp.kelas_id', $kelasId);
+            // Get all schedules for the class using Eloquent
+            $query = JadwalPelajaran::with(['mataPelajaran', 'guru'])
+                ->where('kelas_id', $kelasId);
 
-            // Filter by semester if available
             if ($semesterId) {
-                $query->where('jp.semester_id', $semesterId);
+                $query->where('semester_id', $semesterId);
             }
 
-            $schedules = $query->select(
-                    'jp.id',
-                    'jp.semester_id',
-                    'jp.kelas_id',
-                    'jp.mata_pelajaran_id',
-                    'jp.guru_id',
-                    'jp.hari',
-                    'jp.jam_ke',
-                    'mp.nama_mapel',
-                    'mp.kode_mapel',
-                    'u.name as guru_name'
-                )
-                ->get();
+            $schedules = $query->get();
 
-            // Get fixed schedules (istirahat, upacara, etc)
-            $fixedQuery = DB::table('fixed_schedules');
+            // Get fixed schedules
+            $fixedQuery = FixedSchedule::query();
 
             if ($semesterId) {
                 $fixedQuery->where('semester_id', $semesterId);
@@ -117,19 +103,19 @@ class JadwalMengajarController extends Controller
                             'jam_ke' => $schedule->jam_ke,
                             'mata_pelajaran' => [
                                 'id' => $schedule->mata_pelajaran_id,
-                                'nama_mapel' => $schedule->nama_mapel,
-                                'kode_mapel' => $schedule->kode_mapel
+                                'nama_mapel' => $schedule->mataPelajaran->nama_mapel ?? '-',
+                                'kode_mapel' => $schedule->mataPelajaran->kode_mapel ?? '-'
                             ],
                             'guru' => [
                                 'id' => $schedule->guru_id,
-                                'name' => $schedule->guru_name
+                                'name' => $schedule->guru->name ?? '-'
                             ],
                             'is_current_teacher' => $isCurrentTeacher
                         ];
                     }
                 }
 
-                // Add fixed schedules
+                // Add fixed schedules (Overwrite if exists, typically fixed schedule blocks everything)
                 foreach ($fixedSchedules as $fixed) {
                     if ($fixed->hari === $day) {
                         $organized[$day][$fixed->jam_ke] = [
@@ -160,47 +146,34 @@ class JadwalMengajarController extends Controller
         }
 
         $currentUserId = auth()->id();
-
-        // Get today's day name in Indonesian
         $today = \Carbon\Carbon::now()->locale('id')->dayName;
 
-        // Get current active semester
-        $semesterId = DB::table('semester')
-            ->where('is_active', 1)
-            ->value('id');
+        $activeSemester = Semester::where('is_active', true)->first();
+        $semesterId = $activeSemester ? $activeSemester->id : null;
 
-        // Get today's schedules for current teacher
-        $query = DB::table('jadwal_pelajarans as jp')
-            ->join('mata_pelajarans as mp', 'jp.mata_pelajaran_id', '=', 'mp.id')
-            ->join('kelas as k', 'jp.kelas_id', '=', 'k.id')
-            ->where('jp.guru_id', $currentUserId)
-            ->where('jp.hari', $today);
+        // Get today's schedules for current teacher using Eloquent
+        $query = JadwalPelajaran::with(['mataPelajaran', 'kelas'])
+            ->where('guru_id', $currentUserId)
+            ->where('hari', $today);
 
-        // Filter by semester if available
         if ($semesterId) {
-            $query->where('jp.semester_id', $semesterId);
+            $query->where('semester_id', $semesterId);
         }
 
-        $schedules = $query->select(
-                'jp.id',
-                'jp.jam_ke',
-                'jp.hari',
-                'jp.kelas_id',
-                'jp.mata_pelajaran_id',
-                'mp.nama_mapel',
-                'mp.kode_mapel',
-                'k.tingkat',
-                'k.nama_kelas',
-                DB::raw('CONCAT(k.tingkat, " ", k.nama_kelas) as kelas_full')
-            )
-            ->orderBy('jp.jam_ke')
-            ->get();
+        $schedules = $query->orderBy('jam_ke')->get();
+
+        // Transform for view compatibility if needed, or update view. 
+        // View likely accesses object properties directly.
+        // But the previous query selected 'kelas_full'. We need to append it.
+        $schedules->transform(function($s) {
+            if ($s->kelas) {
+                $s->kelas_full = $s->kelas->tingkat . ' ' . $s->kelas->nama_kelas;
+            }
+            return $s;
+        });
 
         // Get jam pelajaran details
-        $jamPelajarans = DB::table('jam_pelajarans')
-            ->orderBy('jam_ke')
-            ->get()
-            ->keyBy('jam_ke');
+        $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get()->keyBy('jam_ke');
 
         return view('guru.jadwal-mengajar.today', compact('schedules', 'jamPelajarans', 'today'));
     }

@@ -1,118 +1,101 @@
-# GEMINI.md - Context & Documentation
+# GEMINI.md - System Architecture & Documentation
 
 ## 🌍 Project Overview
 
 **Project Name:** SMP 3 Sawan LMS (Learning Management System)
 **Framework:** Laravel 10 (PHP 8.1+)
 **Type:** Web Application (Monolith)
-**Purpose:** Comprehensive school management system for SMP 3 Sawan, handling student/teacher data, attendance, teaching journals, scheduling, and academic records.
+**Purpose:** Comprehensive school management system handling student/teacher data, attendance (GPS+Selfie), teaching journals, scheduling, and reporting.
 
-## 🛠 Tech Stack
+---
 
-*   **Backend:** PHP 8.1+, Laravel 10.x
-*   **Frontend:** Blade Templates, Bootstrap 5, SASS, JavaScript
-*   **Asset Bundling:** Vite
-*   **Database:** MySQL (assumed standard)
-*   **Key Dependencies:**
-    *   `intervention/image`: Image processing (resizing, compression).
-    *   `maestroerror/php-heic-to-jpg`: Support for iPhone HEIC/HEIF image uploads.
-    *   `maatwebsite/excel`: Excel export/import functionality.
-    *   `laravel/ui`: Authentication scaffolding.
+## 🏗 Core Architecture
 
-## 🏗 Architecture & Structure
+### 1. Database Relationships
+*   **Teacher - Subject (Guru - Mapel):** 
+    *   **Structure:** One-to-Many (Strict). A teacher (`guru_profiles`) teaches exactly **one** main subject (`mata_pelajaran_id`).
+    *   **Reason:** Simplifies scheduling logic and data integrity. Legacy pivot tables or string-based columns have been removed.
+    *   **Code:** `GuruProfile` belongsTo `MataPelajaran`. `MataPelajaran` hasMany `GuruProfile`.
 
-The project follows the standard Laravel MVC architecture with role-based segregation.
+### 2. User Roles & Access
+*   **Admin:** Master data, User management, Scheduling.
+*   **Kepala Sekolah (Principal):** Read-only monitoring (Dashboards, Attendance Tables), Reporting.
+*   **Guru:** Operations (Journal, Attendance, Grading).
+*   **Siswa:** Read-only (Schedule, Grades).
 
-### 📂 Key Directories
+---
 
-*   `app/Http/Controllers/`: Controllers are grouped by user role:
-    *   `Admin/`: Administrative tasks (User management, Master data).
-    *   `Guru/`: Teacher-specific tasks (Attendance, Teaching Journals, Grades).
-    *   `Siswa/`: Student portal (View grades, schedules).
-    *   `KepalaSekolah/`: Principal's view (Monitoring, Reporting).
-*   `routes/web.php`: Routes are strictly grouped by middleware roles (`admin`, `guru`, `siswa`, `kepala_sekolah`).
-*   `resources/views/`: Views mirror the controller structure.
-*   `database/migrations/`: Extensive database schema definition.
+## 🚀 Key Features
 
-### 🔐 User Roles
+### 📅 Schedule Management (Jadwal Pelajaran)
+A robust system for managing class schedules.
 
-1.  **Admin:** Full system access, master data management.
-2.  **Kepala Sekolah (Principal):** Monitoring, reporting, and oversight.
-3.  **Guru (Teacher):** Daily operations, attendance, teaching journals, grading.
-4.  **Siswa (Student):** View schedule, attendance, and academic results.
+*   **Matrix Import/Export:**
+    *   **Format:** Excel Grid (Rows: Time/Day, Columns: Classes).
+    *   **Cell Data:** `[Kode Mapel] [Kode Guru]` (e.g., "MAT AHM").
+    *   **Smart Import:** 
+        *   Auto-creates/updates Subjects from `KODE_MAPEL` sheet.
+        *   Auto-updates Teacher Codes from `KODE_GURU` sheet.
+        *   "Steals" codes: If a Teacher Code is taken, it's reassigned to the new teacher during import.
+        *   **Merged Cells:** Handles "Day" column merges via "Fill Down" logic.
+        *   **Header Row:** Uses Row 2 (Row 1 is Title).
+*   **UI/UX:**
+    *   **Drag & Drop:** Move schedules interactively.
+    *   **Linked Dropdowns:** Selecting a Subject filters Teachers; Selecting a Teacher auto-selects their Subject.
+    *   **Conflict Detection:** Real-time checking for:
+        1.  Teacher double-booking.
+        2.  Class slot occupancy.
+        3.  Fixed Schedules (Upacara/Istirahat).
+    *   **Export & Reset:** Dedicated buttons to backup or clear class schedules.
 
-## Γ£¿ Key Features
+### 📍 Attendance (Absensi)
+*   **Guru:** Selfie + GPS Geofencing. Real-time updates via Ajax polling on Principal's dashboard.
+*   **Siswa:** Daily and per-subject attendance.
 
-### 1. Teacher Attendance (Absensi Guru)
-*   **Mechanism:** Selfie + GPS Location Verification.
-*   **Real-time Monitoring:** Principal dashboard features a real-time table (Ajax polling every 5s) showing today's attendance with status mapping (Hadir, Ijin, Terlambat, Alpha).
-*   **Docs:** See `ABSENSI_GURU_README.md`.
+### 📸 Media Handling
+*   **HEIC Support:** Native iPhone images are auto-converted to JPG/WebP on upload.
+*   **Compression:** Server-side resizing using `Intervention\Image`.
 
-### 2. Schedule Management (Jadwal Pelajaran)
-*   **UX Enhancements:** Uses **Select2** with Bootstrap 5 theme for searchable dropdowns.
-*   **Conflict Detection:** Real-time Ajax validation checking for Teacher availability, Class slot overlaps, and Fixed schedules (Upacara/Istirahat).
-*   **Drag & Drop:** Interactive interface to move or swap schedules visually.
+---
 
-### 3. HEIC Image Support
-*   **Problem:** iPhones save images in HEIC format, which web browsers don't natively support.
-*   **Solution:** Automatic backend conversion of HEIC/HEIF to JPG/WebP on upload.
-*   **Implementation:** Used in Profile photos and Teaching Journals (`JurnalMengajar`).
-*   **Docs:** See `HEIC_SUPPORT_README.md`.
+## 💻 Technical Standards
 
-### 4. Teaching Journal (Jurnal Mengajar)
-*   Teachers record daily teaching activities with photo evidence.
+### 🎨 UI/UX Guidelines
+1.  **Confirmations:** **NEVER** use native `confirm()`. Use **SweetAlert2** modals.
+    *   **Pattern:** Use `<form class="delete-form" data-message="...">`. A global handler in `app.js`/`layout` intercepts this and shows the SweetAlert.
+2.  **Dropdowns:** Use **Select2** (Bootstrap 5 Theme) for all select inputs.
+    *   **Behavior:** Auto-focus search field on open.
+    *   **Sorting:** Alphanumeric sorting (7A, 7B, 8A...).
+3.  **Alerts:** Use Bootstrap utility classes (`bg-warning bg-opacity-10`) for persistent messages within modals to avoid conflict with auto-dismiss scripts.
 
-## 🚀 Building & Running
+### 💾 Database Conventions
+*   **Codes:**
+    *   `kode_guru` (Unique, String): Short code for import (e.g., "AHM").
+    *   `kode_mapel` (Unique, String): Short code for import (e.g., "MAT").
+*   **Eager Loading:** Always use `with()` in Controllers (e.g., `with(['guruProfile.mataPelajaran'])`) to prevent N+1 query performance issues.
 
-### Prerequisites
-*   PHP >= 8.1
-*   Composer
-*   Node.js & NPM
+### 🛠 Tools & Helpers
+*   **Import/Export:** `maatwebsite/excel`.
+    *   Exports must implement `WithMultipleSheets`.
+    *   Imports must handle `headingRow` configuration carefully.
+*   **PDF:** `barryvdh/laravel-dompdf`.
 
-### Setup Commands
+---
 
+## 📂 Setup & Maintenance
+
+### Commands
 ```bash
-# Install PHP dependencies
-composer install
+# Install
+composer install && npm install
 
-# Install JS dependencies
-npm install
-
-# Setup Environment
-cp .env.example .env
-php artisan key:generate
-
-# Database Migration
-php artisan migrate
-
-# Storage Link (Crucial for image uploads)
-php artisan storage:link
-```
-
-### Development Commands
-
-```bash
-# Start local development server
-php artisan serve
-
-# Watch assets (Vite)
-npm run dev
-```
-
-### Production Build
-
-```bash
-# Build frontend assets
+# Build Assets
 npm run build
+
+# Run
+php artisan serve
 ```
 
-## 📝 Conventions & Standards
-
-*   **Role-Based Access:** Always ensure new routes/features are protected by the appropriate role middleware.
-*   **Image Handling:** Use the `ImageCompressor` helper for consistency and HEIC support.
-*   **Alerts & Confirmations:** **ALWAYS** use **SweetAlert2** for user notifications and action confirmations. Avoid standard `window.confirm` or basic browser alerts.
-*   **Flash Messages vs UI Alerts:**
-    *   Standard Bootstrap `.alert` classes are often targeted by global "auto-dismiss" scripts.
-    *   For persistent UI messages (like conflict warnings in modals), use utility classes (e.g., `bg-warning bg-opacity-10 border border-warning`) instead of the semantic `.alert` class to prevent accidental removal.
-*   **Formatting:** Follow PSR-12 for PHP.
-*   **Routes:** Named routes are preferred (e.g., `route('guru.jurnal-mengajar.index')`).
+### Troubleshooting
+*   **Import fails silently?** Check `headingRow()` in the Import class. It likely defaults to 1 when headers are on 2.
+*   **Duplicate Entry '1'?** The import logic now handles code collision by setting the previous owner's code to NULL.
