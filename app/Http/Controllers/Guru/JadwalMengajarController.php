@@ -32,9 +32,10 @@ class JadwalMengajarController extends Controller
         // Get all classes with tingkat
         $kelasQuery = Kelas::orderBy('tingkat')->orderBy('nama_kelas');
 
-        if ($tahunPelajaranId) {
-            $kelasQuery->where('tahun_pelajaran_id', $tahunPelajaranId);
-        }
+        // Removed strict filter by tahun_pelajaran_id as some classes might be global
+        // if ($tahunPelajaranId) {
+        //    $kelasQuery->where('tahun_pelajaran_id', $tahunPelajaranId);
+        // }
 
         $kelas = $kelasQuery->get()->map(function($k) {
             $k->full_name = $k->tingkat . ' ' . $k->nama_kelas;
