@@ -193,7 +193,7 @@
                                            class="form-control @error('tanggal_lahir') is-invalid @enderror"
                                            id="tanggal_lahir"
                                            name="tanggal_lahir"
-                                           value="{{ old('tanggal_lahir', $teacher->guruProfile->tanggal_lahir ? $teacher->guruProfile->tanggal_lahir->format('Y-m-d') : '') }}">
+                                           value="{{ old('tanggal_lahir', $teacher->guruProfile?->tanggal_lahir ? $teacher->guruProfile->tanggal_lahir->format('Y-m-d') : '') }}">
                                     @error('tanggal_lahir')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -251,7 +251,7 @@
                                             name="mata_pelajaran">
                                         <option value="">Pilih Mata Pelajaran</option>
                                         @foreach($mataPelajarans as $mapel)
-                                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran', $teacher->guruProfile->mata_pelajaran_id) == $mapel->id ? 'selected' : '' }}>
+                                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran', $teacher->guruProfile?->mata_pelajaran_id) == $mapel->id ? 'selected' : '' }}>
                                                 {{ $mapel->nama_mapel }}
                                             </option>
                                         @endforeach
