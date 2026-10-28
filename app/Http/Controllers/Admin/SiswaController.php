@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\StudentProfile;
+use App\Models\Kelas;
 use App\Services\UserManagementService;
 use App\Imports\StudentsImport;
 use App\Exports\StudentsTemplateExport;
 use App\Exports\StudentsExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -606,5 +609,232 @@ class SiswaController extends Controller
                 'message' => 'Gagal membuat file ZIP: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get summary and student list for bulk promotion for the entire school
+     */
+    public function kenaikanSummary(Request $request)
+    {
+        $allActiveStudents = StudentProfile::where('is_active', true)
+            ->where('status', 'AKTIF')
+            ->whereHas('kelas')
+            ->with(['user', 'kelas'])
+            ->get();
+
+        $tingkat7 = [];
+        $tingkat8 = [];
+        $tingkat9 = [];
+
+        $rombelSummary = [
+            '7' => [],
+            '8' => [],
+            '9' => [],
+        ];
+
+        $studentList = [];
+
+        foreach ($allActiveStudents as $student) {
+            $tingkat = (string) ($student->kelas->tingkat ?? '');
+            if (!in_array($tingkat, ['7', '8', '9'])) {
+                continue;
+            }
+
+            $fullClassName = $student->kelas ? $student->kelas->full_name : '-';
+            $className = $student->kelas ? $student->kelas->nama_kelas : '-';
+
+            if (!isset($rombelSummary[$tingkat][$fullClassName])) {
+                $rombelSummary[$tingkat][$fullClassName] = 0;
+            }
+            $rombelSummary[$tingkat][$fullClassName]++;
+
+            $studentItem = [
+                'id' => $student->id,
+                'name' => $student->user ? $student->user->name : 'Tanpa Nama',
+                'nis' => $student->nis ?? '-',
+                'kelas' => $fullClassName,
+                'nama_kelas' => $className,
+                'tingkat' => $tingkat,
+            ];
+
+            if ($tingkat === '7') {
+                $tingkat7[] = $studentItem;
+            } elseif ($tingkat === '8') {
+                $tingkat8[] = $studentItem;
+            } elseif ($tingkat === '9') {
+                $tingkat9[] = $studentItem;
+            }
+
+            $studentList[] = $studentItem;
+        }
+
+        foreach (['7', '8', '9'] as $t) {
+            ksort($rombelSummary[$t]);
+        }
+
+        usort($studentList, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
+        return response()->json([
+            'success' => true,
+            'total_siswa' => count($studentList),
+            'counts' => [
+                'tingkat_7' => count($tingkat7),
+                'tingkat_8' => count($tingkat8),
+                'tingkat_9' => count($tingkat9),
+            ],
+            'rombel_summary' => $rombelSummary,
+            'students' => $studentList,
+        ]);
+    }
+
+    /**
+     * Process bulk promotion and graduation for all grades simultaneously
+     * Executed safely in reverse order: Tingkat 9 -> Tingkat 8 -> Tingkat 7
+     */
+    public function prosesKenaikanKelas(Request $request)
+    {
+        $request->validate([
+            'siswa_tinggal_ids' => 'nullable|array',
+            'siswa_tinggal_ids.*' => 'integer|exists:student_profiles,id',
+        ]);
+
+        $tinggalIds = collect($request->input('siswa_tinggal_ids', []))->map(fn($id) => (int)$id)->all();
+
+        return DB::transaction(function () use ($tinggalIds) {
+            // STEP 1: Kelulusan Tingkat 9 (Mundur pertama agar tidak bentrok dengan kenaikan kelas 8)
+            $students9 = StudentProfile::where('is_active', true)
+                ->where('status', 'AKTIF')
+                ->whereHas('kelas', function ($q) {
+                    $q->where('tingkat', '9');
+                })
+                ->with(['kelas', 'user'])
+                ->get();
+
+            $graduatedCount = 0;
+            $retained9Count = 0;
+
+            foreach ($students9 as $student) {
+                if (in_array($student->id, $tinggalIds)) {
+                    $retained9Count++;
+                    continue;
+                }
+
+                $student->update([
+                    'status' => 'LULUS',
+                    'is_active' => false,
+                ]);
+                $graduatedCount++;
+            }
+
+            // STEP 2: Kenaikan Tingkat 8 ke Tingkat 9
+            $students8 = StudentProfile::where('is_active', true)
+                ->where('status', 'AKTIF')
+                ->whereHas('kelas', function ($q) {
+                    $q->where('tingkat', '8');
+                })
+                ->with(['kelas', 'user'])
+                ->get();
+
+            $promoted8to9Count = 0;
+            $retained8Count = 0;
+
+            foreach ($students8 as $student) {
+                if (in_array($student->id, $tinggalIds)) {
+                    $retained8Count++;
+                    continue;
+                }
+
+                if (!$student->kelas) {
+                    continue;
+                }
+
+                $cleanNamaKelas = preg_replace('/^\d+/', '', trim($student->kelas->nama_kelas));
+
+                $newKelas = Kelas::where('tingkat', '9')
+                    ->where(function ($q) use ($student, $cleanNamaKelas) {
+                        $q->where('nama_kelas', $student->kelas->nama_kelas)
+                          ->orWhere('nama_kelas', $cleanNamaKelas);
+                    })
+                    ->first();
+
+                if (!$newKelas) {
+                    $newKelas = Kelas::where('tingkat', '9')
+                        ->orderBy('nama_kelas')
+                        ->first();
+                }
+
+                if ($newKelas) {
+                    $student->update([
+                        'kelas_id' => $newKelas->id,
+                    ]);
+                    $promoted8to9Count++;
+                }
+            }
+
+            // STEP 3: Kenaikan Tingkat 7 ke Tingkat 8
+            $students7 = StudentProfile::where('is_active', true)
+                ->where('status', 'AKTIF')
+                ->whereHas('kelas', function ($q) {
+                    $q->where('tingkat', '7');
+                })
+                ->with(['kelas', 'user'])
+                ->get();
+
+            $promoted7to8Count = 0;
+            $retained7Count = 0;
+
+            foreach ($students7 as $student) {
+                if (in_array($student->id, $tinggalIds)) {
+                    $retained7Count++;
+                    continue;
+                }
+
+                if (!$student->kelas) {
+                    continue;
+                }
+
+                $cleanNamaKelas = preg_replace('/^\d+/', '', trim($student->kelas->nama_kelas));
+
+                $newKelas = Kelas::where('tingkat', '8')
+                    ->where(function ($q) use ($student, $cleanNamaKelas) {
+                        $q->where('nama_kelas', $student->kelas->nama_kelas)
+                          ->orWhere('nama_kelas', $cleanNamaKelas);
+                    })
+                    ->first();
+
+                if (!$newKelas) {
+                    $newKelas = Kelas::where('tingkat', '8')
+                        ->orderBy('nama_kelas')
+                        ->first();
+                }
+
+                if ($newKelas) {
+                    $student->update([
+                        'kelas_id' => $newKelas->id,
+                    ]);
+                    $promoted7to8Count++;
+                }
+            }
+
+            $totalRetained = $retained9Count + $retained8Count + $retained7Count;
+            $totalPromoted = $graduatedCount + $promoted8to9Count + $promoted7to8Count;
+
+            $message = "Kenaikan kelas serentak berhasil: {$graduatedCount} siswa LULUS, {$promoted8to9Count} naik ke Tingkat 9, {$promoted7to8Count} naik ke Tingkat 8.";
+            if ($totalRetained > 0) {
+                $message .= " ({$totalRetained} siswa tinggal kelas/tidak lulus).";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'graduated_count' => $graduatedCount,
+                'promoted_8_to_9_count' => $promoted8to9Count,
+                'promoted_7_to_8_count' => $promoted7to8Count,
+                'total_promoted' => $totalPromoted,
+                'retained_count' => $totalRetained,
+            ]);
+        });
     }
 }

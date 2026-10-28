@@ -119,6 +119,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/siswa/finalize-batch-download', [App\Http\Controllers\Admin\SiswaController::class, 'finalizeBatchDownload'])->name('admin.siswa.finalize_batch_download');
         Route::get('/siswa/template', [App\Http\Controllers\Admin\SiswaController::class, 'downloadTemplate'])->name('admin.siswa.template');
         Route::post('/siswa/import', [App\Http\Controllers\Admin\SiswaController::class, 'import'])->name('admin.siswa.import');
+        Route::get('/siswa/kenaikan-summary', [App\Http\Controllers\Admin\SiswaController::class, 'kenaikanSummary'])->name('admin.siswa.kenaikan_summary');
+        Route::post('/siswa/proses-kenaikan-kelas', [App\Http\Controllers\Admin\SiswaController::class, 'prosesKenaikanKelas'])->name('admin.siswa.proses_kenaikan_kelas');
         Route::post('/siswa', [App\Http\Controllers\Admin\SiswaController::class, 'store'])->name('admin.siswa.store');
         Route::get('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'show'])->name('admin.siswa.show');
         Route::get('/siswa/{id}/edit', [App\Http\Controllers\Admin\SiswaController::class, 'edit'])->name('admin.siswa.edit');

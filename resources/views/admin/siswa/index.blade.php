@@ -4,6 +4,29 @@
 
 @push('styles')
 <link href="{{ asset('css/admin/siswa.css') }}" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<style>
+    .retained-chip {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .retained-chip .btn-remove {
+        cursor: pointer;
+        color: #842029;
+        font-size: 0.95rem;
+    }
+    .retained-chip .btn-remove:hover {
+        color: #b02a37;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -44,40 +67,47 @@
             <div class="card card-modern border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
-                        <div class="col-md-8">
+                        <div class="col-lg-5 col-md-12 mb-3 mb-lg-0">
                             <h1 class="h3 mb-2 text-high-contrast">
                                 <i class="fas fa-user-graduate text-primary me-2"></i>Data Siswa
                             </h1>
                             <p class="text-subtle mb-0 fw-medium">Kelola data siswa: tambahkan, edit, lihat, atau ekspor data</p>
                         </div>
-                        <div class="col-md-4 text-end">
+                        <div class="col-lg-7 col-md-12 text-end">
                             <div class="row g-2 justify-content-end">
 
-                                <div class="col-6">
+                                <div class="col-sm-4 col-6">
                                     <button type="button" class="btn btn-outline-success w-100" data-bs-toggle="modal" data-bs-target="#importModal">
                                         <i class="fas fa-file-import me-1"></i>
                                         <span>Import Data</span>
                                     </button>
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-sm-4 col-6">
                                     <a href="{{ route('admin.siswa.create') }}" class="btn btn-primary w-100">
                                         <i class="fas fa-plus me-1"></i>
                                         <span>Tambah Siswa</span>
                                     </a>
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-sm-4 col-6">
                                     <button class="btn btn-outline-secondary w-100" onclick="exportData()">
                                         <i class="fas fa-file-export me-1"></i>
                                         <span>Ekspor</span>
                                     </button>
                                 </div>
 
-                                <div class="col-6">
-                                    <button id="bulk-download-btn" class="btn btn-success w-100" onclick="startBulkDownload()">
+                                <div class="col-sm-6 col-6">
+                                    <button id="bulk-download-btn" class="btn btn-outline-primary w-100" onclick="startBulkDownload()">
                                         <i class="fas fa-id-card me-1"></i>
                                         <span>Unduh Kartu Identitas</span>
+                                    </button>
+                                </div>
+
+                                <div class="col-sm-6 col-12">
+                                    <button type="button" class="btn btn-warning text-dark w-100 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#kenaikanKelasModal">
+                                        <i class="fas fa-graduation-cap me-1"></i>
+                                        <span>Kenaikan & Kelulusan</span>
                                     </button>
                                 </div>
 
@@ -388,6 +418,133 @@
                 </button>
                 <button type="button" class="btn btn-success" id="confirmBulkDownloadBtn">
                     <i class="fas fa-download me-1"></i> Ya, Download Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Kenaikan Kelas & Kelulusan Serentak -->
+<div class="modal fade" id="kenaikanKelasModal" tabindex="-1" aria-labelledby="kenaikanKelasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold" id="kenaikanKelasModalLabel">
+                    <i class="fas fa-graduation-cap me-2"></i>Kenaikan Kelas & Kelulusan Serentak
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Info petunjuk singkat -->
+                <div class="alert bg-warning bg-opacity-10 border border-warning border-opacity-25 text-dark mb-4 p-3 rounded-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle text-warning fs-4 me-3 mt-1"></i>
+                        <div>
+                            <strong>Kenaikan Kelas Serentak Seluruh Sekolah:</strong>
+                            <p class="mb-0 small text-muted">
+                                Sistem akan memproses kenaikan kelas (7A &rarr; 8A, 8A &rarr; 9A) dan kelulusan siswa Tingkat 9 secara serentak. Jika ada siswa yang <strong>tinggal kelas / tidak lulus</strong>, cukup cari dan tambahkan namanya ke daftar pengecualian di bawah.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State placeholder -->
+                <div id="kenaikanLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Memuat data...</span>
+                    </div>
+                    <div class="text-muted small mt-2">Mengambil data siswa seluruh jenjang...</div>
+                </div>
+
+                <!-- Container Data Kenaikan Kelas (hidden while loading) -->
+                <div id="kenaikanDetails" class="d-none">
+                    <!-- Ringkasan Statistik 3 Jenjang -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 h-100 rounded-3 p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary">Tingkat 7 &rarr; 8</span>
+                                    <i class="fas fa-level-up-alt text-primary"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1" id="badgeCount7">0</h4>
+                                <small class="text-muted" id="rombelDesc7">Memuat rombel...</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 h-100 rounded-3 p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary">Tingkat 8 &rarr; 9</span>
+                                    <i class="fas fa-level-up-alt text-primary"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1" id="badgeCount8">0</h4>
+                                <small class="text-muted" id="rombelDesc8">Memuat rombel...</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 h-100 rounded-3 p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-success">Tingkat 9 &rarr; LULUS</span>
+                                    <i class="fas fa-user-graduate text-success"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1" id="badgeCount9">0</h4>
+                                <small class="text-muted" id="rombelDesc9">Memuat rombel...</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step Pengecualian Siswa Tinggal Kelas -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold mb-1">
+                            <i class="fas fa-user-times text-danger me-1"></i>
+                            Pengecualian: Siswa Tinggal Kelas / Tidak Naik (Opsional):
+                        </label>
+                        <p class="small text-muted mb-2">
+                            Ketik nama atau NIS siswa dari tingkat manapun (7, 8, atau 9) yang <strong>tidak naik / tidak lulus</strong>. Siswa yang dimasukkan ke daftar ini akan tetap di kelas dan status semula.
+                        </p>
+                        
+                        <select id="selectSiswaTinggal" class="form-select select2" style="width: 100%;">
+                            <option value="">-- Cari Nama Siswa atau NIS --</option>
+                        </select>
+                    </div>
+
+                    <!-- List Siswa Tinggal Kelas -->
+                    <div class="card border border-danger border-opacity-25 rounded-3 mb-3">
+                        <div class="card-header bg-danger bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-danger">
+                                <i class="fas fa-list me-1"></i> Daftar Siswa yang Tinggal Kelas (<span id="retainedCountBadge">0</span>)
+                            </span>
+                            <button type="button" class="btn btn-link btn-sm text-danger text-decoration-none p-0 d-none" id="btnClearRetained">
+                                Bersihkan Semua
+                            </button>
+                        </div>
+                        <div class="card-body p-2" id="retainedContainer">
+                            <div class="text-center text-muted small py-2" id="emptyRetainedNotice">
+                                <i class="fas fa-check-circle text-success me-1"></i> Tidak ada siswa tinggal kelas (Semua siswa akan dinaikkan / diluluskan).
+                            </div>
+                            <div id="retainedList" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Ringkasan Akhir -->
+                    <div class="card bg-success bg-opacity-10 border-0 p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-success mb-1">Ringkasan Eksekusi:</div>
+                                <div class="small text-muted" id="previewSummaryText">Memuat ringkasan...</div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success fs-6" id="previewPromoteBadge">0 Siswa Diproses</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Batal
+                </button>
+                <button type="button" class="btn btn-warning text-dark fw-bold" id="btnSubmitKenaikan" disabled>
+                    <i class="fas fa-arrow-circle-up me-1"></i> Proses Kenaikan Kelas Serentak
                 </button>
             </div>
         </div>
@@ -1447,5 +1604,341 @@ function extractStudentIds(htmlString) {
 
     return ids;
 }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+// ==============================================================================
+// BULK CLASS PROMOTION & GRADUATION (KENAIKAN KELAS & KELULUSAN SERENTAK)
+// ==============================================================================
+(function() {
+    let currentStudents = [];
+    let currentCounts = { tingkat_7: 0, tingkat_8: 0, tingkat_9: 0 };
+    let currentTotal = 0;
+    let retainedStudentMap = new Map(); // id -> student object
+
+    // Elements
+    const modalEl = document.getElementById('kenaikanKelasModal');
+    const loadingEl = document.getElementById('kenaikanLoading');
+    const detailsEl = document.getElementById('kenaikanDetails');
+    const btnSubmit = document.getElementById('btnSubmitKenaikan');
+    const selectSiswaEl = $('#selectSiswaTinggal');
+    const retainedListEl = document.getElementById('retainedList');
+    const retainedCountBadge = document.getElementById('retainedCountBadge');
+    const emptyNotice = document.getElementById('emptyRetainedNotice');
+    const btnClearRetained = document.getElementById('btnClearRetained');
+    const previewPromoteBadge = document.getElementById('previewPromoteBadge');
+    const previewSummaryText = document.getElementById('previewSummaryText');
+
+    if (!modalEl) return;
+
+    // Initialize Select2 when modal is shown
+    $(modalEl).on('shown.bs.modal', function () {
+        if (!selectSiswaEl.hasClass('select2-hidden-accessible')) {
+            selectSiswaEl.select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $(modalEl),
+                placeholder: '-- Cari Nama Siswa atau NIS --',
+                allowClear: true
+            });
+
+            selectSiswaEl.on('select2:select', function(e) {
+                const selectedId = parseInt(e.params.data.id);
+                if (selectedId && !retainedStudentMap.has(selectedId)) {
+                    const student = currentStudents.find(s => s.id === selectedId);
+                    if (student) {
+                        retainedStudentMap.set(selectedId, student);
+                        renderRetainedStudents();
+                    }
+                }
+                selectSiswaEl.val(null).trigger('change');
+            });
+        }
+
+        // Fetch entire school summary
+        loadKenaikanSummary();
+    });
+
+    // Reset when modal is closed
+    $(modalEl).on('hidden.bs.modal', function() {
+        currentStudents = [];
+        currentTotal = 0;
+        retainedStudentMap.clear();
+        detailsEl.classList.add('d-none');
+        loadingEl.classList.remove('d-none');
+        btnSubmit.disabled = true;
+        renderRetainedStudents();
+    });
+
+    async function loadKenaikanSummary() {
+        detailsEl.classList.add('d-none');
+        loadingEl.classList.remove('d-none');
+        btnSubmit.disabled = true;
+
+        try {
+            const res = await fetch(`{{ route('admin.siswa.kenaikan_summary') }}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!res.ok) throw new Error('Gagal memuat data siswa.');
+            const data = await res.json();
+
+            currentStudents = data.students || [];
+            currentCounts = data.counts || { tingkat_7: 0, tingkat_8: 0, tingkat_9: 0 };
+            currentTotal = data.total_siswa || 0;
+
+            // Update badge counts
+            document.getElementById('badgeCount7').textContent = `${currentCounts.tingkat_7} Siswa`;
+            document.getElementById('badgeCount8').textContent = `${currentCounts.tingkat_8} Siswa`;
+            document.getElementById('badgeCount9').textContent = `${currentCounts.tingkat_9} Siswa`;
+
+            // Rombel descriptions
+            const formatRombel = (rMap) => {
+                const parts = [];
+                for (const [rName, count] of Object.entries(rMap || {})) {
+                    parts.push(`${rName}: ${count}`);
+                }
+                return parts.length > 0 ? parts.join(', ') : 'Belum ada rombel';
+            };
+
+            document.getElementById('rombelDesc7').textContent = formatRombel(data.rombel_summary['7']);
+            document.getElementById('rombelDesc8').textContent = formatRombel(data.rombel_summary['8']);
+            document.getElementById('rombelDesc9').textContent = formatRombel(data.rombel_summary['9']);
+
+            populateSelectDropdown();
+            updatePreviewCounts();
+
+            loadingEl.classList.add('d-none');
+            detailsEl.classList.remove('d-none');
+            btnSubmit.disabled = currentTotal === 0;
+
+        } catch (err) {
+            loadingEl.classList.add('d-none');
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: err.message || 'Terjadi kesalahan saat memuat data.'
+            });
+        }
+    }
+
+    function populateSelectDropdown() {
+        selectSiswaEl.empty().append(new Option('-- Cari Nama Siswa atau NIS --', ''));
+        currentStudents.forEach(s => {
+            if (!retainedStudentMap.has(s.id)) {
+                const text = `[Tingkat ${s.tingkat} - ${s.kelas}] ${s.name} (NIS: ${s.nis})`;
+                selectSiswaEl.append(new Option(text, s.id, false, false));
+            }
+        });
+        selectSiswaEl.val(null).trigger('change');
+    }
+
+    function renderRetainedStudents() {
+        retainedListEl.innerHTML = '';
+        const count = retainedStudentMap.size;
+        retainedCountBadge.textContent = count;
+
+        if (count === 0) {
+            emptyNotice.classList.remove('d-none');
+            btnClearRetained.classList.add('d-none');
+        } else {
+            emptyNotice.classList.add('d-none');
+            btnClearRetained.classList.remove('d-none');
+
+            retainedStudentMap.forEach((student, id) => {
+                const chip = document.createElement('div');
+                chip.className = 'retained-chip';
+                chip.innerHTML = `
+                    <span><i class="fas fa-user-times me-1"></i>[${student.kelas}] <strong>${escapeHtml(student.name)}</strong></span>
+                    <i class="fas fa-times-circle btn-remove" title="Hapus dari daftar tinggal kelas" data-id="${id}"></i>
+                `;
+                retainedListEl.appendChild(chip);
+            });
+
+            // Bind click to remove
+            retainedListEl.querySelectorAll('.btn-remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const removeId = parseInt(this.getAttribute('data-id'));
+                    retainedStudentMap.delete(removeId);
+                    renderRetainedStudents();
+                    populateSelectDropdown();
+                    updatePreviewCounts();
+                });
+            });
+        }
+
+        updatePreviewCounts();
+    }
+
+    if (btnClearRetained) {
+        btnClearRetained.addEventListener('click', function() {
+            retainedStudentMap.clear();
+            renderRetainedStudents();
+            populateSelectDropdown();
+            updatePreviewCounts();
+        });
+    }
+
+    function updatePreviewCounts() {
+        let retained7 = 0;
+        let retained8 = 0;
+        let retained9 = 0;
+
+        retainedStudentMap.forEach(s => {
+            if (s.tingkat === '7') retained7++;
+            else if (s.tingkat === '8') retained8++;
+            else if (s.tingkat === '9') retained9++;
+        });
+
+        const promote7 = Math.max(0, currentCounts.tingkat_7 - retained7);
+        const promote8 = Math.max(0, currentCounts.tingkat_8 - retained8);
+        const graduate9 = Math.max(0, currentCounts.tingkat_9 - retained9);
+        const totalPromoted = promote7 + promote8 + graduate9;
+        const totalRetained = retainedStudentMap.size;
+
+        previewSummaryText.innerHTML = `
+            <strong>${graduate9} Siswa</strong> Lulus &bull; 
+            <strong>${promote8} Siswa</strong> Naik ke Kelas 9 &bull; 
+            <strong>${promote7} Siswa</strong> Naik ke Kelas 8
+            ${totalRetained > 0 ? `<br><span class="text-danger fw-semibold">${totalRetained} siswa tinggal kelas/tidak lulus</span>` : ''}
+        `;
+
+        previewPromoteBadge.textContent = `${totalPromoted} Siswa Diproses`;
+    }
+
+    // Submit Action
+    btnSubmit.addEventListener('click', function() {
+        if (currentTotal === 0) return;
+
+        let retained7 = 0;
+        let retained8 = 0;
+        let retained9 = 0;
+
+        retainedStudentMap.forEach(s => {
+            if (s.tingkat === '7') retained7++;
+            else if (s.tingkat === '8') retained8++;
+            else if (s.tingkat === '9') retained9++;
+        });
+
+        const promote7 = Math.max(0, currentCounts.tingkat_7 - retained7);
+        const promote8 = Math.max(0, currentCounts.tingkat_8 - retained8);
+        const graduate9 = Math.max(0, currentCounts.tingkat_9 - retained9);
+        const totalRetained = retainedStudentMap.size;
+
+        let retainedListHtml = '';
+        if (totalRetained > 0) {
+            const names = Array.from(retainedStudentMap.values()).map(s => `[${s.kelas}] ${escapeHtml(s.name)}`);
+            retainedListHtml = `
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 mt-3 text-start small mb-0">
+                    <strong class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>${totalRetained} Siswa Tinggal Kelas / Tidak Lulus:</strong>
+                    <div class="mt-1" style="max-height: 120px; overflow-y: auto;">
+                        ${names.join('<br>')}
+                    </div>
+                </div>
+            `;
+        }
+
+        const confirmHtml = `
+            <div class="text-start">
+                <p class="mb-2">Anda akan memproses <strong>Kenaikan Kelas & Kelulusan Serentak</strong>:</p>
+                <div class="p-3 bg-light rounded-3 mb-2 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Tingkat 9 &rarr; LULUS:</span>
+                        <strong class="text-success">${graduate9} Siswa</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Tingkat 8 &rarr; Naik Kelas 9:</span>
+                        <strong class="text-primary">${promote8} Siswa</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Tingkat 7 &rarr; Naik Kelas 8:</span>
+                        <strong class="text-primary">${promote7} Siswa</strong>
+                    </div>
+                </div>
+                ${retainedListHtml}
+                <p class="small text-muted mt-3 mb-0">Pastikan data sudah sesuai sebelum menjalankan proses.</p>
+            </div>
+        `;
+
+        Swal.fire({
+            title: 'Konfirmasi Kenaikan Serentak?',
+            html: confirmHtml,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<span class="text-dark fw-bold"><i class="fas fa-check me-1"></i>Ya, Jalankan Kenaikan Serentak</span>',
+            cancelButtonText: 'Batal',
+            focusCancel: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Kenaikan Serentak...',
+                    text: 'Sedang memperbarui jenjang seluruh siswa...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const response = await fetch('{{ route("admin.siswa.proses_kenaikan_kelas") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            siswa_tinggal_ids: Array.from(retainedStudentMap.keys())
+                        })
+                    });
+
+                    const resData = await response.json();
+
+                    if (response.ok && resData.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: resData.message,
+                            confirmButtonColor: '#198754',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: resData.message || 'Terjadi kesalahan saat memproses.'
+                        });
+                    }
+                } catch (err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message || 'Koneksi bermasalah saat menghubungi server.'
+                    });
+                }
+            }
+        });
+    });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.toString().replace(/[&<>"']/g, m => map[m]);
+    }
+})();
 </script>
 @endpush
