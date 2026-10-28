@@ -156,7 +156,9 @@ class AdminController extends Controller
                 'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'password' => 'required|string|min:8|confirmed',
-                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'can_manage_berita' => 'nullable|boolean',
+                'can_manage_prestasi' => 'nullable|boolean',
             ]);
 
             // Handle profile photo upload untuk guru_profiles
@@ -193,6 +195,8 @@ class AdminController extends Controller
                 'mata_pelajaran_id' => $validatedData['mata_pelajaran'] ?? null,
                 'kelas_id' => $validatedData['kelas_id'] ?? null,
                 'foto_profil' => $fotoProfilPath, // Simpan ke guru_profiles.foto_profil
+                'can_manage_berita' => $request->has('can_manage_berita'),
+                'can_manage_prestasi' => $request->has('can_manage_prestasi'),
             ];
 
             $this->userService->createTeacher($userData, $profileData);
@@ -349,6 +353,8 @@ class AdminController extends Controller
                 'tempat_lahir' => 'nullable|string|max:100',
                 'tanggal_lahir' => 'nullable|date',
                 'golongan' => 'nullable|string|max:10',
+                'can_manage_berita' => 'nullable|boolean',
+                'can_manage_prestasi' => 'nullable|boolean',
             ];
 
             // Add password validation only if provided
@@ -404,6 +410,8 @@ class AdminController extends Controller
                     'mata_pelajaran_id' => $request->input('mata_pelajaran'),
                     'kelas_id' => $request->input('kelas_id'),
                     'foto_profil' => $photoPath,
+                    'can_manage_berita' => $request->has('can_manage_berita'),
+                    'can_manage_prestasi' => $request->has('can_manage_prestasi'),
                     'password' => $request->filled('password') ? Hash::make($request->input('password')) : ($teacher->guruProfile->password ?? $teacher->password),
                 ]
             );

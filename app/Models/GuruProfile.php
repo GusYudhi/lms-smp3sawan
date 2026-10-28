@@ -29,12 +29,16 @@ class GuruProfile extends Model
         'email',
         'jenis_kelamin',
         'is_active',
+        'can_manage_berita',
+        'can_manage_prestasi',
         'password'
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
         'is_active' => 'boolean',
+        'can_manage_berita' => 'boolean',
+        'can_manage_prestasi' => 'boolean',
     ];
 
     /**

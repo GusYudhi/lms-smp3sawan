@@ -16,9 +16,15 @@ class Prestasi extends Model
         'deskripsi',
         'foto',
         'tanggal',
+        'penulis_id',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
     ];
+
+    public function penulis()
+    {
+        return $this->belongsTo(User::class, 'penulis_id');
+    }
 }

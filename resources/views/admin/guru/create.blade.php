@@ -269,6 +269,42 @@
                             </div>
                         </div>
 
+                        <!-- Content Management Permissions Section -->
+                        <div class="mb-5">
+                            <h6 class="text-primary mb-3 fw-semibold">
+                                <i class="fas fa-user-shield me-2"></i>Hak Akses Pengelolaan Konten (Opsional)
+                            </h6>
+                            <div class="p-3 border rounded bg-light">
+                                <p class="text-muted small mb-3">
+                                    Berikan wewenang kepada guru ini untuk mengelola publikasi sekolah langsung dari dashboard guru.
+                                </p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" 
+                                                   id="can_manage_berita" name="can_manage_berita" value="1"
+                                                   {{ old('can_manage_berita') ? 'checked' : '' }}>
+                                            <label class="form-check-label fw-medium" for="can_manage_berita">
+                                                <i class="fas fa-newspaper text-primary me-1"></i> Kelola Berita Sekolah
+                                            </label>
+                                            <div class="form-text">Mengizinkan guru menambah, mengedit, dan menghapus berita sekolah.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" 
+                                                   id="can_manage_prestasi" name="can_manage_prestasi" value="1"
+                                                   {{ old('can_manage_prestasi') ? 'checked' : '' }}>
+                                            <label class="form-check-label fw-medium" for="can_manage_prestasi">
+                                                <i class="fas fa-trophy text-warning me-1"></i> Kelola Prestasi Sekolah
+                                            </label>
+                                            <div class="form-text">Mengizinkan guru menambah, mengedit, dan menghapus prestasi sekolah.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Form Actions -->
                         <div class="row">
                             <div class="col-12">

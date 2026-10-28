@@ -253,6 +253,26 @@
                         <i class="fas fa-running me-2"></i> Info Kokurikuler
                     </a>
                 </li>
+                @if(auth()->user()->canManageBerita() || auth()->user()->canManagePrestasi())
+                    <hr class="text-white-50 my-2">
+                    <li class="nav-item">
+                        <span class="text-white-50 text-uppercase px-3 small fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Publikasi & Informasi</span>
+                    </li>
+                    @if(auth()->user()->canManageBerita())
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('guru.berita.*') ? 'active' : '' }}" href="{{ route('guru.berita.index') }}">
+                                <i class="fas fa-newspaper me-2"></i> Berita Sekolah
+                            </a>
+                        </li>
+                    @endif
+                    @if(auth()->user()->canManagePrestasi())
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('guru.prestasi.*') ? 'active' : '' }}" href="{{ route('guru.prestasi.index') }}">
+                                <i class="fas fa-trophy me-2"></i> Prestasi Sekolah
+                            </a>
+                        </li>
+                    @endif
+                @endif
             @elseif(auth()->user()->isSiswa())
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('siswa.dashboard') ? 'active' : '' }}" href="{{ route('siswa.dashboard') }}">

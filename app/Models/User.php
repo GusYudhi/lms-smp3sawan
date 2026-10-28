@@ -77,6 +77,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has permission to manage Berita
+     */
+    public function canManageBerita(): bool
+    {
+        return $this->isAdmin() || ($this->isGuru() && (bool) optional($this->guruProfile)->can_manage_berita);
+    }
+
+    /**
+     * Check if user has permission to manage Prestasi
+     */
+    public function canManagePrestasi(): bool
+    {
+        return $this->isAdmin() || ($this->isGuru() && (bool) optional($this->guruProfile)->can_manage_prestasi);
+    }
+
+    /**
      * Get role display name
      */
     public function getRoleDisplayName()

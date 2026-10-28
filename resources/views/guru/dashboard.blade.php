@@ -79,6 +79,47 @@
         </div>
     </div>
 
+    @if(auth()->user()->canManageBerita() || auth()->user()->canManagePrestasi())
+    <!-- Publication Access Quick Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="fas fa-bullhorn text-primary me-2"></i>Pengelolaan Publikasi Sekolah
+            </h5>
+        </div>
+        @if(auth()->user()->canManageBerita())
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10 border-start border-primary border-4">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title text-primary fw-bold mb-1">Berita Sekolah</h5>
+                        <p class="card-text text-muted mb-0 small">Anda memiliki akses untuk mengelola publikasi berita dan pengumuman sekolah.</p>
+                    </div>
+                    <a href="{{ route('guru.berita.index') }}" class="btn btn-primary btn-sm ms-3 text-nowrap">
+                        <i class="fas fa-newspaper me-1"></i> Buka Berita
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+        @if(auth()->user()->canManagePrestasi())
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10 border-start border-warning border-4">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title text-warning-emphasis fw-bold mb-1">Prestasi Sekolah</h5>
+                        <p class="card-text text-muted mb-0 small">Anda memiliki akses untuk mencatat dan memperbarui capaian prestasi sekolah.</p>
+                    </div>
+                    <a href="{{ route('guru.prestasi.index') }}" class="btn btn-warning btn-sm ms-3 text-nowrap">
+                        <i class="fas fa-trophy me-1"></i> Buka Prestasi
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
     <!-- Statistics Overview -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">

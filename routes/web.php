@@ -329,6 +329,15 @@ Route::middleware(['auth'])->group(function () {
 
         // Kegiatan Kokurikuler
         Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('guru.kegiatan-kokurikuler');
+
+        // Hak Akses Publikasi (Berita & Prestasi)
+        Route::middleware('can.manage:berita')->group(function () {
+            Route::resource('berita', App\Http\Controllers\Guru\BeritaController::class)->names('guru.berita');
+        });
+
+        Route::middleware('can.manage:prestasi')->group(function () {
+            Route::resource('prestasi', App\Http\Controllers\Guru\PrestasiController::class)->names('guru.prestasi');
+        });
     });
 
     // Siswa routes

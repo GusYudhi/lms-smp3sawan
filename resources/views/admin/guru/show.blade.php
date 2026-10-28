@@ -248,6 +248,22 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="d-flex flex-column">
+                                <span class="small text-muted">Hak Akses Publikasi</span>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    @if($teacher->guruProfile?->can_manage_berita)
+                                        <span class="badge bg-primary-subtle text-primary border"><i class="fas fa-newspaper me-1"></i>Berita</span>
+                                    @endif
+                                    @if($teacher->guruProfile?->can_manage_prestasi)
+                                        <span class="badge bg-warning-subtle text-warning border"><i class="fas fa-trophy me-1"></i>Prestasi</span>
+                                    @endif
+                                    @if(!$teacher->guruProfile?->can_manage_berita && !$teacher->guruProfile?->can_manage_prestasi)
+                                        <span class="text-muted small">Tidak ada</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

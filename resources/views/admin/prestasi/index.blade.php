@@ -28,6 +28,7 @@
                             <th>Foto</th>
                             <th>Judul Prestasi</th>
                             <th>Tanggal</th>
+                            <th>Penulis</th>
                             <th>Deskripsi</th>
                             <th>Aksi</th>
                         </tr>
@@ -45,6 +46,7 @@
                             </td>
                             <td>{{ $item->judul }}</td>
                             <td>{{ $item->tanggal->format('d M Y') }}</td>
+                            <td>{{ $item->penulis->name ?? 'Admin' }}</td>
                             <td>{{ Str::limit($item->deskripsi, 50) }}</td>
                             <td>
                                 <a href="{{ route('admin.prestasi.edit', $item->id) }}" class="btn btn-warning btn-sm">

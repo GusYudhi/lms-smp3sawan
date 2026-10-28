@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Prestasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class PrestasiController extends Controller
 {
     public function index()
     {
-        $prestasis = Prestasi::latest()->get();
+        $prestasis = Prestasi::with('penulis')->latest()->get();
         return view('admin.prestasi.index', compact('prestasis'));
     }
 
@@ -30,6 +31,7 @@ class PrestasiController extends Controller
         ]);
 
         $data = $request->all();
+        $data['penulis_id'] = Auth::id();
 
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('prestasi', 'public');

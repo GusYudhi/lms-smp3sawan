@@ -87,6 +87,8 @@ class UserManagementService
                 'golongan' => $profileData['golongan'] ?? null,
                 'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                 'kelas_id' => $profileData['kelas_id'] ?? null,
+                'can_manage_berita' => !empty($profileData['can_manage_berita']),
+                'can_manage_prestasi' => !empty($profileData['can_manage_prestasi']),
                 'is_active' => true,
             ]);
 
@@ -204,6 +206,8 @@ class UserManagementService
                     'golongan' => $profileData['golongan'] ?? null,
                     'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                     'kelas_id' => $profileData['kelas_id'] ?? null,
+                    'can_manage_berita' => !empty($profileData['can_manage_berita']),
+                    'can_manage_prestasi' => !empty($profileData['can_manage_prestasi']),
                 ]
             );
 
