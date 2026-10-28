@@ -184,7 +184,7 @@
                                 </label>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle me-1"></i>
-                                    Copy Mata Pelajaran, Jam Pelajaran, dan Jadwal Tetap dari semester terakhir tahun sebelumnya ke Semester Ganjil tahun ini
+                                    Copy Jam Pelajaran dan Jadwal Tetap dari semester terakhir tahun sebelumnya ke Semester Ganjil tahun ini (Mata Pelajaran sudah otomatis tersedia di Master Data)
                                 </div>
                             </div>
                         </div>

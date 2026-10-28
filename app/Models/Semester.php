@@ -73,24 +73,28 @@ class Semester extends Model
      */
     public static function getActive()
     {
-        return static::where('is_active', true)->first();
+        return static::where('is_active', true)
+            ->whereHas('tahunPelajaran', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->first() ?? static::where('is_active', true)->first();
     }
 
     /**
-     * Set this semester as active (and deactivate others in the same tahun pelajaran)
+     * Set this semester as active (and deactivate all other semesters)
      */
     public function setActive()
     {
-        // Deactivate all other semesters in the same tahun pelajaran
-        static::where('tahun_pelajaran_id', $this->tahun_pelajaran_id)
-            ->where('id', '!=', $this->id)
-            ->update(['is_active' => false]);
+        // Deactivate all other semesters across all academic years
+        static::where('id', '!=', $this->id)->update(['is_active' => false]);
 
         // Activate this one
         $this->update(['is_active' => true]);
 
-        // Also make sure the tahun pelajaran is active
-        $this->tahunPelajaran->setActive();
+        // Also make sure the parent tahun pelajaran is active
+        if ($this->tahunPelajaran) {
+            $this->tahunPelajaran->setActive(false);
+        }
 
         return $this;
     }

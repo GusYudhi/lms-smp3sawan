@@ -63,14 +63,27 @@ class TahunPelajaran extends Model
 
     /**
      * Set this tahun pelajaran as active (and deactivate others)
+     *
+     * @param bool $syncSemester Whether to automatically sync/activate one of its semesters
      */
-    public function setActive()
+    public function setActive(bool $syncSemester = true)
     {
         // Deactivate all other tahun pelajaran
         static::where('id', '!=', $this->id)->update(['is_active' => false]);
 
         // Activate this one
         $this->update(['is_active' => true]);
+
+        if ($syncSemester) {
+            $activeSemester = $this->semester()->where('is_active', true)->first()
+                ?? $this->semester()->orderBy('semester_ke')->first();
+
+            if ($activeSemester) {
+                // Deactivate all other semesters globally
+                Semester::where('id', '!=', $activeSemester->id)->update(['is_active' => false]);
+                $activeSemester->update(['is_active' => true]);
+            }
+        }
 
         return $this;
     }

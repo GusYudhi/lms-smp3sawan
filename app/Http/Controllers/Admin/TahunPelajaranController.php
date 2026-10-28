@@ -63,14 +63,9 @@ class TahunPelajaranController extends Controller
                 'tahun_selesai' => $request->tahun_selesai,
                 'tanggal_mulai' => $request->tanggal_mulai,
                 'tanggal_selesai' => $request->tanggal_selesai,
-                'is_active' => $request->boolean('is_active', false),
+                'is_active' => false,
                 'keterangan' => $request->keterangan,
             ]);
-
-            // If is_active, deactivate others
-            if ($request->boolean('is_active')) {
-                $tahunPelajaran->setActive();
-            }
 
             // Auto promote students if requested
             if ($request->boolean('auto_promote_students')) {
@@ -96,7 +91,7 @@ class TahunPelajaranController extends Controller
                     'semester_ke' => 1,
                     'tanggal_mulai' => $semesterGanjilMulai,
                     'tanggal_selesai' => $semesterGanjilSelesai,
-                    'is_active' => $request->boolean('is_active', false),
+                    'is_active' => false,
                     'keterangan' => 'Semester Ganjil ' . $request->nama,
                 ]);
 
@@ -111,9 +106,18 @@ class TahunPelajaranController extends Controller
                     'keterangan' => 'Semester Genap ' . $request->nama,
                 ]);
 
+                // If is_active, activate new Ganjil semester (and sync tahun pelajaran)
+                if ($request->boolean('is_active')) {
+                    $semesterGanjil->setActive();
+                }
+
                 // Copy data from previous year if requested
                 if ($request->boolean('copy_from_previous') && $semesterGanjil) {
                     $this->copyDataFromPreviousSemester($semesterGanjil);
+                }
+            } else {
+                if ($request->boolean('is_active')) {
+                    $tahunPelajaran->setActive();
                 }
             }
         });
@@ -127,37 +131,60 @@ class TahunPelajaranController extends Controller
      */
     private function copyDataFromPreviousSemester($targetSemester)
     {
-        // Find the last active semester from previous tahun pelajaran
+        // Find the most recent semester from previous tahun pelajaran that actually has JamPelajaran or FixedSchedule
         $previousSemester = Semester::whereHas('tahunPelajaran', function ($query) use ($targetSemester) {
             $query->where('tahun_mulai', '<', $targetSemester->tahunPelajaran->tahun_mulai);
         })
-        ->orderBy('id', 'desc')
+        ->where(function ($query) {
+            $query->whereHas('jamPelajaran')
+                  ->orWhereHas('fixedSchedules');
+        })
+        ->orderByDesc('id')
         ->first();
+
+        // Fallback to the latest semester of previous year if none had relations populated yet
+        if (!$previousSemester) {
+            $previousSemester = Semester::whereHas('tahunPelajaran', function ($query) use ($targetSemester) {
+                $query->where('tahun_mulai', '<', $targetSemester->tahunPelajaran->tahun_mulai);
+            })
+            ->orderByDesc('id')
+            ->first();
+        }
 
         if (!$previousSemester) {
             return;
         }
 
-        // Copy Jam Pelajaran
-        $jamPelajarans = JamPelajaran::where('semester_id', $previousSemester->id)->get();
-        foreach ($jamPelajarans as $jam) {
-            JamPelajaran::create([
-                'jam_ke' => $jam->jam_ke,
-                'jam_mulai' => $jam->jam_mulai,
-                'jam_selesai' => $jam->jam_selesai,
-                'semester_id' => $targetSemester->id,
-            ]);
+        // Copy Jam Pelajaran if target doesn't already have them
+        if (!JamPelajaran::where('semester_id', $targetSemester->id)->exists()) {
+            $jamPelajarans = JamPelajaran::where('semester_id', $previousSemester->id)->get();
+            if ($jamPelajarans->isEmpty()) {
+                $jamPelajarans = JamPelajaran::whereNull('semester_id')->get();
+            }
+            foreach ($jamPelajarans as $jam) {
+                JamPelajaran::create([
+                    'jam_ke' => $jam->jam_ke,
+                    'jam_mulai' => $jam->jam_mulai,
+                    'jam_selesai' => $jam->jam_selesai,
+                    'semester_id' => $targetSemester->id,
+                ]);
+            }
         }
 
-        // Copy Fixed Schedules
-        $fixedSchedules = FixedSchedule::where('semester_id', $previousSemester->id)->get();
-        foreach ($fixedSchedules as $schedule) {
-            FixedSchedule::create([
-                'hari' => $schedule->hari,
-                'jam_ke' => $schedule->jam_ke,
-                'keterangan' => $schedule->keterangan,
-                'semester_id' => $targetSemester->id,
-            ]);
+        // Copy Fixed Schedules if target doesn't already have them
+        if (!FixedSchedule::where('semester_id', $targetSemester->id)->exists()) {
+            $fixedSchedules = FixedSchedule::where('semester_id', $previousSemester->id)->get();
+            if ($fixedSchedules->isEmpty()) {
+                $fixedSchedules = FixedSchedule::whereNull('semester_id')->get();
+            }
+            foreach ($fixedSchedules as $schedule) {
+                FixedSchedule::create([
+                    'hari' => $schedule->hari,
+                    'jam_ke' => $schedule->jam_ke,
+                    'keterangan' => $schedule->keterangan,
+                    'semester_id' => $targetSemester->id,
+                ]);
+            }
         }
     }
 
@@ -277,13 +304,18 @@ class TahunPelajaranController extends Controller
 
             // Cari kelas dengan tingkat baru dan nama kelas yang sama
             // Contoh: 7A → 8A, 8B → 9B
-            $newKelas = Kelas::where('tingkat', $tingkatBaru)
-                ->where('nama_kelas', $student->kelas->nama_kelas)
+            $cleanNamaKelas = preg_replace('/^\d+/', '', trim($student->kelas->nama_kelas));
+
+            $newKelas = Kelas::where('tingkat', (string) $tingkatBaru)
+                ->where(function ($q) use ($student, $cleanNamaKelas) {
+                    $q->where('nama_kelas', $student->kelas->nama_kelas)
+                      ->orWhere('nama_kelas', $cleanNamaKelas);
+                })
                 ->first();
 
             // Jika tidak ada kelas dengan nama yang sama, ambil kelas pertama di tingkat tersebut
             if (!$newKelas) {
-                $newKelas = Kelas::where('tingkat', $tingkatBaru)
+                $newKelas = Kelas::where('tingkat', (string) $tingkatBaru)
                     ->orderBy('nama_kelas')
                     ->first();
             }
