@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\GuruProfile;
 use App\Models\Kelas;
+use App\Models\MataPelajaran;
 use Illuminate\Support\Facades\Hash;
 
 class GuruSeeder extends Seeder
@@ -27,6 +28,7 @@ class GuruSeeder extends Seeder
                 'profile' => [
                     'nama' => 'Dr. Ahmad Hidayat, M.Pd',
                     'nip' => '196801011990031001',
+                    'kode_guru' => 'AHM',
                     'nomor_telepon' => '081234567890',
                     'email' => 'ahmad.hidayat@guru.id',
                     'jenis_kelamin' => 'L',
@@ -34,11 +36,11 @@ class GuruSeeder extends Seeder
                     'tanggal_lahir' => '1968-01-01',
                     'status_kepegawaian' => 'PNS',
                     'golongan' => 'IV/a',
-                    'mata_pelajaran' => ['Matematika'],
                     'wali_kelas' => ['9', 'A'],
                     'password' => Hash::make('12345678'),
                     'is_active' => true
-                ]
+                ],
+                'mapel' => 'Matematika'
             ],
         ];
 
@@ -58,10 +60,18 @@ class GuruSeeder extends Seeder
                 $kelasId = $kelas?->id;
             }
 
+            // Get mata_pelajaran_id
+            $mapelId = null;
+            if (isset($teacherData['mapel'])) {
+                $mapel = MataPelajaran::where('nama_mapel', 'like', '%' . $teacherData['mapel'] . '%')->first();
+                $mapelId = $mapel?->id;
+            }
+
             // Create guru profile
             $profileData = $teacherData['profile'];
             $profileData['user_id'] = $user->id;
             $profileData['kelas_id'] = $kelasId;
+            $profileData['mata_pelajaran_id'] = $mapelId;
             unset($profileData['wali_kelas']);
 
             GuruProfile::firstOrCreate(

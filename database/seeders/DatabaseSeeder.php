@@ -20,12 +20,12 @@ class DatabaseSeeder extends Seeder
         // Menjalankan seeder dengan urutan yang benar
         $this->call([
             AdminSeeder::class,
-            TahunPelajaranSeeder::class,    // Harus pertama karena dibutuhkan oleh Kelas
+            TahunPelajaranSeeder::class,    // Harus pertama karena dibutuhkan oleh Kelas & Semester
             KelasSeeder::class,             // Kedua, karena dibutuhkan oleh Guru dan Siswa
-            GuruSeeder::class,              // Setelah kelas tersedia
+            MataPelajaranSeeder::class,     // Butuh Semester
+            JamPelajaranSeeder::class,      // Butuh Semester
+            GuruSeeder::class,              // Butuh Kelas & Mapel
             SiswaSeeder::class,             // Setelah kelas tersedia
-            MataPelajaranSeeder::class,     // Setelah Semester tersedia
-            JamPelajaranSeeder::class,      // Setelah Semester tersedia
             JadwalPelajaranSeeder::class,   // Terakhir, butuh Kelas, Mapel, Guru
         ]);
     }
