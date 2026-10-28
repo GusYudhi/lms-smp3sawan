@@ -48,6 +48,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('kepala-sekolah.tugas-guru.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.tugas-guru.index') }}">
+                        <i class="fas fa-tasks me-2"></i> Tugas Guru
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('admin.kegiatan-kokurikuler.index') }}">
                         <i class="fas fa-running me-2"></i> Kokurikuler
                     </a>

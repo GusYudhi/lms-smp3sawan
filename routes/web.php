@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin routes
     Route::prefix('admin')->middleware('role:admin')->group(function () {
-        Route::get('/', function() {
+        Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
@@ -127,8 +127,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'update'])->name('admin.siswa.update');
         Route::delete('/siswa/{id}', [App\Http\Controllers\Admin\SiswaController::class, 'destroy'])->name('admin.siswa.destroy');
 
-
-
         // Mata Pelajaran routes
         Route::patch('mata-pelajaran/{id}/toggle-status', [App\Http\Controllers\Admin\MataPelajaranController::class, 'toggleStatus'])->name('admin.mapel.toggle-status');
         Route::resource('mata-pelajaran', App\Http\Controllers\Admin\MataPelajaranController::class)->names([
@@ -162,7 +160,9 @@ Route::middleware(['auth'])->group(function () {
         ])->except(['create', 'edit', 'show', 'update']);
 
         // Rekap Absensi routes
-        Route::get('/absensi', function () { return view('admin.absensi.index'); })->name('admin.absensi.index');
+        Route::get('/absensi', function () {
+            return view('admin.absensi.index');
+        })->name('admin.absensi.index');
         Route::get('/absensi/siswa', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'indexSiswa'])->name('admin.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailSiswa'])->name('admin.absensi.siswa.detail');
         Route::get('/absensi/siswa/{id}/monthly', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'monthlySiswa'])->name('admin.absensi.siswa.monthly');
@@ -211,7 +211,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/data/semester/{id}', [App\Http\Controllers\KepalaSekolah\DataViewController::class, 'showSemester'])->name('kepala-sekolah.semester.show');
 
         // Rekap Absensi routes (Read Only)
-        Route::get('/absensi', function () { return view('kepala-sekolah.absensi.index'); })->name('kepala-sekolah.absensi.index');
+        Route::get('/absensi', function () {
+            return view('kepala-sekolah.absensi.index');
+        })->name('kepala-sekolah.absensi.index');
         Route::get('/api/absensi-guru-hari-ini', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'getTodayGuruAttendance'])->name('kepala-sekolah.api.absensi-guru-today');
         Route::get('/absensi/siswa', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'indexSiswa'])->name('kepala-sekolah.absensi.siswa.index');
         Route::get('/absensi/siswa/{id}', [App\Http\Controllers\KepalaSekolah\AbsensiRekapController::class, 'detailSiswa'])->name('kepala-sekolah.absensi.siswa.detail');
@@ -240,18 +242,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'update'])->name('kepala-sekolah.agenda.update');
         Route::delete('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'destroy'])->name('kepala-sekolah.agenda.destroy');
 
-        // Tugas Guru routes
-        Route::get('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'index'])->name('kepala-sekolah.tugas-guru.index');
-        Route::get('/tugas-guru/create', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'create'])->name('kepala-sekolah.tugas-guru.create');
-        Route::post('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'store'])->name('kepala-sekolah.tugas-guru.store');
-        Route::get('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'show'])->name('kepala-sekolah.tugas-guru.show');
-        Route::get('/tugas-guru/{id}/edit', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'edit'])->name('kepala-sekolah.tugas-guru.edit');
-        Route::put('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'update'])->name('kepala-sekolah.tugas-guru.update');
-        Route::delete('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'destroy'])->name('kepala-sekolah.tugas-guru.destroy');
-        Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'deleteFile'])->name('kepala-sekolah.tugas-guru.delete-file');
-        Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'showSubmission'])->name('kepala-sekolah.tugas-guru.show-submission');
-        Route::put('/tugas-guru/submission/{id}/feedback', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'updateFeedback'])->name('kepala-sekolah.tugas-guru.update-feedback');
-
         // Kegiatan Kokurikuler
         Route::resource('kegiatan-kokurikuler', App\Http\Controllers\KepalaSekolah\KegiatanKokurikulerController::class)->names('kepala-sekolah.kegiatan-kokurikuler');
 
@@ -268,6 +258,23 @@ Route::middleware(['auth'])->group(function () {
 
         // Galeri
         Route::resource('galeri', App\Http\Controllers\KepalaSekolah\GaleriController::class)->names('kepala-sekolah.galeri');
+    });
+
+    // Tugas Guru routes (Accessible by Admin and Kepala Sekolah)
+    Route::middleware('role:admin,kepala_sekolah')->group(function () {
+        Route::redirect('/admin/tugas-guru', '/kepala-sekolah/tugas-guru');
+        Route::prefix('kepala-sekolah')->group(function () {
+            Route::get('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'index'])->name('kepala-sekolah.tugas-guru.index');
+            Route::get('/tugas-guru/create', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'create'])->name('kepala-sekolah.tugas-guru.create');
+            Route::post('/tugas-guru', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'store'])->name('kepala-sekolah.tugas-guru.store');
+            Route::get('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'show'])->name('kepala-sekolah.tugas-guru.show');
+            Route::get('/tugas-guru/{id}/edit', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'edit'])->name('kepala-sekolah.tugas-guru.edit');
+            Route::put('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'update'])->name('kepala-sekolah.tugas-guru.update');
+            Route::delete('/tugas-guru/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'destroy'])->name('kepala-sekolah.tugas-guru.destroy');
+            Route::delete('/tugas-guru/file/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'deleteFile'])->name('kepala-sekolah.tugas-guru.delete-file');
+            Route::get('/tugas-guru/submission/{id}', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'showSubmission'])->name('kepala-sekolah.tugas-guru.show-submission');
+            Route::put('/tugas-guru/submission/{id}/feedback', [App\Http\Controllers\KepalaSekolah\TugasGuruController::class, 'updateFeedback'])->name('kepala-sekolah.tugas-guru.update-feedback');
+        });
     });
 
     // Guru routes
@@ -371,8 +378,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/profile/update-photo', [App\Http\Controllers\ProfileController::class, 'updateProfilePhoto'])->name('profile.update-photo');
         Route::post('/profile/update-password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.update-password');
     });
-
-
 
     // // Profile routes
     // Route::middleware('auth')->group(function () {
