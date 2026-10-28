@@ -16,19 +16,7 @@ class RekapJurnalController extends Controller
     {
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         
-        // Filter mapel berdasarkan SEMESTER aktif (sesuai AdminController)
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-        
-        $mapelQuery = MataPelajaran::orderBy('nama_mapel');
-        
-        if ($activeSemester) {
-            $mapelQuery->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-        
-        $mapels = $mapelQuery->get();
+        $mapels = MataPelajaran::where('is_active', true)->orderBy('nama_mapel')->get();
 
         // Init data
         $students = collect();
