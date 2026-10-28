@@ -47,20 +47,10 @@ class DataViewController extends Controller
 
         $users = $query->orderBy('name', 'asc')->paginate(15);
 
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
         // Get list mata pelajaran untuk filter
-        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
-
-        if ($activeSemester) {
-            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-
-        $mataPelajaranList = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+        $mataPelajaranList = \App\Models\MataPelajaran::where('is_active', true)
+            ->orderBy('nama_mapel', 'asc')
+            ->get();
 
         return view('kepala-sekolah.data.guru.index', compact('users', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter', 'mataPelajaranList'));
     }

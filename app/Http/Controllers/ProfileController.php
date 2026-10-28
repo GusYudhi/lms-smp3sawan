@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\StudentProfile;
 use App\Helpers\ImageCompressor;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -33,20 +32,10 @@ class ProfileController extends Controller
             ->orderBy('nama_kelas', 'asc')
             ->get();
 
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
-        // Get all mata pelajaran for selection based on active semester
-        $mataPelajarans = \App\Models\MataPelajaran::query();
-
-        if ($activeSemester) {
-            $mataPelajarans->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-
-        $mataPelajarans = $mataPelajarans->orderBy('nama_mapel', 'asc')->get();
+        // Get all active mata pelajaran for selection
+        $mataPelajarans = \App\Models\MataPelajaran::where('is_active', true)
+            ->orderBy('nama_mapel', 'asc')
+            ->get();
 
         return view('profile.profile-section', compact('user', 'kelasList', 'mataPelajarans'));
     }
@@ -63,7 +52,7 @@ class ProfileController extends Controller
             Log::info('Profile update started', [
                 'user_id' => $user->id,
                 'role' => $user->role,
-                'data' => $request->except(['_token', 'password', 'password_confirmation'])
+                'data' => $request->except(['_token', 'password', 'password_confirmation']),
             ]);
 
             if ($user->role === 'siswa') {
@@ -108,8 +97,8 @@ class ProfileController extends Controller
                 // Validation rules for teachers, admin, etc.
                 $validated = $request->validate([
                     'name' => 'required|string|max:255',
-                    'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-                    'nip' => 'nullable|string|max:50' . ($guruProfileId ? '|unique:guru_profiles,nip,' . $guruProfileId : '|unique:guru_profiles,nip'),
+                    'email' => 'required|email|max:255|unique:users,email,'.$user->id,
+                    'nip' => 'nullable|string|max:50'.($guruProfileId ? '|unique:guru_profiles,nip,'.$guruProfileId : '|unique:guru_profiles,nip'),
                     'nomor_telepon' => 'nullable|string|max:20',
                     'jenis_kelamin' => 'nullable|in:L,P',
                     'tempat_lahir' => 'nullable|string|max:100',
@@ -147,11 +136,11 @@ class ProfileController extends Controller
                     $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
 
                     // Check extension
-                    if (!in_array($extension, $allowedExtensions)) {
+                    if (! in_array($extension, $allowedExtensions)) {
                         Log::error('Invalid file extension in profile update', [
                             'extension' => $extension,
                             'mime_type' => $mimeType,
-                            'allowed' => $allowedExtensions
+                            'allowed' => $allowedExtensions,
                         ]);
 
                         return response()->json([
@@ -175,14 +164,14 @@ class ProfileController extends Controller
 
                     // Delete old photo if exists in guru profile
                     if ($user->guruProfile && $user->guruProfile->foto_profil) {
-                        Storage::disk('public')->delete('profile_photos/' . $user->guruProfile->foto_profil);
+                        Storage::disk('public')->delete('profile_photos/'.$user->guruProfile->foto_profil);
                     }
 
                     // Compress and store the photo as WebP with quality 60%
                     $photoPath = ImageCompressor::compressAndStore(
                         $photo,
                         'profile_photos',
-                        time() . '_' . $user->id . '_' . uniqid(),
+                        time().'_'.$user->id.'_'.uniqid(),
                         60,  // Quality 60% for better compression
                         1200 // Max width 1200px
                     );
@@ -190,7 +179,6 @@ class ProfileController extends Controller
                     // Store photo to guru profile (not user table)
                     $validated['foto_profil'] = basename($photoPath);
                 }
-
 
                 // Update user basic data
                 $user->name = $validated['name'];
@@ -227,7 +215,7 @@ class ProfileController extends Controller
 
             Log::info('Profile updated successfully', [
                 'user_id' => $user->id,
-                'role' => $user->role
+                'role' => $user->role,
             ]);
 
             return response()->json([
@@ -238,24 +226,24 @@ class ProfileController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Profile validation failed', [
                 'errors' => $e->errors(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Profile update failed with exception', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -268,11 +256,11 @@ class ProfileController extends Controller
         try {
             Log::info('Password update started', [
                 'user_id' => Auth::id(),
-                'has_password' => !empty($request->password),
-                'has_confirmation' => !empty($request->password_confirmation),
+                'has_password' => ! empty($request->password),
+                'has_confirmation' => ! empty($request->password_confirmation),
                 'all_request_data' => $request->except(['password', 'password_confirmation']),
                 'password_length' => strlen($request->password ?? ''),
-                'confirmation_length' => strlen($request->password_confirmation ?? '')
+                'confirmation_length' => strlen($request->password_confirmation ?? ''),
             ]);
 
             // Validate the request
@@ -281,18 +269,18 @@ class ProfileController extends Controller
                     'required',
                     'string',
                     'min:8',
-                    'confirmed'
+                    'confirmed',
                 ],
-                'password_confirmation' => 'required|string'
+                'password_confirmation' => 'required|string',
             ], [
                 'password.required' => 'Password baru wajib diisi',
                 'password.min' => 'Password minimal 8 karakter',
                 'password.confirmed' => 'Konfirmasi password tidak sesuai',
-                'password_confirmation.required' => 'Konfirmasi password wajib diisi'
+                'password_confirmation.required' => 'Konfirmasi password wajib diisi',
             ]);
 
             Log::info('Password validation passed', [
-                'validated_password_length' => strlen($validated['password'])
+                'validated_password_length' => strlen($validated['password']),
             ]);
 
             /** @var User $user */
@@ -300,7 +288,7 @@ class ProfileController extends Controller
 
             Log::info('Before password update', [
                 'user_id' => $user->id,
-                'user_email' => $user->email
+                'user_email' => $user->email,
             ]);
 
             // Update password
@@ -309,36 +297,36 @@ class ProfileController extends Controller
 
             Log::info('Password updated successfully', [
                 'user_id' => $user->id,
-                'update_result' => $result
+                'update_result' => $result,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password berhasil diubah'
+                'message' => 'Password berhasil diubah',
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Password validation failed', [
                 'errors' => $e->errors(),
                 'user_id' => Auth::id(),
-                'request_data' => $request->except(['password', 'password_confirmation'])
+                'request_data' => $request->except(['password', 'password_confirmation']),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Password update failed with exception', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -355,8 +343,8 @@ class ProfileController extends Controller
                     'name' => $request->file('profile_photo')->getClientOriginalName(),
                     'size' => $request->file('profile_photo')->getSize(),
                     'mime' => $request->file('profile_photo')->getMimeType(),
-                    'extension' => $request->file('profile_photo')->getClientOriginalExtension()
-                ] : null
+                    'extension' => $request->file('profile_photo')->getClientOriginalExtension(),
+                ] : null,
             ]);
 
             // Custom validation for HEIC/HEIF files
@@ -368,11 +356,11 @@ class ProfileController extends Controller
                 // Allowed extensions
                 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
                 // Check extension
-                if (!in_array($extension, $allowedExtensions)) {
+                if (! in_array($extension, $allowedExtensions)) {
                     Log::error('Invalid file extension', [
                         'extension' => $extension,
                         'mime_type' => $mimeType,
-                        'allowed' => $allowedExtensions
+                        'allowed' => $allowedExtensions,
                     ]);
 
                     return response()->json([
@@ -396,7 +384,7 @@ class ProfileController extends Controller
                     'required',
                     'file',
                     'max:5120', // 5MB = 5120 KB
-                ]
+                ],
             ]);
 
             Log::info('Validation passed');
@@ -409,6 +397,7 @@ class ProfileController extends Controller
                 // Admins are not allowed to upload profile photos per new policy
                 if ($user->role === 'admin') {
                     Log::info('Admin attempted to upload profile photo - action skipped', ['user_id' => $user->id]);
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Admin tidak perlu mengunggah foto profil',
@@ -417,8 +406,9 @@ class ProfileController extends Controller
                 $photo = $request->file('profile_photo');
 
                 // Check if file is valid
-                if (!$photo->isValid()) {
+                if (! $photo->isValid()) {
                     Log::error('File is not valid', ['error' => $photo->getError()]);
+
                     return response()->json([
                         'success' => false,
                         'message' => 'File tidak valid atau rusak',
@@ -427,10 +417,10 @@ class ProfileController extends Controller
 
                 // Delete old photo if exists based on user role
                 if ($user->role === 'siswa' && $user->studentProfile && $user->studentProfile->foto_profil) {
-                    Storage::disk('public')->delete('profile_photos/' . $user->studentProfile->foto_profil);
+                    Storage::disk('public')->delete('profile_photos/'.$user->studentProfile->foto_profil);
                     Log::info('Old student photo deleted', ['old_photo' => $user->studentProfile->foto_profil]);
                 } elseif (in_array($user->role, ['guru', 'kepala_sekolah']) && $user->guruProfile && $user->guruProfile->foto_profil) {
-                    Storage::disk('public')->delete('profile_photos/' . $user->guruProfile->foto_profil);
+                    Storage::disk('public')->delete('profile_photos/'.$user->guruProfile->foto_profil);
                     Log::info('Old guru photo deleted', ['old_photo' => $user->guruProfile->foto_profil]);
                 }
 
@@ -438,7 +428,7 @@ class ProfileController extends Controller
                 $photoPath = ImageCompressor::compressAndStore(
                     $photo,
                     'profile_photos',
-                    time() . '_' . $user->id . '_' . uniqid(),
+                    time().'_'.$user->id.'_'.uniqid(),
                     60,  // Quality 60% for better compression while maintaining acceptable quality
                     1200 // Max width 1200px
                 );
@@ -447,7 +437,7 @@ class ProfileController extends Controller
                     'photo_path' => $photoPath,
                     'original_name' => $photo->getClientOriginalName(),
                     'size' => $photo->getSize(),
-                    'mime_type' => $photo->getMimeType()
+                    'mime_type' => $photo->getMimeType(),
                 ]);
 
                 $photoName = basename($photoPath);
@@ -470,10 +460,10 @@ class ProfileController extends Controller
                 Log::info('Photo stored successfully', [
                     'photo_name' => $photoName,
                     'user_id' => $user->id,
-                    'stored_path' => $photoPath
+                    'stored_path' => $photoPath,
                 ]);
 
-                $profilePhotoUrl = asset('storage/profile_photos/' . $photoName);
+                $profilePhotoUrl = asset('storage/profile_photos/'.$photoName);
 
                 return response()->json([
                     'success' => true,
@@ -494,22 +484,22 @@ class ProfileController extends Controller
                     'name' => $request->file('profile_photo')->getClientOriginalName(),
                     'size' => $request->file('profile_photo')->getSize(),
                     'mime' => $request->file('profile_photo')->getMimeType(),
-                ] : null
+                ] : null,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal: ' . implode(', ', $e->validator->errors()->all()),
+                'message' => 'Validasi gagal: '.implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Upload failed with exception', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -540,7 +530,7 @@ class ProfileController extends Controller
             'nomor_telepon' => $profile ? $profile->nomor_telepon : null,
             'nomor_induk_label' => $user->getNomorIndukLabel(),
             'role_display' => $user->getRoleDisplayName(),
-            'profile_photo_url' => $user->getProfilePhotoUrl()
+            'profile_photo_url' => $user->getProfilePhotoUrl(),
         ]);
     }
 }

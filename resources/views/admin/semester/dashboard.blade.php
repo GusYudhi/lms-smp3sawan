@@ -170,9 +170,9 @@
     <!-- Import Data Section (Semester 2 Only) -->
     @if($semester->semester_ke == 2)
         @php
-            $hasData = \App\Models\MataPelajaran::where('semester_id', $semester->id)->exists() ||
-                       \App\Models\JamPelajaran::where('semester_id', $semester->id)->exists() ||
-                       \App\Models\FixedSchedule::where('semester_id', $semester->id)->exists();
+            $hasData = \App\Models\JamPelajaran::where('semester_id', $semester->id)->exists() ||
+                       \App\Models\FixedSchedule::where('semester_id', $semester->id)->exists() ||
+                       \App\Models\JadwalPelajaran::where('semester_id', $semester->id)->exists();
         @endphp
 
         @if(!$hasData)
@@ -190,9 +190,9 @@
                             <strong>Semester Genap belum memiliki data.</strong>
                             <p class="mb-0 mt-2">Anda dapat menyalin data dari Semester Ganjil (Semester 1) di tahun pelajaran yang sama. Data yang akan disalin meliputi:</p>
                             <ul class="mb-0 mt-2">
-                                <li>Mata Pelajaran</li>
                                 <li>Jam Pelajaran</li>
                                 <li>Jadwal Tetap</li>
+                                <li>Jadwal Pelajaran</li>
                             </ul>
                         </div>
                         <!-- Button opens modal to confirm import from Semester 1 -->
@@ -215,7 +215,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Apakah Anda yakin ingin menyalin <strong>Mata Pelajaran, Jam Pelajaran, dan Jadwal Tetap</strong> dari Semester Ganjil ke Semester Genap ini? Proses ini akan menyalin data ke semester saat ini.
+                    Apakah Anda yakin ingin menyalin <strong>Jam Pelajaran, Jadwal Tetap, dan Jadwal Pelajaran</strong> dari Semester Ganjil ke Semester Genap ini? Proses ini akan menyalin data ke semester saat ini.
                     <div class="mt-2 text-muted small">Jika Semester Ganjil belum memiliki data, proses akan dibatalkan dan Anda akan diberi tahu.</div>
                 </div>
                 <div class="modal-footer">
