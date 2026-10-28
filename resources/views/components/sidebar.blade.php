@@ -229,7 +229,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('guru.agenda.*') ? 'active' : '' }}" href="{{ route('guru.agenda') }}">
+                    <a class="nav-link {{ request()->routeIs('guru.agenda*') ? 'active' : '' }}" href="{{ route('guru.agenda') }}">
                         <i class="fas fa-clipboard-list me-2"></i> Agenda Guru
                     </a>
                 </li>
