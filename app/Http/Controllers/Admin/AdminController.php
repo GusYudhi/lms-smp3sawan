@@ -13,6 +13,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TeachersImport;
 use App\Exports\TeachersTemplateExport;
 use App\Exports\TeachersExport;
+use App\Models\Semester;
+use App\Models\TahunPelajaran;
 
 class AdminController extends Controller
 {
@@ -340,7 +342,8 @@ class AdminController extends Controller
             $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with(['guruProfile.kelas'])->findOrFail($id);
 
             // Get active semester
-            $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+            $activeTahunPelajaran = TahunPelajaran::where('is_active', true)->first();
+            $activeSemester = Semester::where('tahun_pelajaran_id', $activeTahunPelajaran->id)->where('is_active', true)->first();
 
             // Get mata pelajaran filtered by active semester
             $mataPelajaranQuery = \App\Models\MataPelajaran::query();
