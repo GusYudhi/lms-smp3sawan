@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
 use App\Models\Berita;
+use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ class BeritaController extends Controller
         $request->validate([
             'judul' => 'required|string|max:255',
             'konten' => 'required',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
@@ -34,7 +35,13 @@ class BeritaController extends Controller
         $data['penulis_id'] = Auth::id();
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageCompressor::compressAndStore(
+                $request->file('foto'),
+                'berita',
+                'berita_' . time() . '_' . uniqid(),
+                75,
+                1280
+            );
         }
 
         Berita::create($data);
@@ -55,7 +62,7 @@ class BeritaController extends Controller
         $request->validate([
             'judul' => 'required|string|max:255',
             'konten' => 'required',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
@@ -65,7 +72,13 @@ class BeritaController extends Controller
             if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
                 Storage::disk('public')->delete($berita->foto);
             }
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageCompressor::compressAndStore(
+                $request->file('foto'),
+                'berita',
+                'berita_' . time() . '_' . uniqid(),
+                75,
+                1280
+            );
         }
 
         $berita->update($data);

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\Attendance;
+use App\Helpers\ImageCompressor;
 
 class AbsensiSiswaController extends Controller
 {
@@ -139,7 +140,7 @@ class AbsensiSiswaController extends Controller
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:izin,sakit',
             'keterangan' => 'required|string|min:10',
-            'dokumen' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048'
+            'dokumen' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif,pdf|max:10240'
         ]);
 
         if ($validator->fails()) {
@@ -180,8 +181,18 @@ class AbsensiSiswaController extends Controller
             $dokumenPath = null;
             if ($request->hasFile('dokumen')) {
                 $dokumenFile = $request->file('dokumen');
-                $dokumenName = 'siswa_' . $type . '_' . auth()->id() . '_' . time() . '.' . $dokumenFile->getClientOriginalExtension();
-                $dokumenPath = $dokumenFile->storeAs('attendance/siswa/dokumen', $dokumenName, 'public');
+                if (str_starts_with($dokumenFile->getMimeType(), 'image/')) {
+                    $dokumenPath = ImageCompressor::compressAndStore(
+                        $dokumenFile,
+                        'attendance/siswa/dokumen',
+                        'siswa_' . $type . '_' . auth()->id() . '_' . time(),
+                        60,
+                        1200
+                    );
+                } else {
+                    $dokumenName = 'siswa_' . $type . '_' . auth()->id() . '_' . time() . '.' . $dokumenFile->getClientOriginalExtension();
+                    $dokumenPath = $dokumenFile->storeAs('attendance/siswa/dokumen', $dokumenName, 'public');
+                }
 
                 Log::info('Document uploaded', ['path' => $dokumenPath]);
             }

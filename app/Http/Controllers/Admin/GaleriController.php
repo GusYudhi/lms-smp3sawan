@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Galeri;
+use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -24,7 +25,7 @@ class GaleriController extends Controller
     {
         $request->validate([
             'judul' => 'nullable|string',
-            'file' => 'required|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:20480', // 20MB max for video
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,heic,heif,mp4,mov,avi|max:20480', // 20MB max for video
             'tipe' => 'required|in:foto,video',
             'deskripsi' => 'nullable|string',
         ]);
@@ -32,7 +33,17 @@ class GaleriController extends Controller
         $data = $request->only(['judul', 'tipe', 'deskripsi']);
 
         if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')->store('galeri', 'public');
+            if ($data['tipe'] === 'foto') {
+                $data['file_path'] = ImageCompressor::compressAndStore(
+                    $request->file('file'),
+                    'galeri',
+                    'galeri_' . time() . '_' . uniqid(),
+                    75,
+                    1600
+                );
+            } else {
+                $data['file_path'] = $request->file('file')->store('galeri', 'public');
+            }
         }
 
         Galeri::create($data);
@@ -52,7 +63,7 @@ class GaleriController extends Controller
 
         $request->validate([
             'judul' => 'nullable|string',
-            'file' => 'nullable|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:20480',
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,webp,heic,heif,mp4,mov,avi|max:20480',
             'tipe' => 'required|in:foto,video',
             'deskripsi' => 'nullable|string',
         ]);
@@ -60,10 +71,20 @@ class GaleriController extends Controller
         $data = $request->only(['judul', 'tipe', 'deskripsi']);
 
         if ($request->hasFile('file')) {
-            if ($galeri->file_path) {
+            if ($galeri->file_path && Storage::disk('public')->exists($galeri->file_path)) {
                 Storage::disk('public')->delete($galeri->file_path);
             }
-            $data['file_path'] = $request->file('file')->store('galeri', 'public');
+            if ($data['tipe'] === 'foto') {
+                $data['file_path'] = ImageCompressor::compressAndStore(
+                    $request->file('file'),
+                    'galeri',
+                    'galeri_' . time() . '_' . uniqid(),
+                    75,
+                    1600
+                );
+            } else {
+                $data['file_path'] = $request->file('file')->store('galeri', 'public');
+            }
         }
 
         $galeri->update($data);
@@ -74,7 +95,7 @@ class GaleriController extends Controller
     public function destroy($id)
     {
         $galeri = Galeri::findOrFail($id);
-        if ($galeri->file_path) {
+        if ($galeri->file_path && Storage::disk('public')->exists($galeri->file_path)) {
             Storage::disk('public')->delete($galeri->file_path);
         }
         $galeri->delete();

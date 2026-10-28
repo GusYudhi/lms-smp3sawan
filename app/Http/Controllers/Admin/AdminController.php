@@ -15,6 +15,7 @@ use App\Exports\TeachersTemplateExport;
 use App\Exports\TeachersExport;
 use App\Models\Semester;
 use App\Models\TahunPelajaran;
+use App\Helpers\ImageCompressor;
 
 class AdminController extends Controller
 {
@@ -156,7 +157,7 @@ class AdminController extends Controller
                 'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'password' => 'required|string|min:8|confirmed',
-                'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
                 'can_manage_berita' => 'nullable|boolean',
                 'can_manage_prestasi' => 'nullable|boolean',
             ]);
@@ -165,8 +166,14 @@ class AdminController extends Controller
             $fotoProfilPath = null;
             if ($request->hasFile('profile_photo')) {
                 $file = $request->file('profile_photo');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $fotoProfilPath = $file->storeAs('profile_photos', $filename, 'public');
+                $photoPath = ImageCompressor::compressAndStore(
+                    $file,
+                    'profile_photos',
+                    'guru_' . time() . '_' . uniqid(),
+                    60,
+                    1200
+                );
+                $fotoProfilPath = basename($photoPath);
             }
 
             // Tentukan role berdasarkan jabatan
@@ -187,10 +194,10 @@ class AdminController extends Controller
             $profileData = [
                 'nip' => $validatedData['nomor_induk'],
                 'kode_guru' => $validatedData['kode_guru'] ?? null,
-                'tempat_lahir' => $validatedData['tempat_lahir'],
-                'tanggal_lahir' => $validatedData['tanggal_lahir'],
+                'tempat_lahir' => $validatedData['tempat_lahir'] ?? null,
+                'tanggal_lahir' => $validatedData['tanggal_lahir'] ?? null,
                 'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
-                'golongan' => $validatedData['golongan'],
+                'golongan' => $validatedData['golongan'] ?? null,
                 'jabatan_di_sekolah' => $validatedData['jabatan_di_sekolah'] ?? null,
                 'mata_pelajaran_id' => $validatedData['mata_pelajaran'] ?? null,
                 'kelas_id' => $validatedData['kelas_id'] ?? null,
@@ -349,7 +356,7 @@ class AdminController extends Controller
                 'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'kelas_id' => 'nullable|exists:kelas,id',
-                'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
                 'tempat_lahir' => 'nullable|string|max:100',
                 'tanggal_lahir' => 'nullable|date',
                 'golongan' => 'nullable|string|max:10',
@@ -384,12 +391,21 @@ class AdminController extends Controller
             // Handle profile photo
             $photoPath = $teacher->guruProfile->foto_profil ?? null;
             if ($request->hasFile('profile_photo')) {
-                if ($photoPath && Storage::disk('public')->exists($photoPath)) {
-                    Storage::disk('public')->delete($photoPath);
+                if ($photoPath) {
+                    $oldPath = str_starts_with($photoPath, 'profile_photos/') ? $photoPath : 'profile_photos/' . $photoPath;
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
                 }
                 $photo = $request->file('profile_photo');
-                $photoName = time() . '_' . $photo->getClientOriginalName();
-                $photoPath = $photo->storeAs('profile_photos', $photoName, 'public');
+                $compressedPath = ImageCompressor::compressAndStore(
+                    $photo,
+                    'profile_photos',
+                    'guru_' . time() . '_' . $teacher->id . '_' . uniqid(),
+                    60,
+                    1200
+                );
+                $photoPath = basename($compressedPath);
             }
 
             // Update GuruProfile

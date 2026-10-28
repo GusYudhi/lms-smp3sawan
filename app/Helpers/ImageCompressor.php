@@ -2,8 +2,8 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Maestroerror\HeicToJpg;
 
 class ImageCompressor
@@ -13,18 +13,18 @@ class ImageCompressor
      * Supports HEIC/HEIF format from iPhone
      * Falls back to original upload if compression fails
      *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $directory
-     * @param string $filename
-     * @param int $quality
-     * @param int $maxWidth
+     * @param  \Illuminate\Http\UploadedFile  $file
+     * @param  string  $directory
+     * @param  string  $filename
+     * @param  int  $quality
+     * @param  int  $maxWidth
      * @return string Path to the stored file
      */
     public static function compressAndStore($file, $directory, $filename = null, $quality = 80, $maxWidth = 1200)
     {
         // Generate filename if not provided
-        if (!$filename) {
-            $filename = time() . '_' . uniqid();
+        if (! $filename) {
+            $filename = time().'_'.uniqid();
         }
 
         // Remove extension from filename if exists
@@ -34,13 +34,14 @@ class ImageCompressor
         $processedFile = self::convertHeicIfNeeded($file);
 
         // Check if WebP is supported, if not, skip compression immediately
-        if (!function_exists('imagewebp')) {
+        if (! function_exists('imagewebp')) {
             Log::info('⚠️ WebP compression not available, storing original image', [
                 'reason' => 'imagewebp() function not available',
                 'gd_version' => defined('GD_VERSION') ? GD_VERSION : 'Unknown',
                 'supported_formats' => self::getSupportedFormats(),
-                'recommendation' => 'Install PHP with WebP-enabled GD extension for image compression'
+                'recommendation' => 'Install PHP with WebP-enabled GD extension for image compression',
             ]);
+
             return self::storeOriginal($processedFile, $directory, $filename);
         }
 
@@ -57,7 +58,7 @@ class ImageCompressor
                 'webp_support' => function_exists('imagewebp') ? 'YES' : 'NO',
                 'jpeg_support' => function_exists('imagecreatefromjpeg') ? 'YES' : 'NO',
                 'png_support' => function_exists('imagecreatefrompng') ? 'YES' : 'NO',
-                'supported_formats' => self::getSupportedFormats()
+                'supported_formats' => self::getSupportedFormats(),
             ]);
 
             // Fallback: Store original file without compression
@@ -71,15 +72,15 @@ class ImageCompressor
     private static function compressWithIntervention($file, $directory, $filename, $quality, $maxWidth)
     {
         // Check if GD functions are available
-        if (!extension_loaded('gd')) {
+        if (! extension_loaded('gd')) {
             Log::error('GD extension is not loaded');
             throw new \Exception('GD extension is not loaded');
         }
 
         // Check for WebP support - REQUIRED
-        if (!function_exists('imagewebp')) {
+        if (! function_exists('imagewebp')) {
             Log::error('imagewebp function not available', [
-                'gd_info' => extension_loaded('gd') ? gd_info() : 'GD not loaded'
+                'gd_info' => extension_loaded('gd') ? gd_info() : 'GD not loaded',
             ]);
             throw new \Exception('GD extension does not support WebP format. Please enable WebP in php.ini or use a different PHP build with WebP support.');
         }
@@ -89,36 +90,36 @@ class ImageCompressor
             'gd_loaded' => extension_loaded('gd'),
             'imagewebp_exists' => function_exists('imagewebp'),
             'target_quality' => $quality,
-            'max_width' => $maxWidth
+            'max_width' => $maxWidth,
         ]);
 
         // Get file mime type
         $mimeType = $file->getMimeType();
 
         // Check if we can load this image type
-        if (!self::canLoadImageType($mimeType)) {
+        if (! self::canLoadImageType($mimeType)) {
             Log::error('Cannot load image type', [
                 'mime_type' => $mimeType,
-                'supported' => self::getSupportedFormats()
+                'supported' => self::getSupportedFormats(),
             ]);
-            throw new \Exception("GD cannot load image type: {$mimeType}. Supported formats: " . self::getSupportedFormats());
+            throw new \Exception("GD cannot load image type: {$mimeType}. Supported formats: ".self::getSupportedFormats());
         }
 
         // Add .webp extension
-        $webpFilename = $filename . '.webp';
+        $webpFilename = $filename.'.webp';
 
         // Get the full path
-        $fullPath = storage_path('app/public/' . $directory);
+        $fullPath = Storage::disk('public')->path($directory);
 
         // Create directory if doesn't exist
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             mkdir($fullPath, 0755, true);
         }
 
         // Use GD directly for better compatibility
         $sourceImage = self::loadImageWithGD($file->getRealPath(), $file->getMimeType());
 
-        if (!$sourceImage) {
+        if (! $sourceImage) {
             throw new \Exception('Failed to load image with GD');
         }
 
@@ -146,10 +147,10 @@ class ImageCompressor
         imagecopyresampled($newImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
 
         // Save as WebP
-        $savePath = $fullPath . '/' . $webpFilename;
+        $savePath = $fullPath.'/'.$webpFilename;
         $saveSuccess = imagewebp($newImage, $savePath, $quality);
 
-        if (!$saveSuccess) {
+        if (! $saveSuccess) {
             // Free memory before throwing
             imagedestroy($sourceImage);
             imagedestroy($newImage);
@@ -170,26 +171,26 @@ class ImageCompressor
             'original_name' => $file->getClientOriginalName(),
             'original_format' => strtoupper($file->getClientOriginalExtension()),
             'original_mime' => $file->getMimeType(),
-            'original_size' => number_format($originalSize / 1024, 2) . ' KB',
-            'original_dimensions' => $originalWidth . 'x' . $originalHeight,
+            'original_size' => number_format($originalSize / 1024, 2).' KB',
+            'original_dimensions' => $originalWidth.'x'.$originalHeight,
             'compressed_file' => $webpFilename,
             'compressed_format' => 'WEBP',
             'compressed_mime' => $savedMimeType,
             'is_webp_verified' => $isWebP ? '✓ YES' : '✗ NO',
-            'compressed_size' => number_format($compressedSize / 1024, 2) . ' KB',
-            'new_dimensions' => $newWidth . 'x' . $newHeight,
-            'quality' => $quality . '%',
-            'savings' => $savings . '%',
+            'compressed_size' => number_format($compressedSize / 1024, 2).' KB',
+            'new_dimensions' => $newWidth.'x'.$newHeight,
+            'quality' => $quality.'%',
+            'savings' => $savings.'%',
             'full_path' => $savePath,
-            'relative_path' => $directory . '/' . $webpFilename
+            'relative_path' => $directory.'/'.$webpFilename,
         ]);
 
         // Alert if not WebP (should not happen but safety check)
-        if (!$isWebP) {
+        if (! $isWebP) {
             Log::warning('⚠️ Saved file is not WebP format!', [
                 'expected' => 'image/webp',
                 'actual' => $savedMimeType,
-                'file' => $webpFilename
+                'file' => $webpFilename,
             ]);
         }
 
@@ -198,7 +199,7 @@ class ImageCompressor
         imagedestroy($newImage);
 
         // Return the relative path
-        return $directory . '/' . $webpFilename;
+        return $directory.'/'.$webpFilename;
     }
 
     /**
@@ -227,10 +228,18 @@ class ImageCompressor
     private static function getSupportedFormats()
     {
         $formats = [];
-        if (function_exists('imagecreatefromjpeg')) $formats[] = 'JPEG';
-        if (function_exists('imagecreatefrompng')) $formats[] = 'PNG';
-        if (function_exists('imagecreatefromgif')) $formats[] = 'GIF';
-        if (function_exists('imagecreatefromwebp')) $formats[] = 'WebP';
+        if (function_exists('imagecreatefromjpeg')) {
+            $formats[] = 'JPEG';
+        }
+        if (function_exists('imagecreatefrompng')) {
+            $formats[] = 'PNG';
+        }
+        if (function_exists('imagecreatefromgif')) {
+            $formats[] = 'GIF';
+        }
+        if (function_exists('imagecreatefromwebp')) {
+            $formats[] = 'WebP';
+        }
 
         return empty($formats) ? 'None' : implode(', ', $formats);
     }
@@ -270,14 +279,14 @@ class ImageCompressor
                 $sourceImage = self::loadImageWithGD($file->getRealPath(), $mimeType);
 
                 if ($sourceImage) {
-                    $webpFilename = $filename . '.webp';
-                    $fullPath = storage_path('app/public/' . $directory);
+                    $webpFilename = $filename.'.webp';
+                    $fullPath = Storage::disk('public')->path($directory);
 
-                    if (!file_exists($fullPath)) {
+                    if (! file_exists($fullPath)) {
                         mkdir($fullPath, 0755, true);
                     }
 
-                    $savePath = $fullPath . '/' . $webpFilename;
+                    $savePath = $fullPath.'/'.$webpFilename;
 
                     // Save as WebP with quality 60%
                     if (imagewebp($sourceImage, $savePath, 60)) {
@@ -288,22 +297,22 @@ class ImageCompressor
                             'format' => 'WEBP',
                             'quality' => '60%',
                             'stored_as' => $webpFilename,
-                            'path' => $directory . '/' . $webpFilename
+                            'path' => $directory.'/'.$webpFilename,
                         ]);
 
-                        return $directory . '/' . $webpFilename;
+                        return $directory.'/'.$webpFilename;
                     }
 
                     imagedestroy($sourceImage);
                 }
             }
         } catch (\Exception $e) {
-            Log::warning('Could not convert to WebP in fallback: ' . $e->getMessage());
+            Log::warning('Could not convert to WebP in fallback: '.$e->getMessage());
         }
 
         // Last resort: store as original format (this should rarely happen)
         $extension = $file->getClientOriginalExtension();
-        $fullFilename = $filename . '.' . $extension;
+        $fullFilename = $filename.'.'.$extension;
 
         $file->storeAs($directory, $fullFilename, 'public');
 
@@ -311,26 +320,26 @@ class ImageCompressor
         Log::warning('⚠️ Image stored in original format (last resort fallback)', [
             'original_name' => $file->getClientOriginalName(),
             'format' => strtoupper($extension),
-            'size' => number_format($file->getSize() / 1024, 2) . ' KB',
+            'size' => number_format($file->getSize() / 1024, 2).' KB',
             'stored_as' => $fullFilename,
-            'path' => $directory . '/' . $fullFilename,
-            'reason' => 'WebP conversion not available or failed'
+            'path' => $directory.'/'.$fullFilename,
+            'reason' => 'WebP conversion not available or failed',
         ]);
 
-        return $directory . '/' . $fullFilename;
+        return $directory.'/'.$fullFilename;
     }
 
     /**
      * Convert HEIC/HEIF format to JPG if needed
      * Returns the original file if not HEIC or conversion fails
      *
-     * @param \Illuminate\Http\UploadedFile $file
+     * @param  \Illuminate\Http\UploadedFile  $file
      * @return \Illuminate\Http\UploadedFile
      */
     /**
      * Convert HEIC to JPG and store temporarily for AJAX conversion
      *
-     * @param \Illuminate\Http\UploadedFile $file
+     * @param  \Illuminate\Http\UploadedFile  $file
      * @return string|null Path to converted file in storage, or null if failed
      */
     public static function convertHeicToJpgTemp($file)
@@ -342,7 +351,7 @@ class ImageCompressor
         $isHeic = in_array($extension, ['heic', 'heif']) ||
                   in_array($mimeType, ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence']);
 
-        if (!$isHeic) {
+        if (! $isHeic) {
             return null; // Not HEIC
         }
 
@@ -350,20 +359,20 @@ class ImageCompressor
             Log::info('🔄 Converting HEIC to JPG for AJAX request', [
                 'original_name' => $file->getClientOriginalName(),
                 'extension' => $extension,
-                'size' => number_format($file->getSize() / 1024, 2) . ' KB'
+                'size' => number_format($file->getSize() / 1024, 2).' KB',
             ]);
 
             // Convert HEIC to JPG using the library
-            $heicConverter = new HeicToJpg();
-            $tempPath = sys_get_temp_dir() . '/' . uniqid('heic_') . '.jpg';
+            $heicConverter = new HeicToJpg;
+            $tempPath = sys_get_temp_dir().'/'.uniqid('heic_').'.jpg';
             $result = $heicConverter->convert($file->getRealPath())->saveAs($tempPath);
 
-            if (!$result || !file_exists($tempPath)) {
+            if (! $result || ! file_exists($tempPath)) {
                 throw new \Exception('HEIC conversion failed');
             }
 
             // Store to temporary location in storage
-            $storagePath = 'temp/heic_converted_' . uniqid() . '.jpg';
+            $storagePath = 'temp/heic_converted_'.uniqid().'.jpg';
             Storage::put($storagePath, file_get_contents($tempPath));
 
             // Clean up system temp file
@@ -371,7 +380,7 @@ class ImageCompressor
 
             Log::info('✅ HEIC converted and stored temporarily', [
                 'storage_path' => $storagePath,
-                'size' => number_format(Storage::size($storagePath) / 1024, 2) . ' KB'
+                'size' => number_format(Storage::size($storagePath) / 1024, 2).' KB',
             ]);
 
             return $storagePath;
@@ -379,7 +388,7 @@ class ImageCompressor
         } catch (\Exception $e) {
             Log::error('❌ HEIC conversion failed', [
                 'error' => $e->getMessage(),
-                'file' => $file->getClientOriginalName()
+                'file' => $file->getClientOriginalName(),
             ]);
 
             return null;
@@ -395,7 +404,7 @@ class ImageCompressor
         $isHeic = in_array($extension, ['heic', 'heif']) ||
                   in_array($mimeType, ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence']);
 
-        if (!$isHeic) {
+        if (! $isHeic) {
             return $file; // Not HEIC, return original file
         }
 
@@ -404,17 +413,17 @@ class ImageCompressor
                 'original_name' => $file->getClientOriginalName(),
                 'extension' => $extension,
                 'mime_type' => $mimeType,
-                'size' => number_format($file->getSize() / 1024, 2) . ' KB'
+                'size' => number_format($file->getSize() / 1024, 2).' KB',
             ]);
 
             // Create temporary path for converted file
-            $tempPath = sys_get_temp_dir() . '/' . uniqid('heic_') . '.jpg';
+            $tempPath = sys_get_temp_dir().'/'.uniqid('heic_').'.jpg';
 
             // Convert HEIC to JPG using the library
-            $heicConverter = new HeicToJpg();
+            $heicConverter = new HeicToJpg;
             $result = $heicConverter->convert($file->getRealPath())->saveAs($tempPath);
 
-            if (!$result || !file_exists($tempPath)) {
+            if (! $result || ! file_exists($tempPath)) {
                 throw new \Exception('HEIC conversion failed - output file not created');
             }
 
@@ -430,8 +439,8 @@ class ImageCompressor
             Log::info('✅ HEIC converted successfully', [
                 'original_format' => strtoupper($extension),
                 'converted_to' => 'JPG',
-                'original_size' => number_format($file->getSize() / 1024, 2) . ' KB',
-                'converted_size' => number_format(filesize($tempPath) / 1024, 2) . ' KB'
+                'original_size' => number_format($file->getSize() / 1024, 2).' KB',
+                'converted_size' => number_format(filesize($tempPath) / 1024, 2).' KB',
             ]);
 
             return $convertedFile;
@@ -440,7 +449,7 @@ class ImageCompressor
             Log::error('❌ HEIC conversion failed, using original file', [
                 'error' => $e->getMessage(),
                 'file' => $file->getClientOriginalName(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // Return original file if conversion fails
@@ -451,16 +460,16 @@ class ImageCompressor
     /**
      * Compress existing image file to WebP
      *
-     * @param string $existingPath Path relative to storage/app/public
-     * @param int $quality
-     * @param int $maxWidth
+     * @param  string  $existingPath  Path relative to storage/app/public
+     * @param  int  $quality
+     * @param  int  $maxWidth
      * @return string|null Path to the compressed file or null if failed
      */
     public static function compressExisting($existingPath, $quality = 80, $maxWidth = 1200)
     {
-        $fullPath = storage_path('app/public/' . $existingPath);
+        $fullPath = storage_path('app/public/'.$existingPath);
 
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             return null;
         }
 
@@ -471,7 +480,7 @@ class ImageCompressor
             // Load image with GD
             $sourceImage = self::loadImageWithGD($fullPath, $mimeType);
 
-            if (!$sourceImage) {
+            if (! $sourceImage) {
                 return null;
             }
 
@@ -498,9 +507,9 @@ class ImageCompressor
 
             // Generate new filename with .webp extension
             $pathInfo = pathinfo($existingPath);
-            $newFilename = $pathInfo['filename'] . '.webp';
-            $newPath = $pathInfo['dirname'] . '/' . $newFilename;
-            $fullNewPath = storage_path('app/public/' . $newPath);
+            $newFilename = $pathInfo['filename'].'.webp';
+            $newPath = $pathInfo['dirname'].'/'.$newFilename;
+            $fullNewPath = storage_path('app/public/'.$newPath);
 
             // Get original file size
             $originalSize = filesize($fullPath);
@@ -508,7 +517,7 @@ class ImageCompressor
             // Save as WebP
             $saveSuccess = imagewebp($newImage, $fullNewPath, $quality);
 
-            if (!$saveSuccess) {
+            if (! $saveSuccess) {
                 imagedestroy($sourceImage);
                 imagedestroy($newImage);
                 throw new \Exception('Failed to save WebP image');
@@ -526,26 +535,26 @@ class ImageCompressor
             Log::info('✅ Existing image compressed successfully', [
                 'original_file' => basename($existingPath),
                 'original_format' => strtoupper($pathInfo['extension'] ?? 'unknown'),
-                'original_size' => number_format($originalSize / 1024, 2) . ' KB',
-                'original_dimensions' => $originalWidth . 'x' . $originalHeight,
+                'original_size' => number_format($originalSize / 1024, 2).' KB',
+                'original_dimensions' => $originalWidth.'x'.$originalHeight,
                 'compressed_file' => $newFilename,
                 'compressed_format' => 'WEBP',
                 'compressed_mime' => $savedMimeType,
                 'is_webp_verified' => $isWebP ? '✓ YES' : '✗ NO',
-                'compressed_size' => number_format($compressedSize / 1024, 2) . ' KB',
-                'new_dimensions' => $newWidth . 'x' . $newHeight,
-                'quality' => $quality . '%',
-                'savings' => $savings . '%',
+                'compressed_size' => number_format($compressedSize / 1024, 2).' KB',
+                'new_dimensions' => $newWidth.'x'.$newHeight,
+                'quality' => $quality.'%',
+                'savings' => $savings.'%',
                 'full_path' => $fullNewPath,
-                'relative_path' => $newPath
+                'relative_path' => $newPath,
             ]);
 
             // Alert if not WebP
-            if (!$isWebP) {
+            if (! $isWebP) {
                 Log::warning('⚠️ Saved file is not WebP format!', [
                     'expected' => 'image/webp',
                     'actual' => $savedMimeType,
-                    'file' => $newFilename
+                    'file' => $newFilename,
                 ]);
             }
 
@@ -563,8 +572,9 @@ class ImageCompressor
         } catch (\Exception $e) {
             Log::error('Failed to compress existing image', [
                 'path' => $existingPath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -572,9 +582,9 @@ class ImageCompressor
     /**
      * Compress base64 image and return compressed WebP binary data
      *
-     * @param string $base64Image Base64 encoded image
-     * @param int $quality Quality of compression (0-100)
-     * @param int $maxWidth Maximum width of image
+     * @param  string  $base64Image  Base64 encoded image
+     * @param  int  $quality  Quality of compression (0-100)
+     * @param  int  $maxWidth  Maximum width of image
      * @return string Binary WebP image data
      */
     public static function compressBase64Image($base64Image, $quality = 80, $maxWidth = 1200)
@@ -587,7 +597,7 @@ class ImageCompressor
         // Decode base64
         $imageData = base64_decode($base64Image);
 
-        if (!$imageData) {
+        if (! $imageData) {
             throw new \Exception('Invalid base64 image data');
         }
 
@@ -600,17 +610,18 @@ class ImageCompressor
             'imagecreatefromstring_exists' => function_exists('imagecreatefromstring') ? 'YES' : 'NO',
             'imagewebp_exists' => function_exists('imagewebp') ? 'YES' : 'NO',
             'target_quality' => $quality,
-            'max_width' => $maxWidth
+            'max_width' => $maxWidth,
         ]);
 
         // Check if GD extension is available
-        if (!extension_loaded('gd') || !function_exists('imagecreatefromstring')) {
+        if (! extension_loaded('gd') || ! function_exists('imagecreatefromstring')) {
             // GD not available, return the decoded image data directly
             Log::warning('⚠️ GD extension not available, storing image without compression', [
-                'original_size' => number_format($originalSize / 1024, 2) . ' KB',
+                'original_size' => number_format($originalSize / 1024, 2).' KB',
                 'gd_loaded' => extension_loaded('gd'),
-                'function_exists' => function_exists('imagecreatefromstring')
+                'function_exists' => function_exists('imagecreatefromstring'),
             ]);
+
             return $imageData;
         }
 
@@ -618,11 +629,12 @@ class ImageCompressor
             // Create image from string
             $sourceImage = @imagecreatefromstring($imageData);
 
-            if (!$sourceImage) {
+            if (! $sourceImage) {
                 // Failed to create image, return original data
                 Log::warning('⚠️ Failed to create image from base64, storing without compression', [
-                    'original_size' => number_format($originalSize / 1024, 2) . ' KB'
+                    'original_size' => number_format($originalSize / 1024, 2).' KB',
                 ]);
+
                 return $imageData;
             }
 
@@ -672,14 +684,15 @@ class ImageCompressor
                 $format = 'JPEG';
             }
 
-            if (!$success) {
+            if (! $success) {
                 ob_end_clean();
                 imagedestroy($sourceImage);
                 imagedestroy($newImage);
                 Log::error('❌ Failed to compress base64 image', [
-                    'original_size' => number_format($originalSize / 1024, 2) . ' KB',
-                    'format_attempted' => $format
+                    'original_size' => number_format($originalSize / 1024, 2).' KB',
+                    'format_attempted' => $format,
                 ]);
+
                 return $imageData; // Return original if compression fails
             }
 
@@ -694,23 +707,24 @@ class ImageCompressor
 
             // Log successful compression
             Log::info('✅ Base64 image compressed successfully', [
-                'original_size' => number_format($originalSize / 1024, 2) . ' KB',
-                'original_dimensions' => $originalWidth . 'x' . $originalHeight,
-                'compressed_size' => number_format($compressedSize / 1024, 2) . ' KB',
-                'compressed_dimensions' => $newWidth . 'x' . $newHeight,
+                'original_size' => number_format($originalSize / 1024, 2).' KB',
+                'original_dimensions' => $originalWidth.'x'.$originalHeight,
+                'compressed_size' => number_format($compressedSize / 1024, 2).' KB',
+                'compressed_dimensions' => $newWidth.'x'.$newHeight,
                 'format' => $format,
-                'quality' => $quality . '%',
-                'savings' => $savings . '%',
-                'compression_ratio' => $originalSize > 0 ? round($originalSize / $compressedSize, 2) . 'x' : 'N/A'
+                'quality' => $quality.'%',
+                'savings' => $savings.'%',
+                'compression_ratio' => $originalSize > 0 ? round($originalSize / $compressedSize, 2).'x' : 'N/A',
             ]);
 
             return $compressedData;
 
         } catch (\Exception $e) {
-            Log::error('❌ Image compression error: ' . $e->getMessage(), [
-                'original_size' => number_format($originalSize / 1024, 2) . ' KB',
-                'trace' => $e->getTraceAsString()
+            Log::error('❌ Image compression error: '.$e->getMessage(), [
+                'original_size' => number_format($originalSize / 1024, 2).' KB',
+                'trace' => $e->getTraceAsString(),
             ]);
+
             // Return original image data if any error occurs
             return $imageData;
         }

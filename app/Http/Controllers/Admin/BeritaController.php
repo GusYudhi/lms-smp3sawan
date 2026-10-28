@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Berita;
+use App\Helpers\ImageCompressor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ class BeritaController extends Controller
         $request->validate([
             'judul' => 'required',
             'konten' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
@@ -34,7 +35,13 @@ class BeritaController extends Controller
         $data['penulis_id'] = Auth::id();
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageCompressor::compressAndStore(
+                $request->file('foto'),
+                'berita',
+                'berita_' . time() . '_' . uniqid(),
+                75,
+                1280
+            );
         }
 
         Berita::create($data);
@@ -55,17 +62,23 @@ class BeritaController extends Controller
         $request->validate([
             'judul' => 'required',
             'konten' => 'required',
-            'foto' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
         $data = $request->all();
 
         if ($request->hasFile('foto')) {
-            if ($berita->foto) {
+            if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
                 Storage::disk('public')->delete($berita->foto);
             }
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageCompressor::compressAndStore(
+                $request->file('foto'),
+                'berita',
+                'berita_' . time() . '_' . uniqid(),
+                75,
+                1280
+            );
         }
 
         $berita->update($data);
@@ -76,7 +89,7 @@ class BeritaController extends Controller
     public function destroy($id)
     {
         $berita = Berita::findOrFail($id);
-        if ($berita->foto) {
+        if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
             Storage::disk('public')->delete($berita->foto);
         }
         $berita->delete();

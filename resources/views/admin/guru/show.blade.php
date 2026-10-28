@@ -39,7 +39,7 @@
                         <div class="col-lg-3 text-center text-lg-start mb-4 mb-lg-0">
                             <x-profile-photo
                                 :src="$teacher->guruProfile && $teacher->guruProfile->foto_profil
-                                    ? asset('storage/profile_photos/' . $teacher->guruProfile->foto_profil)
+                                    ? asset('storage/' . (str_starts_with($teacher->guruProfile->foto_profil, 'profile_photos/') ? $teacher->guruProfile->foto_profil : 'profile_photos/' . $teacher->guruProfile->foto_profil))
                                     : asset('assets/image/default-avatar.png')"
                                 :name="$teacher->name"
                                 size="xl"

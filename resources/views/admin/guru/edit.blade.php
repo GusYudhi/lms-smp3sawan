@@ -47,7 +47,7 @@
                             </h6>
                             <div class="text-center">
                                 @if($teacher->guruProfile && $teacher->guruProfile->foto_profil)
-                                    <img src="{{ asset('storage/' . $teacher->guruProfile->foto_profil) }}"
+                                    <img src="{{ asset('storage/' . (str_starts_with($teacher->guruProfile->foto_profil, 'profile_photos/') ? $teacher->guruProfile->foto_profil : 'profile_photos/' . $teacher->guruProfile->foto_profil)) }}"
                                          alt="Foto {{ $teacher->name }}"
                                          class="rounded-circle border"
                                          id="currentPhoto"
