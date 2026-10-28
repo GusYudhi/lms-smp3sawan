@@ -164,17 +164,17 @@ class KodeGuruSheet implements FromCollection, WithHeadings, WithTitle, WithStyl
     public function collection()
     {
         // Sort by kode_guru numerically
-        return GuruProfile::with('user')
+        return GuruProfile::with('user:id,name')
             ->where('is_active', true)
             ->whereNotNull('kode_guru')
-            ->select('kode_guru', 'nama')
+            ->select('id', 'user_id', 'kode_guru', 'nama')
             ->orderByRaw('CAST(kode_guru AS UNSIGNED) ASC')
             ->orderBy('kode_guru', 'asc')
             ->get()
             ->map(function ($guru) {
                 return [
                     'kode' => $guru->kode_guru,
-                    'nama' => $guru->nama
+                    'nama' => $guru->nama ?: ($guru->user->name ?? '-')
                 ];
             });
     }

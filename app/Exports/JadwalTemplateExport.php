@@ -18,9 +18,9 @@ class JadwalTemplateExport implements WithMultipleSheets
     {
         return [
             new InputJadwalSheet(),
-            new KodeGuruSheet(),
-            new KodeMapelSheet(),
-            new DaftarKelasSheet(),
+            new TemplateKodeGuruSheet(),
+            new TemplateKodeMapelSheet(),
+            new TemplateDaftarKelasSheet(),
         ];
     }
 }
@@ -113,18 +113,21 @@ class InputJadwalSheet implements FromCollection, WithHeadings, WithTitle, WithS
     }
 }
 
-class KodeGuruSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
+class TemplateKodeGuruSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
 {
     public function collection()
     {
-        return GuruProfile::with('user')
-            ->select('kode_guru', 'nama')
+        return GuruProfile::with('user:id,name')
+            ->where('is_active', true)
             ->whereNotNull('kode_guru')
+            ->select('id', 'user_id', 'kode_guru', 'nama')
+            ->orderByRaw('CAST(kode_guru AS UNSIGNED) ASC')
+            ->orderBy('kode_guru', 'asc')
             ->get()
             ->map(function ($guru) {
                 return [
                     'kode' => $guru->kode_guru,
-                    'nama' => $guru->nama
+                    'nama' => $guru->nama ?: ($guru->user->name ?? '-')
                 ];
             });
     }
@@ -150,7 +153,7 @@ class KodeGuruSheet implements FromCollection, WithHeadings, WithTitle, WithStyl
     }
 }
 
-class KodeMapelSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
+class TemplateKodeMapelSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
 {
     public function collection()
     {
@@ -178,7 +181,7 @@ class KodeMapelSheet implements FromCollection, WithHeadings, WithTitle, WithSty
     }
 }
 
-class DaftarKelasSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
+class TemplateDaftarKelasSheet implements FromCollection, WithHeadings, WithTitle, WithStyles
 {
     public function collection()
     {

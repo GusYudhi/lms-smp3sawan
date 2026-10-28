@@ -11,11 +11,12 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\SkipsUnknownSheets;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class JadwalImport implements WithMultipleSheets
+class JadwalImport implements SkipsUnknownSheets, WithMultipleSheets
 {
     protected $semesterId;
 
@@ -42,6 +43,14 @@ class JadwalImport implements WithMultipleSheets
             'INPUT_JADWAL' => new JadwalSheetImport($this->semesterId, $this),
         ];
     }
+
+    public function onUnknownSheet($sheetName)
+    {
+        if ($sheetName === 'INPUT_JADWAL') {
+            $this->errors[] = "Sheet 'INPUT_JADWAL' tidak ditemukan di file Excel. Pastikan menggunakan format template jadwal yang sesuai.";
+            $this->failureCount++;
+        }
+    }
 }
 
 class MapelSheetImport implements ToCollection, WithHeadingRow
@@ -63,9 +72,9 @@ class MapelSheetImport implements ToCollection, WithHeadingRow
             $nama = trim($row['nama_mapel'] ?? '');
 
             if ($kode && $nama) {
-                MataPelajaran::updateOrCreate(
+                MataPelajaran::withTrashed()->updateOrCreate(
                     ['kode_mapel' => $kode],
-                    ['nama_mapel' => $nama, 'is_active' => true]
+                    ['nama_mapel' => $nama, 'is_active' => true, 'deleted_at' => null]
                 );
             }
         }

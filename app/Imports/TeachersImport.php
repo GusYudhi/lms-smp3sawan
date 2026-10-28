@@ -38,17 +38,18 @@ class TeachersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithC
             $row = array_change_key_case($row, CASE_LOWER);
 
             // Map possible column variations
-            $nama = $row['nama_lengkap'] ?? $row['nama'] ?? null;
-            $nip = $row['nip_nik'] ?? $row['nipnik'] ?? $row['nip'] ?? $row['nik'] ?? null;
+            $nama = !empty($row['nama_lengkap'] ?? $row['nama'] ?? null) ? trim((string)($row['nama_lengkap'] ?? $row['nama'])) : null;
+            $rawNip = $row['nip_nik'] ?? $row['nipnik'] ?? $row['nip'] ?? $row['nik'] ?? null;
+            $nip = !empty($rawNip) ? trim((string)$rawNip) : null;
             $jenis_kelamin = $row['jenis_kelamin'] ?? $row['kelamin'] ?? null;
             $tempat_lahir = $row['tempat_lahir'] ?? null;
             $tanggal_lahir = $row['tanggal_lahir'] ?? $row['tgl_lahir'] ?? null;
-            $telepon = $row['telepon'] ?? $row['nomor_telepon'] ?? $row['no_telepon'] ?? null;
-            $status_kepegawaian = $row['status_kepegawaian'] ?? $row['status'] ?? null;
-            $golongan = $row['golongan'] ?? null;
+            $telepon = !empty($row['telepon'] ?? $row['nomor_telepon'] ?? $row['no_telepon'] ?? null) ? trim((string)($row['telepon'] ?? $row['nomor_telepon'] ?? $row['no_telepon'])) : null;
+            $status_kepegawaian = !empty($row['status_kepegawaian'] ?? $row['status'] ?? null) ? trim((string)($row['status_kepegawaian'] ?? $row['status'])) : null;
+            $golongan = !empty($row['golongan'] ?? null) ? trim((string)$row['golongan']) : null;
             $jabatan_di_sekolah = $row['jabatan_di_sekolah'] ?? $row['jabatan'] ?? null;
             $mata_pelajaran = $row['mata_pelajaran'] ?? $row['mapel'] ?? null;
-            $wali_kelas = $row['wali_kelas'] ?? null;
+            $wali_kelas = !empty($row['wali_kelas'] ?? null) ? trim((string)$row['wali_kelas']) : null;
 
             // Skip empty rows
             if (empty($nama) || empty($nip)) {
