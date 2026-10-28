@@ -174,13 +174,6 @@
                             <small class="text-white opacity-50 px-3 d-block mb-2">MANAJEMEN AKADEMIK</small>
                         </li>
 
-                        <!-- Mata Pelajaran -->
-                        <li class="nav-item">
-                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.mapel') ? 'active' : '' }}" href="{{ route('admin.mapel.index', ['semester_id' => $semester->id]) }}">
-                                <i class="fas fa-book me-2"></i> Mata Pelajaran
-                            </a>
-                        </li>
-
                         <!-- Jadwal Pelajaran -->
                         <li class="nav-item">
                             <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jadwal') ? 'active' : '' }}" href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}">

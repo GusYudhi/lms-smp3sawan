@@ -128,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Mata Pelajaran routes
+        Route::patch('mata-pelajaran/{id}/toggle-status', [App\Http\Controllers\Admin\MataPelajaranController::class, 'toggleStatus'])->name('admin.mapel.toggle-status');
         Route::resource('mata-pelajaran', App\Http\Controllers\Admin\MataPelajaranController::class)->names([
             'index' => 'admin.mapel.index',
             'store' => 'admin.mapel.store',

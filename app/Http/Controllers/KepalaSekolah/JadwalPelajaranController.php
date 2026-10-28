@@ -23,13 +23,13 @@ class JadwalPelajaranController extends Controller
             $semesterId = $activeSemester ? $activeSemester->id : null;
         }
 
+        $mapels = MataPelajaran::where('is_active', true)->orderBy('nama_mapel')->get();
+
         if ($semesterId) {
             $semester = Semester::with('tahunPelajaran')->find($semesterId);
-            $mapels = MataPelajaran::where('semester_id', $semesterId)->get();
             $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
         } else {
             $semester = null;
-            $mapels = collect(); // Empty collection instead of all
             $jamPelajarans = collect(); // Empty collection instead of all
         }
 

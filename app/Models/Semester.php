@@ -37,14 +37,6 @@ class Semester extends Model
     }
 
     /**
-     * Relationship: Semester has many Mata Pelajaran
-     */
-    public function mataPelajaran()
-    {
-        return $this->hasMany(MataPelajaran::class);
-    }
-
-    /**
      * Relationship: Semester has many Jadwal Pelajaran
      */
     public function jadwalPelajaran()

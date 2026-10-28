@@ -138,16 +138,6 @@ class TahunPelajaranController extends Controller
             return;
         }
 
-        // Copy Mata Pelajaran
-        $mataPelajarans = MataPelajaran::where('semester_id', $previousSemester->id)->get();
-        foreach ($mataPelajarans as $mapel) {
-            MataPelajaran::create([
-                'nama_mapel' => $mapel->nama_mapel,
-                'kode_mapel' => $mapel->kode_mapel,
-                'semester_id' => $targetSemester->id,
-            ]);
-        }
-
         // Copy Jam Pelajaran
         $jamPelajarans = JamPelajaran::where('semester_id', $previousSemester->id)->get();
         foreach ($jamPelajarans as $jam) {

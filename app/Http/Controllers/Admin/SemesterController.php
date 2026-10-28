@@ -62,23 +62,11 @@ class SemesterController extends Controller
                 ->first();
             if ($sourceSemester) {
                 // Cek apakah semester 1 punya data
-                $sourceHasData = \App\Models\MataPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
-                                 \App\Models\JamPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
+                $sourceHasData = \App\Models\JamPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
                                  \App\Models\FixedSchedule::where('semester_id', $sourceSemester->id)->exists() ||
                                  \App\Models\JadwalPelajaran::where('semester_id', $sourceSemester->id)->exists();
                 if ($sourceHasData) {
                     DB::transaction(function () use ($sourceSemester, $semester) {
-                        // Copy Mata Pelajaran
-                        $mapelMap = [];
-                        $mataPelajarans = \App\Models\MataPelajaran::where('semester_id', $sourceSemester->id)->get();
-                        foreach ($mataPelajarans as $mapel) {
-                            $newMapel = \App\Models\MataPelajaran::create([
-                                'nama_mapel' => $mapel->nama_mapel,
-                                'kode_mapel' => $mapel->kode_mapel,
-                                'semester_id' => $semester->id,
-                            ]);
-                            $mapelMap[$mapel->id] = $newMapel->id;
-                        }
                         // Copy Jam Pelajaran
                         $jamMap = [];
                         $jamPelajarans = \App\Models\JamPelajaran::where('semester_id', $sourceSemester->id)->get();
@@ -101,13 +89,13 @@ class SemesterController extends Controller
                                 'semester_id' => $semester->id,
                             ]);
                         }
-                        // Copy Jadwal Pelajaran
+                        // Copy Jadwal Pelajaran (menggunakan mata_pelajaran_id master yang sama)
                         $jadwalPelajarans = \App\Models\JadwalPelajaran::where('semester_id', $sourceSemester->id)->get();
                         foreach ($jadwalPelajarans as $jadwal) {
-                            if (isset($mapelMap[$jadwal->mata_pelajaran_id]) && isset($jamMap[$jadwal->jam_pelajaran_id])) {
+                            if (isset($jamMap[$jadwal->jam_pelajaran_id])) {
                                 \App\Models\JadwalPelajaran::create([
                                     'kelas_id' => $jadwal->kelas_id,
-                                    'mata_pelajaran_id' => $mapelMap[$jadwal->mata_pelajaran_id],
+                                    'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
                                     'guru_id' => $jadwal->guru_id,
                                     'hari' => $jadwal->hari,
                                     'jam_ke' => $jadwal->jam_ke,
@@ -141,7 +129,7 @@ class SemesterController extends Controller
 
         // Get statistics
         $statistics = [
-            'total_mata_pelajaran' => $semester->mataPelajaran()->count(),
+            'total_mata_pelajaran' => MataPelajaran::where('is_active', true)->count(),
             'total_jadwal' => $semester->jadwalPelajaran()->count(),
             'total_jam_pelajaran' => $semester->jamPelajaran()->count(),
             'total_fixed_schedule' => $semester->fixedSchedules()->count(),
@@ -192,8 +180,7 @@ class SemesterController extends Controller
         // Jika diminta untuk menyalin dari semester 1 sebelum mengaktifkan
         if ($request->boolean('copy_from_semester_1') && $semester->semester_ke == 2) {
             // Cek jika semester target sudah punya data
-            $hasData = MataPelajaran::where('semester_id', $semester->id)->exists() ||
-                       JamPelajaran::where('semester_id', $semester->id)->exists() ||
+            $hasData = JamPelajaran::where('semester_id', $semester->id)->exists() ||
                        FixedSchedule::where('semester_id', $semester->id)->exists() ||
                        JadwalPelajaran::where('semester_id', $semester->id)->exists();
 
@@ -214,17 +201,6 @@ class SemesterController extends Controller
 
             // Copy data dalam transaksi
             DB::transaction(function () use ($sourceSemester, $semester) {
-                $mapelMap = [];
-                $mataPelajarans = MataPelajaran::where('semester_id', $sourceSemester->id)->get();
-                foreach ($mataPelajarans as $mapel) {
-                    $newMapel = MataPelajaran::create([
-                        'nama_mapel' => $mapel->nama_mapel,
-                        'kode_mapel' => $mapel->kode_mapel,
-                        'semester_id' => $semester->id,
-                    ]);
-                    $mapelMap[$mapel->id] = $newMapel->id;
-                }
-
                 $jamMap = [];
                 $jamPelajarans = JamPelajaran::where('semester_id', $sourceSemester->id)->get();
                 foreach ($jamPelajarans as $jam) {
@@ -247,12 +223,13 @@ class SemesterController extends Controller
                     ]);
                 }
 
+                // Copy Jadwal Pelajaran (menggunakan mata_pelajaran_id master yang sama)
                 $jadwalPelajarans = JadwalPelajaran::where('semester_id', $sourceSemester->id)->get();
                 foreach ($jadwalPelajarans as $jadwal) {
-                    if (isset($mapelMap[$jadwal->mata_pelajaran_id]) && isset($jamMap[$jadwal->jam_pelajaran_id])) {
+                    if (isset($jamMap[$jadwal->jam_pelajaran_id])) {
                         JadwalPelajaran::create([
                             'kelas_id' => $jadwal->kelas_id,
-                            'mata_pelajaran_id' => $mapelMap[$jadwal->mata_pelajaran_id],
+                            'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
                             'guru_id' => $jadwal->guru_id,
                             'hari' => $jadwal->hari,
                             'jam_ke' => $jadwal->jam_ke,
@@ -289,7 +266,6 @@ class SemesterController extends Controller
         DB::transaction(function () use ($semester) {
             // Delete related data
             JadwalPelajaran::where('semester_id', $semester->id)->delete();
-            MataPelajaran::where('semester_id', $semester->id)->delete();
             JamPelajaran::where('semester_id', $semester->id)->delete();
             FixedSchedule::where('semester_id', $semester->id)->delete();
 
@@ -315,8 +291,7 @@ class SemesterController extends Controller
         }
 
         // Check if already has data
-        $hasData = MataPelajaran::where('semester_id', $targetSemester->id)->exists() ||
-                   JamPelajaran::where('semester_id', $targetSemester->id)->exists() ||
+        $hasData = JamPelajaran::where('semester_id', $targetSemester->id)->exists() ||
                    FixedSchedule::where('semester_id', $targetSemester->id)->exists() ||
                    JadwalPelajaran::where('semester_id', $targetSemester->id)->exists();
 
@@ -336,8 +311,7 @@ class SemesterController extends Controller
         }
 
         // Check if source has data
-        $sourceHasData = MataPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
-                         JamPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
+        $sourceHasData = JamPelajaran::where('semester_id', $sourceSemester->id)->exists() ||
                          FixedSchedule::where('semester_id', $sourceSemester->id)->exists() ||
                          JadwalPelajaran::where('semester_id', $sourceSemester->id)->exists();
 
@@ -347,18 +321,6 @@ class SemesterController extends Controller
         }
 
         DB::transaction(function () use ($sourceSemester, $targetSemester) {
-            // Copy Mata Pelajaran
-            $mapelMap = [];
-            $mataPelajarans = MataPelajaran::where('semester_id', $sourceSemester->id)->get();
-            foreach ($mataPelajarans as $mapel) {
-                $newMapel = MataPelajaran::create([
-                    'nama_mapel' => $mapel->nama_mapel,
-                    'kode_mapel' => $mapel->kode_mapel,
-                    'semester_id' => $targetSemester->id,
-                ]);
-                $mapelMap[$mapel->id] = $newMapel->id;
-            }
-
             // Copy Jam Pelajaran
             $jamMap = [];
             $jamPelajarans = JamPelajaran::where('semester_id', $sourceSemester->id)->get();
@@ -383,13 +345,13 @@ class SemesterController extends Controller
                 ]);
             }
 
-            // Copy Jadwal Pelajaran
+            // Copy Jadwal Pelajaran (menggunakan mata_pelajaran_id master yang sama)
             $jadwalPelajarans = JadwalPelajaran::where('semester_id', $sourceSemester->id)->get();
             foreach ($jadwalPelajarans as $jadwal) {
-                if (isset($mapelMap[$jadwal->mata_pelajaran_id]) && isset($jamMap[$jadwal->jam_pelajaran_id])) {
+                if (isset($jamMap[$jadwal->jam_pelajaran_id])) {
                     JadwalPelajaran::create([
                         'kelas_id' => $jadwal->kelas_id,
-                        'mata_pelajaran_id' => $mapelMap[$jadwal->mata_pelajaran_id],
+                        'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
                         'guru_id' => $jadwal->guru_id,
                         'hari' => $jadwal->hari,
                         'jam_ke' => $jadwal->jam_ke,

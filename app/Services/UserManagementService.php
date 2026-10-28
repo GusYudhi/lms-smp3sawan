@@ -72,24 +72,21 @@ class UserManagementService
 
             // Create teacher profile
             $user->guruProfile()->create([
-                'nama' => $userData['name'], // Added to guru_profiles
+                'nama' => $userData['name'],
                 'nip' => $profileData['nip'] ?? null,
-                'email' => $userData['email'], // Added to guru_profiles
-                'password' => Hash::make($userData['password']), // Added to guru_profiles
+                'kode_guru' => $profileData['kode_guru'] ?? null,
+                'email' => $userData['email'],
+                'password' => Hash::make($userData['password']),
                 'nomor_telepon' => $userData['nomor_telepon'] ?? null,
                 'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
-                'foto_profil' => $userData['profile_photo'] ?? null,
+                'foto_profil' => $profileData['foto_profil'] ?? $userData['profile_photo'] ?? null,
                 'tempat_lahir' => $profileData['tempat_lahir'] ?? null,
                 'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
-                'alamat' => $profileData['alamat'] ?? null,
                 'status_kepegawaian' => $profileData['status_kepegawaian'] ?? null,
                 'jabatan_di_sekolah' => $profileData['jabatan_di_sekolah'] ?? null,
                 'golongan' => $profileData['golongan'] ?? null,
                 'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                 'kelas_id' => $profileData['kelas_id'] ?? null,
-                'pendidikan_terakhir' => $profileData['pendidikan_terakhir'] ?? null,
-                'tahun_mulai_mengajar' => $profileData['tahun_mulai_mengajar'] ?? null,
-                'sertifikat' => $profileData['sertifikat'] ?? null,
                 'is_active' => true,
             ]);
 
@@ -194,17 +191,19 @@ class UserManagementService
             $user->guruProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 [
+                    'nama' => $userData['name'],
                     'nip' => $profileData['nip'] ?? null,
+                    'kode_guru' => $profileData['kode_guru'] ?? null,
+                    'email' => $userData['email'],
+                    'nomor_telepon' => $userData['nomor_telepon'] ?? null,
+                    'jenis_kelamin' => $userData['jenis_kelamin'] ?? null,
                     'tempat_lahir' => $profileData['tempat_lahir'] ?? null,
                     'tanggal_lahir' => $profileData['tanggal_lahir'] ?? null,
-                    'alamat' => $profileData['alamat'] ?? null,
                     'status_kepegawaian' => $profileData['status_kepegawaian'] ?? null,
+                    'jabatan_di_sekolah' => $profileData['jabatan_di_sekolah'] ?? null,
                     'golongan' => $profileData['golongan'] ?? null,
                     'mata_pelajaran_id' => $profileData['mata_pelajaran_id'] ?? null,
                     'kelas_id' => $profileData['kelas_id'] ?? null,
-                    'pendidikan_terakhir' => $profileData['pendidikan_terakhir'] ?? null,
-                    'tahun_mulai_mengajar' => $profileData['tahun_mulai_mengajar'] ?? null,
-                    'sertifikat' => $profileData['sertifikat'] ?? null,
                 ]
             );
 

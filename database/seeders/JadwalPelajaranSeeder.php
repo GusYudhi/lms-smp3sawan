@@ -34,7 +34,7 @@ class JadwalPelajaranSeeder extends Seeder
         }
 
         // Ambil mata pelajaran
-        $mataPelajaran = MataPelajaran::where('semester_id', $semester->id)->get();
+        $mataPelajaran = MataPelajaran::where('is_active', true)->get();
 
         if ($mataPelajaran->isEmpty()) {
             $this->command->error('Tidak ada mata pelajaran. Jalankan MataPelajaranSeeder terlebih dahulu.');

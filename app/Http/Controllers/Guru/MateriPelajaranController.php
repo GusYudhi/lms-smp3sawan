@@ -24,17 +24,7 @@ class MateriPelajaranController extends Controller
 
     public function create()
     {
-        $activeSemester = Semester::where('is_active', true)->first();
-        $mapels = collect();
-
-        if ($activeSemester) {
-            $mapels = MataPelajaran::where('semester_id', $activeSemester->id)->get();
-        }
-
-        if ($mapels->isEmpty()) {
-            $mapels = MataPelajaran::all();
-        }
-
+        $mapels = MataPelajaran::where('is_active', true)->orderBy('nama_mapel')->get();
         $kelas = Kelas::orderBy('nama_kelas')->get();
         return view('guru.materi.create', compact('mapels', 'kelas'));
     }

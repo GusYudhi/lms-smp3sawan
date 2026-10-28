@@ -211,8 +211,7 @@ class KodeMapelSheet implements FromCollection, WithHeadings, WithTitle, WithSty
 
     public function collection()
     {
-        return MataPelajaran::where('semester_id', $this->semesterId)
-            ->orWhereNull('semester_id')
+        return MataPelajaran::where('is_active', true)
             ->select('kode_mapel', 'nama_mapel')
             ->get();
     }

@@ -19,15 +19,11 @@ class GuruProfile extends Model
         'nama', // redundant with user but kept for history
         'tempat_lahir',
         'tanggal_lahir',
-        'alamat',
         'status_kepegawaian',
         'golongan',
         'jabatan_di_sekolah',
         'kelas_id', // wali kelas
         'mata_pelajaran_id', // Single subject
-        'pendidikan_terakhir',
-        'tahun_mulai_mengajar',
-        'sertifikat',
         'foto_profil',
         'nomor_telepon',
         'email',

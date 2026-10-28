@@ -62,20 +62,8 @@ class AdminController extends Controller
 
         $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
 
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
         // Get list mata pelajaran untuk filter
-        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
-
-        if ($activeSemester) {
-            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-
-        $mataPelajaranList = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+        $mataPelajaranList = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
 
         return view('admin.guru.index', compact('teachers', 'mataPelajaranList', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter'));
     }
@@ -130,38 +118,16 @@ class AdminController extends Controller
             ]);
         }
 
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
         // Get list mata pelajaran untuk filter
-        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
-
-        if ($activeSemester) {
-            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-
-        $mataPelajaranList = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+        $mataPelajaranList = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
 
         return view('admin.guru.index', compact('teachers', 'mataPelajaranList'));
     }
 
     public function createGuru()
     {
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
-        // Get mata pelajaran filtered by active semester
-        $mataPelajaranQuery = \App\Models\MataPelajaran::query();
-        if ($activeSemester) {
-            $mataPelajaranQuery->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
-            });
-        }
-        $mataPelajarans = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+        // Get all active master mata pelajaran
+        $mataPelajarans = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
 
         // Get all kelas
         $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
@@ -342,18 +308,8 @@ class AdminController extends Controller
             $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with(['guruProfile.kelas'])->findOrFail($id);
 
             // Get active semester
-            $activeTahunPelajaran = TahunPelajaran::where('is_active', true)->first();
-            $activeSemester = Semester::where('tahun_pelajaran_id', $activeTahunPelajaran->id)->where('is_active', true)->first();
-
-            // Get mata pelajaran filtered by active semester
-            $mataPelajaranQuery = \App\Models\MataPelajaran::query();
-            if ($activeSemester) {
-                $mataPelajaranQuery->where(function($q) use ($activeSemester) {
-                    $q->where('semester_id', $activeSemester->id)
-                      ->orWhereNull('semester_id');
-                });
-            }
-            $mataPelajarans = $mataPelajaranQuery->orderBy('nama_mapel', 'asc')->get();
+            // Get all active master mata pelajaran
+            $mataPelajarans = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
 
             // Get all kelas
             $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
@@ -509,17 +465,11 @@ class AdminController extends Controller
     {
         $search = $request->get('q', '');
 
-        // Get active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-
-        $query = \App\Models\MataPelajaran::where('nama_mapel', 'LIKE', "%{$search}%");
-
-        if ($activeSemester) {
-            $query->where(function($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id)
-                  ->orWhereNull('semester_id');
+        $query = \App\Models\MataPelajaran::where('is_active', true)
+            ->where(function($q) use ($search) {
+                $q->where('nama_mapel', 'LIKE', "%{$search}%")
+                  ->orWhere('kode_mapel', 'LIKE', "%{$search}%");
             });
-        }
 
         $mataPelajaran = $query->orderBy('nama_mapel')
             ->limit(10)

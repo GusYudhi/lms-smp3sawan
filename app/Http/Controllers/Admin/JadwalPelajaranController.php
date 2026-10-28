@@ -21,19 +21,18 @@ class JadwalPelajaranController extends Controller
 {
     public function index(Request $request, $semesterId)
     {
+        $mapels = MataPelajaran::where('is_active', true)->orderBy('nama_mapel')->get();
+
         if ($semesterId) {
             $semester = Semester::with('tahunPelajaran')->findOrFail($semesterId);
-            $mapels = MataPelajaran::where('semester_id', $semesterId)->orderBy('nama_mapel')->get();
             $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
         } else {
             // Default to active semester if available
             $semester = Semester::where('is_active', true)->with('tahunPelajaran')->first();
             
             if ($semester) {
-                $mapels = MataPelajaran::where('semester_id', $semester->id)->orderBy('nama_mapel')->get();
                 $jamPelajarans = JamPelajaran::where('semester_id', $semester->id)->orderBy('jam_ke')->get();
             } else {
-                $mapels = MataPelajaran::orderBy('nama_mapel')->get();
                 $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
             }
         }
