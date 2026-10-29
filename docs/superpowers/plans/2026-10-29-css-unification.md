@@ -49,7 +49,7 @@ resources/sass/
 - Consumes: Standard SASS / Bootstrap 5 SCSS
 - Produces: Design tokens (`$color-primary: #0d47a1`, `$color-primary-variant: #1565c0`, `$radius-card`, `$shadow-card`, etc.) used across all modules.
 
-- [ ] **Step 1: Create `resources/sass/_tokens.scss`**
+- [x] **Step 1: Create `resources/sass/_tokens.scss`**
 
 Write design tokens:
 
@@ -81,7 +81,7 @@ $shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 $shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
 ```
 
-- [ ] **Step 2: Refactor `resources/sass/_variables.scss` to use tokens**
+- [x] **Step 2: Refactor `resources/sass/_variables.scss` to use tokens**
 
 Update `resources/sass/_variables.scss`:
 
@@ -100,11 +100,11 @@ $line-height-base: 1.6;
 $primary: $color-primary;
 ```
 
-- [ ] **Step 3: Create stub files for `_base.scss`, `_components.scss`, and `_pages.scss`**
+- [x] **Step 3: Create stub files for `_base.scss`, `_components.scss`, and `_pages.scss`**
 
 Ensure the files exist before importing them in `app.scss`.
 
-- [ ] **Step 4: Update `resources/sass/app.scss` to import modular hierarchy**
+- [x] **Step 4: Update `resources/sass/app.scss` to import modular hierarchy**
 
 Update `resources/sass/app.scss`:
 
@@ -125,12 +125,12 @@ Update `resources/sass/app.scss`:
 @import "pages";
 ```
 
-- [ ] **Step 5: Verify build passes**
+- [x] **Step 5: Verify build passes**
 
 Run: `npm run build`  
 Expected: PASS (generates `public/build/assets/app-*.css`).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add resources/sass/_tokens.scss resources/sass/_variables.scss resources/sass/app.scss resources/sass/_base.scss resources/sass/_components.scss resources/sass/_pages.scss
@@ -152,7 +152,7 @@ git commit -m "style: add _tokens.scss and setup modular app.scss entrypoint str
 - Consumes: `$color-primary`, `$color-surface`, `$font-family-sans-serif` from `_tokens.scss`
 - Produces: Global shell rules (`.sidebar` solid `#0d47a1`, `.main-content`, `.content-area`, `.sidebar-brand`, `.sidebar-backdrop`, `.layout-auth` with auth components, `.layout-guest`, and preserved production utilities: form focus, button hover, table hover, text contrast helpers, alert style).
 
-- [ ] **Step 1: Populate `resources/sass/_base.scss`**
+- [x] **Step 1: Populate `resources/sass/_base.scss`**
 
 Write `resources/sass/_base.scss` including all layout shells and preserved production utilities:
 
@@ -438,33 +438,33 @@ Write `resources/sass/_base.scss` including all layout shells and preserved prod
 }
 ```
 
-- [ ] **Step 2: Clean `resources/views/layouts/app.blade.php`**
+- [x] **Step 2: Clean `resources/views/layouts/app.blade.php`**
 
 Remove the inline `<style>` block from `app.blade.php` (around lines 36-132).
 
-- [ ] **Step 3: Clean `resources/views/layouts/semester.blade.php`**
+- [x] **Step 3: Clean `resources/views/layouts/semester.blade.php`**
 
 Remove the inline `<style>` block from `semester.blade.php` (around lines 26-130).
 
-- [ ] **Step 4: Scoping & Cleaning `resources/views/layouts/auth.blade.php`**
+- [x] **Step 4: Scoping & Cleaning `resources/views/layouts/auth.blade.php`**
 
 Update `auth.blade.php`:
 1. Change `<body>` to `<body class="layout-auth">`.
 2. Remove the inline `<style>` block entirely. (Styling is now safely managed under `.layout-auth` in `_base.scss`).
 
-- [ ] **Step 5: Scoping & CDN cleanup in `resources/views/layouts/guest.blade.php`**
+- [x] **Step 5: Scoping & CDN cleanup in `resources/views/layouts/guest.blade.php`**
 
 Update `guest.blade.php`:
 1. Change `<body>` to `<body class="layout-guest">`.
 2. Replace Bootstrap 5 CDN `<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">` with `@vite(['resources/sass/app.scss', 'resources/js/app.js'])`.
 3. Remove the inline `<style>` block.
 
-- [ ] **Step 6: Run build verification**
+- [x] **Step 6: Run build verification**
 
 Run: `npm run build`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add resources/sass/_base.scss resources/views/layouts/app.blade.php resources/views/layouts/semester.blade.php resources/views/layouts/auth.blade.php resources/views/layouts/guest.blade.php
@@ -509,7 +509,7 @@ git commit -m "refactor(layouts): extract base shell to _base.scss and apply bod
 - Consumes: `$color-primary`, `$color-success`, `$color-info`, `$color-warning`, `$color-danger`, `$color-secondary` from `_tokens.scss`
 - Produces: Reusable component classes (`.card`, `.hover-card`, `.card-stats`, `.card-modern`, `.pagination-container`, `.btn-pagination`, `.calendar-grid`, `.calendar-day` + state classes, `.avatar-circle`, `.profile-photo-wrapper`, responsive `.teacher-photo` & `.student-photo`, `.stat-mini`, `.select2-container--bootstrap-5`, `.retained-chip`).
 
-- [ ] **Step 1: Write `resources/sass/_components.scss`**
+- [x] **Step 1: Write `resources/sass/_components.scss`**
 
 Write `resources/sass/_components.scss` with complete responsive rules:
 
@@ -940,7 +940,7 @@ Write `resources/sass/_components.scss` with complete responsive rules:
 }
 ```
 
-- [ ] **Step 2: Delete inline `<style>` tags from all 26 shared component Blade files**
+- [x] **Step 2: Delete inline `<style>` tags from all 26 shared component Blade files**
 
 Remove `<style>...</style>` blocks from:
 - `resources/views/components/profile-photo.blade.php`
@@ -970,12 +970,12 @@ Remove `<style>...</style>` blocks from:
 - `resources/views/admin/guru/edit.blade.php`
 - `resources/views/admin/siswa/index.blade.php`
 
-- [ ] **Step 3: Run build verification**
+- [x] **Step 3: Run build verification**
 
 Run: `npm run build`  
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add resources/sass/_components.scss resources/views/
@@ -1006,7 +1006,7 @@ git commit -m "refactor(components): extract shared UI components to _components
 - Consumes: SCSS animation keyframes & grid properties
 - Produces: Scoped page rules (`.scanner-container`, `#scanner-placeholder`, `.scan-line`, `.scan-success-overlay`, `.wizard-step`, `.step-indicator`, `.step-circle`, `.step-connector`, `.draggable-item`, `.drop-zone`, `.jadwal-table`, `.timeline-marker`, `@keyframes scan`, `@keyframes fadeIn`).
 
-- [ ] **Step 1: Populate `resources/sass/_pages.scss`**
+- [x] **Step 1: Populate `resources/sass/_pages.scss`**
 
 Write `resources/sass/_pages.scss`:
 
@@ -1269,7 +1269,7 @@ Write `resources/sass/_pages.scss`:
 }
 ```
 
-- [ ] **Step 2: Strip inline `<style>` tags from remaining 12 feature Blade files**
+- [x] **Step 2: Strip inline `<style>` tags from remaining 12 feature Blade files**
 
 Remove `<style>...</style>` blocks from:
 - `resources/views/guru/absensi/absensi-siswa.blade.php` (remove all 3 style tags)
@@ -1287,12 +1287,12 @@ Remove `<style>...</style>` blocks from:
 
 *REMINDER:* Do NOT touch `resources/views/guru/jurnal-mengajar/print.blade.php`!
 
-- [ ] **Step 3: Run build verification**
+- [x] **Step 3: Run build verification**
 
 Run: `npm run build`  
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add resources/sass/_pages.scss resources/views/
@@ -1310,11 +1310,11 @@ git commit -m "refactor(pages): extract feature-specific styles to _pages.scss a
 - Consumes: Complete project state
 - Produces: Clean codebase with 0 unused legacy CSS, 100% passing build and PHP test suite.
 
-- [ ] **Step 1: Delete unused empty file `resources/css/app.css`**
+- [x] **Step 1: Delete unused empty file `resources/css/app.css`**
 
 Delete `resources/css/app.css` using `git rm resources/css/app.css`.
 
-- [ ] **Step 2: Verify zero inline `<style>` blocks remain (except `print.blade.php`)**
+- [x] **Step 2: Verify zero inline `<style>` blocks remain (except `print.blade.php`)**
 
 Check remaining style tags using PowerShell:
 ```powershell
@@ -1322,17 +1322,17 @@ Get-ChildItem -Path resources/views -Recurse -Filter *.blade.php | Select-String
 ```
 Expected output: Exactly ONE line — `resources\views\guru\jurnal-mengajar\print.blade.php`.
 
-- [ ] **Step 3: Run full Vite build**
+- [x] **Step 3: Run full Vite build**
 
 Run: `npm run build`  
 Expected: PASS with single compiled asset bundle (`public/build/assets/app-*.css`).
 
-- [ ] **Step 4: Run full PHP test suite**
+- [x] **Step 4: Run full PHP test suite**
 
 Run: `php artisan test`  
 Expected: PASS (73 passed).
 
-- [ ] **Step 5: Commit finalization**
+- [x] **Step 5: Commit finalization**
 
 ```bash
 git add -A
