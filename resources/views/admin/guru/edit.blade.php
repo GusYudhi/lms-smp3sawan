@@ -2,11 +2,70 @@
 
 @section('title', 'Edit Guru')
 
-@section('content')
+@push('styles')
 <!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<style>
+    /* Penyesuaian proporsi & ukuran font Select2 multi-select */
+    .select2-container--bootstrap-5 {
+        font-size: 0.875rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection {
+        font-size: 0.875rem !important;
+        min-height: 38px !important;
+        border-color: #dee2e6 !important;
+        border-radius: 0.375rem !important;
+        padding: 3px 6px !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+        font-size: 0.8125rem !important;
+        font-weight: 500 !important;
+        padding: 2px 8px !important;
+        margin: 2px 4px 2px 0 !important;
+        background-color: #e0e7ff !important;
+        border: 1px solid #c7d2fe !important;
+        color: #3730a3 !important;
+        border-radius: 4px !important;
+        line-height: 1.4 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+        color: #4338ca !important;
+        margin-right: 5px !important;
+        font-weight: bold !important;
+        font-size: 0.875rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #dc2626 !important;
+    }
+    .select2-container--bootstrap-5 .select2-search--inline .select2-search__field {
+        font-size: 0.875rem !important;
+        margin-top: 4px !important;
+        height: 24px !important;
+        line-height: 1.4 !important;
+    }
+    .select2-container--bootstrap-5 .select2-dropdown {
+        font-size: 0.875rem !important;
+        border-color: #86b7fe !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+    }
+    .select2-container--bootstrap-5 .select2-results__option {
+        padding: 6px 12px !important;
+        font-size: 0.875rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-results__option--highlighted {
+        background-color: #0d6efd !important;
+    }
+</style>
+@endpush
 
+@section('content')
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -424,7 +483,9 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 function previewPhoto(input) {
@@ -434,11 +495,9 @@ function previewPhoto(input) {
         reader.onload = function(e) {
             const currentPhoto = document.getElementById('currentPhoto');
 
-            // If current element is img, just change src
             if (currentPhoto.tagName === 'IMG') {
                 currentPhoto.src = e.target.result;
             } else {
-                // If it's a div (no photo), replace with img
                 const newImg = document.createElement('img');
                 newImg.src = e.target.result;
                 newImg.alt = 'Preview foto';
@@ -453,13 +512,12 @@ function previewPhoto(input) {
     }
 }
 
-// Form validation and autocomplete
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     // Initialize Select2 Multi-Select
     $('#mata_pelajaran').select2({
         theme: 'bootstrap-5',
         width: '100%',
-        placeholder: 'Pilih mata pelajaran yang diampu...',
+        placeholder: 'Ketik atau pilih mata pelajaran...',
         allowClear: true,
         closeOnSelect: false
     });
@@ -468,37 +526,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const password = document.getElementById('password');
     const passwordConfirm = document.getElementById('password_confirmation');
 
-    // Password confirmation validation
     function validatePassword() {
-        if (password.value && passwordConfirm.value) {
+        if (password && passwordConfirm && password.value && passwordConfirm.value) {
             if (password.value !== passwordConfirm.value) {
                 passwordConfirm.setCustomValidity('Password tidak cocok');
             } else {
                 passwordConfirm.setCustomValidity('');
             }
-        } else {
+        } else if (passwordConfirm) {
             passwordConfirm.setCustomValidity('');
         }
     }
 
-    password.addEventListener('input', validatePassword);
-    passwordConfirm.addEventListener('input', validatePassword);
+    if (password && passwordConfirm) {
+        password.addEventListener('input', validatePassword);
+        passwordConfirm.addEventListener('input', validatePassword);
+    }
 
     const statusKepegawaian = document.getElementById('status_kepegawaian');
     const golonganField = document.getElementById('golongan');
 
-    // Handle golongan field based on status kepegawaian
-    statusKepegawaian.addEventListener('change', function() {
-        if (this.value === 'HONORER') {
-            golonganField.value = '';
-            golonganField.disabled = true;
-        } else {
-            golonganField.disabled = false;
-        }
-    });
-
-    // Trigger change on load
-    statusKepegawaian.dispatchEvent(new Event('change'));
+    if (statusKepegawaian && golonganField) {
+        statusKepegawaian.addEventListener('change', function() {
+            if (this.value === 'HONORER') {
+                golonganField.value = '';
+                golonganField.disabled = true;
+            } else {
+                golonganField.disabled = false;
+            }
+        });
+        statusKepegawaian.dispatchEvent(new Event('change'));
+    }
 });
 </script>
-@endsection
+@endpush
