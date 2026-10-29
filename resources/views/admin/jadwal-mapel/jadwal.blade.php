@@ -752,7 +752,11 @@ $(document).ready(function() {
                 });
             })
             .fail(function() {
-                alert('Gagal memuat jadwal');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Gagal!', 'Gagal memuat jadwal', 'error');
+                } else {
+                    alert('Gagal memuat jadwal');
+                }
             })
             .always(function() {
                 $('#loading-indicator').addClass('d-none');
@@ -837,12 +841,27 @@ $(document).ready(function() {
             success: function(response) {
                 scheduleModal.hide();
                 loadSchedules(currentKelasId);
-                // Show toast or alert
-                // alert(response.message);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
             },
             error: function(xhr) {
                 const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan';
-                alert(msg);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: msg
+                    });
+                } else {
+                    alert(msg);
+                }
             }
         });
     });

@@ -105,7 +105,7 @@ class JadwalPelajaranController extends Controller
         return response()->json($data);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, $semester_id = null)
     {
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
@@ -116,8 +116,8 @@ class JadwalPelajaranController extends Controller
             'jumlah_jam' => 'nullable|integer|min:1|max:7',
         ]);
 
-        // Get semester_id from session or request
-        $semesterId = session('semester_id') ?? $request->input('semester_id');
+        // Get semester_id from route, session, or request
+        $semesterId = $semester_id ?? session('semester_id') ?? $request->input('semester_id');
 
         $jumlahJam = $request->input('jumlah_jam', 1);
         $startJam = $request->jam_ke;
@@ -139,6 +139,9 @@ class JadwalPelajaranController extends Controller
             // Check Fixed Schedule
             $isFixed = FixedSchedule::where('hari', $hari)
                 ->where('jam_ke', $currentJam)
+                ->when($semesterId, function($q) use ($semesterId) {
+                    return $q->where('semester_id', $semesterId);
+                })
                 ->exists();
             if ($isFixed) {
                 return response()->json(['message' => "Slot jam ke-$currentJam adalah jadwal tetap (misal: Upacara)."], 422);
@@ -185,7 +188,7 @@ class JadwalPelajaranController extends Controller
         return response()->json(['message' => 'Jadwal berhasil ditambahkan (' . $jumlahJam . ' jam pelajaran).']);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $semester_id, $jadwal_mapel = null)
     {
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
@@ -195,12 +198,26 @@ class JadwalPelajaranController extends Controller
             'jam_ke' => 'required|integer',
         ]);
 
-        // Get semester_id from session or request
-        $semesterId = session('semester_id') ?? $request->input('semester_id');
+        // Resolve schedule ID safely whether invoked through route binding or direct controller call
+        $resolvedSchedule = $jadwal_mapel 
+            ?? $request->route('jadwal_mapel') 
+            ?? $request->route('id');
+
+        if ($resolvedSchedule === null) {
+            $resolvedSchedule = $semester_id;
+            $semesterId = session('semester_id') ?? $request->input('semester_id');
+        } else {
+            $semesterId = $semester_id ?? session('semester_id') ?? $request->input('semester_id');
+        }
+
+        $id = is_object($resolvedSchedule) ? $resolvedSchedule->id : $resolvedSchedule;
 
         // Check if slot is fixed
         $isFixed = FixedSchedule::where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
+            ->when($semesterId, function($q) use ($semesterId) {
+                return $q->where('semester_id', $semesterId);
+            })
             ->exists();
 
         if ($isFixed) {
@@ -235,7 +252,10 @@ class JadwalPelajaranController extends Controller
             return response()->json(['message' => 'Slot jam ke-' . $request->jam_ke . ' sudah terisi di kelas ini.'], 422);
         }
 
-        $jadwal = JadwalPelajaran::findOrFail($id);
+        $jadwal = ($resolvedSchedule instanceof JadwalPelajaran) 
+            ? $resolvedSchedule 
+            : JadwalPelajaran::findOrFail($id);
+
         $jadwal->update([
             'semester_id' => $semesterId,
             'kelas_id' => $request->kelas_id,
@@ -248,9 +268,11 @@ class JadwalPelajaranController extends Controller
         return response()->json(['message' => 'Jadwal berhasil diperbarui']);
     }
 
-    public function destroy($idSemester, $id)
+    public function destroy($idSemester, $id = null)
     {
-        JadwalPelajaran::findOrFail($id)->delete();
+        $resolvedSchedule = $id ?? request()->route('jadwal_mapel') ?? request()->route('id') ?? $idSemester;
+        $scheduleId = is_object($resolvedSchedule) ? $resolvedSchedule->id : $resolvedSchedule;
+        JadwalPelajaran::findOrFail($scheduleId)->delete();
         return response()->json(['message' => 'Jadwal berhasil dihapus']);
     }
 
