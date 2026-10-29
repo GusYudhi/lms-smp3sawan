@@ -144,6 +144,8 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
 
     protected $parent;
 
+    protected $assignedInSheet = [];
+
     public function __construct($semesterId, $parent)
     {
         $this->semesterId = $semesterId;
@@ -280,6 +282,18 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
 
                         continue;
                     }
+
+                    // Check if teacher is already assigned in another class at the same day & hour in this import sheet
+                    $slotKey = "{$hari}_{$jamKe}_{$guruId}";
+                    if (isset($this->assignedInSheet[$slotKey])) {
+                        $conflictClass = $this->assignedInSheet[$slotKey];
+                        $this->parent->errors[] = "Baris $rowNumber, Kelas $key: Guru ($code2) bentrok di file Excel! Sudah dijadwalkan di Kelas $conflictClass pada hari $hari jam ke-$jamKe.";
+                        $this->parent->failureCount++;
+
+                        continue;
+                    }
+
+                    $this->assignedInSheet[$slotKey] = $key;
 
                     JadwalPelajaran::updateOrCreate(
                         [

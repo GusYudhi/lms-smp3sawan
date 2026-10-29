@@ -214,6 +214,20 @@ class JadwalPelajaranController extends Controller
             return response()->json(['message' => 'Guru ini sudah mengajar di kelas lain pada jam ke-' . $request->jam_ke], 422);
         }
 
+        // Check Class Slot Taken
+        $slotTaken = JadwalPelajaran::where('kelas_id', $request->kelas_id)
+            ->where('hari', $request->hari)
+            ->where('jam_ke', $request->jam_ke)
+            ->where('id', '!=', $id)
+            ->when($semesterId, function($q) use ($semesterId) {
+                return $q->where('semester_id', $semesterId);
+            })
+            ->exists();
+
+        if ($slotTaken) {
+            return response()->json(['message' => 'Slot jam ke-' . $request->jam_ke . ' sudah terisi di kelas ini.'], 422);
+        }
+
         $jadwal = JadwalPelajaran::findOrFail($id);
         $jadwal->update([
             'semester_id' => $semesterId,
