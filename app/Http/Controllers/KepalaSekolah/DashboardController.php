@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\KepalaSekolah;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Kelas;
 use App\Models\Attendance;
 use App\Models\GuruAttendance;
+use App\Models\Kelas;
 use App\Models\TugasGuru;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -52,7 +51,9 @@ class DashboardController extends Controller
             $dayName = $days[$date->dayOfWeek - 1] ?? 'Minggu';
 
             // Skip hari Minggu
-            if ($dayName === 'Minggu') continue;
+            if ($dayName === 'Minggu') {
+                continue;
+            }
 
             $hadirCount = Attendance::where('date', $date)
                 ->where('status', 'hadir')
@@ -65,7 +66,7 @@ class DashboardController extends Controller
 
             $attendanceWeekly[] = [
                 'day' => $dayName,
-                'percentage' => $percentage
+                'percentage' => $percentage,
             ];
         }
 
