@@ -185,11 +185,10 @@ class ProfileController extends Controller
                 $user->email = $validated['email'];
                 $user->save();
 
-                // Update guru profile with all fields
+                // Update guru profile with all editable fields (NIP is managed by admin and read-only in profile)
                 if ($user->role === 'guru' || $user->role === 'kepala_sekolah') {
                     $profileData = [
                         'nama' => $validated['name'],
-                        'nip' => $validated['nip'] ?? null,
                         'email' => $validated['email'],
                         'nomor_telepon' => $validated['nomor_telepon'] ?? null,
                         'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
@@ -265,6 +264,11 @@ class ProfileController extends Controller
 
             // Validate the request
             $validated = $request->validate([
+                'current_password' => [
+                    'required',
+                    'string',
+                    'current_password',
+                ],
                 'password' => [
                     'required',
                     'string',
@@ -273,6 +277,8 @@ class ProfileController extends Controller
                 ],
                 'password_confirmation' => 'required|string',
             ], [
+                'current_password.required' => 'Password saat ini wajib diisi',
+                'current_password.current_password' => 'Password saat ini tidak sesuai',
                 'password.required' => 'Password baru wajib diisi',
                 'password.min' => 'Password minimal 8 karakter',
                 'password.confirmed' => 'Konfirmasi password tidak sesuai',

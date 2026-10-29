@@ -162,17 +162,37 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                         @endif
+                        @if($errors->has('saran'))
+                        <div class="alert alert-danger alert-dismissible fade show text-dark text-start" role="alert">
+                            {{ $errors->first('saran') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        @endif
                         <form action="{{ route('guest.saran.store') }}" method="POST" class="text-start">
                             @csrf
+                            {{-- Honeypot field (anti bot spam) --}}
+                            <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
+                                <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
+                            </div>
+
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="nama_pengirim" placeholder="Nama Lengkap" required>
+                                    <input type="text" class="form-control @error('nama_pengirim') is-invalid @enderror" name="nama_pengirim" placeholder="Nama Lengkap" maxlength="100" value="{{ old('nama_pengirim') }}" required>
+                                    @error('nama_pengirim')
+                                        <div class="invalid-feedback text-white">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <input type="email" class="form-control" name="email_pengirim" placeholder="Email (Opsional)">
+                                    <input type="email" class="form-control @error('email_pengirim') is-invalid @enderror" name="email_pengirim" placeholder="Email (Opsional)" maxlength="100" value="{{ old('email_pengirim') }}">
+                                    @error('email_pengirim')
+                                        <div class="invalid-feedback text-white">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-12">
-                                    <textarea class="form-control" name="isi_saran" rows="3" placeholder="Tulis saran Anda di sini..." required></textarea>
+                                    <textarea class="form-control @error('isi_saran') is-invalid @enderror" name="isi_saran" rows="3" placeholder="Tulis saran Anda di sini..." maxlength="1000" required>{{ old('isi_saran') }}</textarea>
+                                    @error('isi_saran')
+                                        <div class="invalid-feedback text-white">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-12 text-center">
                                     <button type="submit" class="btn btn-light text-primary px-5 fw-bold mt-2">Kirim Saran</button>

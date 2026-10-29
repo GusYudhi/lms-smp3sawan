@@ -448,15 +448,15 @@ class SiswaController extends Controller
     public function uploadBatchIdCards(Request $request)
     {
         $request->validate([
-            'session_id' => 'required|string',
+            'session_id' => 'required|string|alpha_dash|max:64',
             'batch_number' => 'required|integer',
             'total_batches' => 'required|integer',
             'cards' => 'required|array',
         ]);
 
         try {
-            $sessionId = $request->input('session_id');
-            $batchNumber = $request->input('batch_number');
+            $sessionId = basename($request->input('session_id'));
+            $batchNumber = (int) $request->input('batch_number');
             $cards = $request->input('cards');
 
             // Create session directory
@@ -492,13 +492,13 @@ class SiswaController extends Controller
     public function finalizeBatchDownload(Request $request)
     {
         $request->validate([
-            'session_id' => 'required|string',
+            'session_id' => 'required|string|alpha_dash|max:64',
             'total_batches' => 'required|integer',
         ]);
 
         try {
-            $sessionId = $request->input('session_id');
-            $totalBatches = $request->input('total_batches');
+            $sessionId = basename($request->input('session_id'));
+            $totalBatches = (int) $request->input('total_batches');
             $sessionDir = storage_path('app/temp/batch_' . $sessionId);
 
             // Collect all batches

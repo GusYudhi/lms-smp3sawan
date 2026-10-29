@@ -113,14 +113,34 @@ class GuestController extends Controller
 
     public function storeSaran(Request $request)
     {
-        $request->validate([
-            'nama_pengirim' => 'required',
-            'email_pengirim' => 'nullable|email',
-            'isi_saran' => 'required',
+        // Honeypot check: bot biasanya mengisi seluruh input termasuk input tersembunyi
+        if ($request->filled('website')) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['saran' => 'Permintaan tidak valid terdeteksi.']);
+        }
+
+        $validated = $request->validate([
+            'nama_pengirim' => 'required|string|max:100',
+            'email_pengirim' => 'nullable|email|max:100',
+            'isi_saran' => 'required|string|min:5|max:1000',
+        ], [
+            'nama_pengirim.required' => 'Nama lengkap wajib diisi.',
+            'nama_pengirim.max' => 'Nama lengkap maksimal 100 karakter.',
+            'email_pengirim.email' => 'Format email tidak valid.',
+            'email_pengirim.max' => 'Email maksimal 100 karakter.',
+            'isi_saran.required' => 'Pesan atau saran wajib diisi.',
+            'isi_saran.min' => 'Pesan atau saran minimal 5 karakter.',
+            'isi_saran.max' => 'Pesan atau saran maksimal 1000 karakter.',
         ]);
 
-        Saran::create($request->all());
+        Saran::create([
+            'nama_pengirim' => strip_tags(trim($validated['nama_pengirim'])),
+            'email_pengirim' => !empty($validated['email_pengirim']) ? trim($validated['email_pengirim']) : null,
+            'isi_saran' => strip_tags(trim($validated['isi_saran'])),
+            'status' => 'belum_dibaca',
+        ]);
 
-        return redirect()->back()->with('Terikirim!', 'Terima kasih atas saran Anda!');
+        return redirect()->back()->with('success', 'Terima kasih atas saran Anda!');
     }
 }

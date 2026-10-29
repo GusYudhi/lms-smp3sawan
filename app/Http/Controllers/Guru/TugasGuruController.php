@@ -76,9 +76,10 @@ class TugasGuruController extends Controller
         $validated = $request->validate([
             'konten_tugas' => 'nullable|string',
             'link_eksternal' => 'nullable|url',
-            'files.*' => 'nullable|file|max:10240', // max 10MB
+            'files.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,zip,rar|max:10240', // max 10MB
         ], [
             'link_eksternal.url' => 'Link eksternal harus berupa URL yang valid',
+            'files.*.mimes' => 'Format file tugas tidak diizinkan. Gunakan format dokumen, gambar, atau arsip zip/rar.',
             'files.*.max' => 'Ukuran file maksimal 10MB',
         ]);
 

@@ -509,6 +509,29 @@
                     <form id="password-form">
                         @csrf
                         <div class="row g-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label fw-medium text-high-contrast">
+                                        Password Saat Ini <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock text-muted"></i>
+                                        </span>
+                                        <input type="password"
+                                               id="current_password"
+                                               name="current_password"
+                                               class="form-control"
+                                               placeholder="Masukkan password saat ini"
+                                               oninput="updatePasswordButton()"
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('current_password')">
+                                            <i class="fas fa-eye" id="current_password-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="password" class="form-label fw-medium text-high-contrast">
@@ -1481,14 +1504,16 @@
 
         // Update password button status
         function updatePasswordButton() {
+            const currentPassword = document.getElementById('current_password')?.value || '';
             const password = document.getElementById('password').value;
             const confirmation = document.getElementById('password_confirmation').value;
             const submitBtn = document.getElementById('save-password-btn');
 
+            const hasCurrentPassword = currentPassword.length > 0;
             const isValidLength = password.length >= 8;
             const isMatch = password === confirmation && confirmation.length > 0;
 
-            submitBtn.disabled = !(isValidLength && isMatch);
+            submitBtn.disabled = !(hasCurrentPassword && isValidLength && isMatch);
             submitBtn.style.opacity = submitBtn.disabled ? '0.6' : '1';
         }
 
@@ -1567,12 +1592,20 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memperbarui...';
             submitBtn.disabled = true;
 
+            const currentPassword = document.getElementById('current_password')?.value || '';
             const password = document.getElementById('password').value;
             const passwordConfirmation = document.getElementById('password_confirmation').value;
 
             // Client-side validation
+            if(!currentPassword) {
+                showAlert('Harap isi password saat ini', 'warning');
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+                return;
+            }
+
             if(!password || !passwordConfirmation) {
-                showAlert('Harap isi kedua field password', 'warning');
+                showAlert('Harap isi kedua field password baru', 'warning');
                 submitBtn.innerHTML = originalHtml;
                 submitBtn.disabled = false;
                 return;
@@ -1633,6 +1666,9 @@
                 if (data && data.success) {
                     showAlert('Password berhasil diperbarui!', 'success');
                     // Clear password fields
+                    if (document.getElementById('current_password')) {
+                        document.getElementById('current_password').value = '';
+                    }
                     document.getElementById('password').value = '';
                     document.getElementById('password_confirmation').value = '';
                     document.getElementById('password-match-check').classList.add('d-none');

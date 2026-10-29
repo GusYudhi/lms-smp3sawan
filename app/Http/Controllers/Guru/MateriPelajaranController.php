@@ -31,38 +31,47 @@ class MateriPelajaranController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
-            'judul' => 'required',
+            'judul' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
             'tipe' => 'required|in:file,link',
-            'file_path' => 'required_if:tipe,file|nullable|file|max:10240',
+            'file_path' => 'required_if:tipe,file|nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,mp4,zip,rar|max:10240',
             'link' => 'required_if:tipe,link|nullable|url',
-            'target_kelas' => 'required',
+            'target_kelas' => 'required|string',
+        ], [
+            'file_path.mimes' => 'Format file materi tidak diizinkan. Gunakan dokumen, gambar, video mp4, atau arsip zip/rar.',
+            'file_path.max' => 'Ukuran file materi maksimal 10MB.',
+            'link.url' => 'Format tautan harus berupa URL yang valid.',
         ]);
 
-        $data = $request->except(['file_path', 'target_kelas']);
-        $data['guru_id'] = Auth::id();
+        $data = [
+            'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
+            'judul' => $validated['judul'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+            'tipe' => $validated['tipe'],
+            'guru_id' => Auth::id(),
+        ];
 
         // Handle File/Link
-        if ($request->tipe == 'file' && $request->hasFile('file_path')) {
+        if ($validated['tipe'] == 'file' && $request->hasFile('file_path')) {
             $data['file_path'] = $request->file('file_path')->store('materi-pelajaran', 'public');
             $data['link'] = null;
-        } else if ($request->tipe == 'link') {
+        } else if ($validated['tipe'] == 'link') {
             $data['file_path'] = null;
+            $data['link'] = $validated['link'] ?? null;
         }
 
         // Handle Target Kelas
-        if ($request->target_kelas == 'all_taught') {
+        $targetKelas = $validated['target_kelas'];
+        if ($targetKelas == 'all_taught' || $targetKelas == 'all_global') {
             $data['kelas_id'] = null;
             $data['tingkat'] = null;
-        } elseif ($request->target_kelas == 'all_global') {
+        } elseif (str_starts_with($targetKelas, 'grade_')) {
             $data['kelas_id'] = null;
-            $data['tingkat'] = null;
-        } elseif (str_starts_with($request->target_kelas, 'grade_')) {
-            $data['kelas_id'] = null;
-            $data['tingkat'] = substr($request->target_kelas, 6);
-        } elseif (str_starts_with($request->target_kelas, 'class_')) {
-            $data['kelas_id'] = substr($request->target_kelas, 6);
+            $data['tingkat'] = substr($targetKelas, 6);
+        } elseif (str_starts_with($targetKelas, 'class_')) {
+            $data['kelas_id'] = substr($targetKelas, 6);
             $data['tingkat'] = null;
         }
 

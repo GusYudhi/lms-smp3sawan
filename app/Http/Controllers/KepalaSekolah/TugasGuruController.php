@@ -61,11 +61,12 @@ class TugasGuruController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date|after:now',
-            'files.*' => 'nullable|file|max:10240', // max 10MB per file
+            'files.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,zip,rar|max:10240', // max 10MB per file
         ], [
             'judul.required' => 'Judul tugas harus diisi',
             'deadline.required' => 'Deadline harus diisi',
             'deadline.after' => 'Deadline harus lebih dari waktu sekarang',
+            'files.*.mimes' => 'Format file lampiran tidak diizinkan. Gunakan dokumen, gambar, atau zip/rar.',
             'files.*.max' => 'Ukuran file maksimal 10MB',
         ]);
 
@@ -143,10 +144,11 @@ class TugasGuruController extends Controller
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date',
             'status' => 'required|in:aktif,selesai,dibatalkan',
-            'files.*' => 'nullable|file|max:10240',
+            'files.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,zip,rar|max:10240',
         ], [
             'judul.required' => 'Judul tugas harus diisi',
             'deadline.required' => 'Deadline harus diisi',
+            'files.*.mimes' => 'Format file lampiran tidak diizinkan. Gunakan dokumen, gambar, atau zip/rar.',
             'files.*.max' => 'Ukuran file maksimal 10MB',
         ]);
 

@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [App\Http\Controllers\GuestController::class, 'welcome'])->name('welcome');
-Route::post('/saran', [App\Http\Controllers\GuestController::class, 'storeSaran'])->name('guest.saran.store');
+Route::post('/saran', [App\Http\Controllers\GuestController::class, 'storeSaran'])
+    ->middleware('throttle:saran')
+    ->name('guest.saran.store');
 
 Route::get('/guru-staff', [App\Http\Controllers\GuestController::class, 'guruStaff'])->name('guest.guru-staff');
 Route::get('/berita', [App\Http\Controllers\GuestController::class, 'berita'])->name('guest.berita.index');
@@ -26,7 +28,6 @@ Route::get('/galeri', [App\Http\Controllers\GuestController::class, 'galeri'])->
 Route::get('/kontak', [App\Http\Controllers\GuestController::class, 'kontak'])->name('guest.kontak');
 
 Auth::routes(['register' => false]);
-Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout']);
 
 // School Profile Routes (Public Access)
 Route::get('/data-sekolah', [App\Http\Controllers\SchoolController::class, 'index'])->name('school.profile');
