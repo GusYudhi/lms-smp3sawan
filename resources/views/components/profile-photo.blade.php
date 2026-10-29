@@ -34,32 +34,6 @@
 @endif
 
 @once
-@push('styles')
-<style>
-    .profile-photo-wrapper {
-        display: inline-block;
-        position: relative;
-        overflow: hidden;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .profile-photo-wrapper.cursor-pointer {
-        cursor: pointer;
-    }
-
-    .profile-photo-wrapper:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .avatar-circle {
-        font-size: 1.2rem;
-    }
-</style>
-@endpush
-
 @push('scripts')
 <!-- Global Photo Modal (only once per page) -->
 <div class="modal fade" id="globalPhotoModal" tabindex="-1" aria-hidden="true">

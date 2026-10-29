@@ -218,14 +218,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
-.card-stats {
-    transition: all 0.3s ease;
-}
 
-.card-stats:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    transform: translateY(-5px);
-}
-</style>
 @endsection

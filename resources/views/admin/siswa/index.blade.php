@@ -6,27 +6,6 @@
 <link href="{{ asset('css/admin/siswa.css') }}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-<style>
-    .retained-chip {
-        background-color: #f8d7da;
-        color: #842029;
-        border: 1px solid #f5c2c7;
-        border-radius: 20px;
-        padding: 5px 12px;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .retained-chip .btn-remove {
-        cursor: pointer;
-        color: #842029;
-        font-size: 0.95rem;
-    }
-    .retained-chip .btn-remove:hover {
-        color: #b02a37;
-    }
-</style>
 @endpush
 
 @section('content')

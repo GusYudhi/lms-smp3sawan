@@ -343,15 +343,6 @@
     </div>
 </div>
 
-<style>
-.hover-overlay {
-    transition: opacity 0.3s ease;
-}
-.position-relative:hover .hover-overlay {
-    opacity: 1 !important;
-}
-</style>
-
 <script>
 // Auto hide alert after 5 seconds
 setTimeout(function() {

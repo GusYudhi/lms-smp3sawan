@@ -299,14 +299,5 @@
     </div>
 </div>
 
-<style>
-.hover-card {
-    transition: all 0.3s ease;
-}
 
-.hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-</style>
 @endsection
