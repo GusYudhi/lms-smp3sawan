@@ -163,6 +163,15 @@
     color: #64748b !important;
 }
 
+// Accessible semantic text overrides on white surfaces (WCAG AA >= 4.5:1)
+.text-warning {
+    color: #b45309 !important; // Deep amber (5.1:1 on white background)
+}
+
+.text-info {
+    color: $color-info !important; // Deep sky 700 (6.02:1 on white background)
+}
+
 // --- Scoped Layout: Auth (`/login`, passwords, register) ---
 .layout-auth {
     background: $color-primary;

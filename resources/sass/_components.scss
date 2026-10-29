@@ -30,6 +30,61 @@
     font-size: 1.05rem;
 }
 
+.btn-info {
+    --bs-btn-color: #ffffff;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-disabled-color: rgba(255, 255, 255, 0.7);
+    color: #ffffff;
+
+    &:hover,
+    &:focus,
+    &:active {
+        color: #ffffff;
+    }
+}
+
+.btn-warning {
+    --bs-btn-color: #1e293b;
+    --bs-btn-hover-color: #1e293b;
+    --bs-btn-active-color: #1e293b;
+    --bs-btn-disabled-color: rgba(30, 41, 59, 0.6);
+    color: #1e293b;
+    font-weight: 600;
+
+    &:hover,
+    &:focus,
+    &:active {
+        color: #1e293b;
+    }
+}
+
+.btn-outline-warning {
+    color: #b45309;
+    border-color: #f59e0b;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: #f59e0b;
+        border-color: #f59e0b;
+        color: #1e293b;
+    }
+}
+
+.btn-outline-info {
+    color: $color-info;
+    border-color: $color-info;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $color-info;
+        border-color: $color-info;
+        color: #ffffff;
+    }
+}
+
 .m3-ripple {
     position: absolute;
     border-radius: 50%;
@@ -40,8 +95,10 @@
 }
 
 .btn-light .m3-ripple,
+.btn-warning .m3-ripple,
 .btn-outline-primary .m3-ripple,
 .btn-outline-secondary .m3-ripple,
+.btn-outline-warning .m3-ripple,
 .btn-pagination .m3-ripple,
 .card-clickable .m3-ripple {
     background-color: rgba(13, 71, 161, 0.18);
@@ -256,14 +313,15 @@
 
     &.izin {
         background-color: $color-info;
-        color: #000;
+        color: #ffffff;
         border-color: $color-info;
     }
 
     &.sakit {
         background-color: $color-warning;
-        color: #000;
+        color: #1e293b;
         border-color: $color-warning;
+        font-weight: 600;
     }
 
     &.alpha {
@@ -612,5 +670,25 @@
         &:hover {
             color: #b02a37;
         }
+    }
+}
+
+// --- Badges & Chips (WCAG AA Compliant Contrast) ---
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    &.bg-warning {
+        background-color: $color-warning !important;
+        color: #1e293b !important;
+    }
+
+    &.bg-info {
+        background-color: $color-info !important;
+        color: #ffffff !important;
+    }
+
+    &.bg-light {
+        color: #1e293b !important;
     }
 }
