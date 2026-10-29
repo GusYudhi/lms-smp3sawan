@@ -90,72 +90,18 @@ class JurnalMengajarController extends Controller
         // Ambil jurnal yang sudah diisi di hari ini
         $jurnalSudahDiisi = JurnalMengajar::where('guru_id', $guru->id)
             ->whereDate('tanggal', $tanggal)
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->kelas_id . '_' . $item->mata_pelajaran_id . '_' . $item->jam_ke_mulai . '_' . $item->jam_ke_selesai;
-            });
+            ->get();
 
         // Gabungkan jadwal yang berurutan dengan kelas dan mapel yang sama
-        $groupedJadwals = [];
-        foreach ($jadwals as $jadwal) {
-            $key = $jadwal->kelas_id . '_' . $jadwal->mata_pelajaran_id;
+        $groupedJadwals = JadwalPelajaran::groupConsecutiveSchedules($jadwals, $jurnalSudahDiisi);
 
-            if (!isset($groupedJadwals[$key])) {
-                // Jadwal pertama untuk kombinasi kelas + mapel ini
-                $groupedJadwals[$key] = [
-                    'id' => $jadwal->id,
-                    'kelas_id' => $jadwal->kelas_id,
-                    'kelas' => $jadwal->kelas,
-                    'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
-                    'mataPelajaran' => $jadwal->mataPelajaran,
-                    'jam_ke_mulai' => $jadwal->jam_ke,
-                    'jam_ke_selesai' => $jadwal->jam_ke,
-                    'jam_ke_array' => [$jadwal->jam_ke],
-                ];
-            } else {
-                // Cek apakah jam_ke nya berurutan
-                $lastJamKe = $groupedJadwals[$key]['jam_ke_selesai'];
-                if ($jadwal->jam_ke == $lastJamKe + 1) {
-                    // Jam berurutan, gabungkan
-                    $groupedJadwals[$key]['jam_ke_selesai'] = $jadwal->jam_ke;
-                    $groupedJadwals[$key]['jam_ke_array'][] = $jadwal->jam_ke;
-                } else {
-                    // Jam tidak berurutan, buat grup baru dengan suffix
-                    $newKey = $key . '_' . $jadwal->jam_ke;
-                    $groupedJadwals[$newKey] = [
-                        'id' => $jadwal->id,
-                        'kelas_id' => $jadwal->kelas_id,
-                        'kelas' => $jadwal->kelas,
-                        'mata_pelajaran_id' => $jadwal->mata_pelajaran_id,
-                        'mataPelajaran' => $jadwal->mataPelajaran,
-                        'jam_ke_mulai' => $jadwal->jam_ke,
-                        'jam_ke_selesai' => $jadwal->jam_ke,
-                        'jam_ke_array' => [$jadwal->jam_ke],
-                    ];
-                }
-            }
-        }
-
-        // Filter jurnal yang belum diisi dan yang sudah diisi
-        $jurnalBelumDiisi = [];
-        $jurnalSudahDiisiCollection = [];
-
-        foreach ($groupedJadwals as $key => $jadwal) {
-            $jurnalKey = $jadwal['kelas_id'] . '_' . $jadwal['mata_pelajaran_id'] . '_' . $jadwal['jam_ke_mulai'] . '_' . $jadwal['jam_ke_selesai'];
-
-            if (isset($jurnalSudahDiisi[$jurnalKey])) {
-                $jurnalSudahDiisiCollection[] = [
-                    'jadwal' => $jadwal,
-                    'jurnal' => $jurnalSudahDiisi[$jurnalKey]
-                ];
-            } else {
-                $jurnalBelumDiisi[] = $jadwal;
-            }
-        }
-
-        // Convert to collection
-        $jurnalBelumDiisi = collect($jurnalBelumDiisi);
-        $jurnalSudahDiisiCollection = collect($jurnalSudahDiisiCollection);
+        $jurnalBelumDiisi = $groupedJadwals->where('has_jurnal', false)->values();
+        $jurnalSudahDiisiCollection = $groupedJadwals->where('has_jurnal', true)->map(function ($item) {
+            return [
+                'jadwal' => $item,
+                'jurnal' => $item['jurnal']
+            ];
+        })->values();
 
         // Ambil data jam pelajaran dari semester aktif
         $semesterAktif = Semester::where('is_active', true)->first();
@@ -182,6 +128,7 @@ class JurnalMengajarController extends Controller
         $mataPelajaranId = $request->get('mata_pelajaran_id');
         $jamKeMulai = $request->get('jam_ke_mulai');
         $jamKeSelesai = $request->get('jam_ke_selesai');
+        $returnTo = $request->get('return_to', 'create');
 
         // Validasi parameter
         if (!$tanggal || !$kelasId || !$mataPelajaranId || !$jamKeMulai || !$jamKeSelesai) {
@@ -228,7 +175,8 @@ class JurnalMengajarController extends Controller
             'jamKeSelesai',
             'siswaKelas',
             'absensiPagi',
-            'jamPelajarans'
+            'jamPelajarans',
+            'returnTo'
         ));
     }
 
@@ -241,7 +189,7 @@ class JurnalMengajarController extends Controller
             'tanggal' => 'required|date',
             'kelas_id' => 'required|exists:kelas,id',
             'jam_ke_mulai' => 'required|integer',
-            'jam_ke_selesai' => 'required|integer',
+            'jam_ke_selesai' => 'required|integer|gte:jam_ke_mulai',
             'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
             'materi_pembelajaran' => 'required|string',
             'keterangan' => 'nullable|string',
@@ -249,6 +197,22 @@ class JurnalMengajarController extends Controller
         ]);
 
         $hari = Carbon::parse($request->tanggal)->locale('id')->dayName;
+
+        // Cek apakah sudah pernah mengisi jurnal di slot jam yang beririsan untuk guru, tanggal, dan kelas ini
+        $existingJurnal = JurnalMengajar::where('guru_id', Auth::id())
+            ->whereDate('tanggal', $request->tanggal)
+            ->where('kelas_id', $request->kelas_id)
+            ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
+            ->where(function ($query) use ($request) {
+                $query->where('jam_ke_mulai', '<=', $request->jam_ke_selesai)
+                      ->where('jam_ke_selesai', '>=', $request->jam_ke_mulai);
+            })
+            ->first();
+
+        if ($existingJurnal) {
+            return redirect()->route('guru.jurnal-mengajar.show', $existingJurnal->id)
+                ->with('info', 'Jurnal mengajar untuk jam pelajaran ini sudah pernah diisi.');
+        }
 
         // Validasi jam pelajaran exists
         $semesterAktif = Semester::where('is_active', true)->first();
@@ -351,6 +315,11 @@ class JurnalMengajarController extends Controller
                     'status_awal' => $statusAwal,
                 ]);
             }
+        }
+
+        if ($request->get('return_to') === 'today') {
+            return redirect()->route('guru.jadwal-mengajar.today')
+                ->with('success', 'Jurnal mengajar berhasil disimpan.');
         }
 
         return redirect()->route('guru.jurnal-mengajar.create', ['tanggal' => $request->tanggal])

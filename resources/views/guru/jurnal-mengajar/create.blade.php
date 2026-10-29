@@ -134,7 +134,7 @@
                                 </h5>
                                 @if(isset($jamPelajarans[$jadwal['jam_ke_mulai']]) && isset($jamPelajarans[$jadwal['jam_ke_selesai']]))
                                 <span class="badge bg-light text-dark">
-                                    {{ $jamPelajarans[$jadwal['jam_ke_mulai']]->jam_mulai }} - {{ $jamPelajarans[$jadwal['jam_ke_selesai']]->jam_selesai }}
+                                    {{ \Carbon\Carbon::parse($jamPelajarans[$jadwal['jam_ke_mulai']]->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jamPelajarans[$jadwal['jam_ke_selesai']]->jam_selesai)->format('H:i') }}
                                 </span>
                                 @endif
                             </div>

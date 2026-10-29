@@ -19,7 +19,9 @@ class AbsensiGuruController extends Controller
     public function index()
     {
         // Ensure user is a teacher
-        if (!auth()->user()->isGuru()) {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user || !$user->isGuru()) {
             abort(403, 'Unauthorized access');
         }
 

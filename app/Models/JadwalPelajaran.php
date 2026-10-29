@@ -43,4 +43,100 @@ class JadwalPelajaran extends Model
     {
         return $this->belongsTo(Semester::class);
     }
+
+    /**
+     * Gabungkan jadwal yang berurutan dengan kelas dan mata pelajaran yang sama
+     * menjadi satu blok/sesi (misal Jam 1-2 atau 1-3).
+     *
+     * @param \Illuminate\Support\Collection $schedules
+     * @param \Illuminate\Support\Collection|null $existingJurnals
+     * @return \Illuminate\Support\Collection
+     */
+    public static function groupConsecutiveSchedules($schedules, $existingJurnals = null)
+    {
+        if ($schedules->isEmpty()) {
+            return collect();
+        }
+
+        $sorted = $schedules->sortBy('jam_ke')->values();
+        $grouped = [];
+        $current = null;
+
+        foreach ($sorted as $item) {
+            if ($current === null) {
+                $current = [
+                    'id' => $item->id,
+                    'schedule_ids' => [$item->id],
+                    'kelas_id' => $item->kelas_id,
+                    'kelas' => $item->kelas,
+                    'mata_pelajaran_id' => $item->mata_pelajaran_id,
+                    'mataPelajaran' => $item->mataPelajaran,
+                    'guru_id' => $item->guru_id,
+                    'guru' => $item->guru,
+                    'hari' => $item->hari,
+                    'jam_ke_mulai' => $item->jam_ke,
+                    'jam_ke_selesai' => $item->jam_ke,
+                    'jam_ke_array' => [$item->jam_ke],
+                    'jumlah_jp' => 1,
+                    'has_jurnal' => false,
+                    'jurnal' => null,
+                ];
+                continue;
+            }
+
+            // Jika kelas sama, mapel sama, dan jam_ke bersambung (+1)
+            if (
+                $current['kelas_id'] == $item->kelas_id &&
+                $current['mata_pelajaran_id'] == $item->mata_pelajaran_id &&
+                $item->jam_ke == ($current['jam_ke_selesai'] + 1)
+            ) {
+                $current['jam_ke_selesai'] = $item->jam_ke;
+                $current['jam_ke_array'][] = $item->jam_ke;
+                $current['jumlah_jp'] = count($current['jam_ke_array']);
+                $current['schedule_ids'][] = $item->id;
+            } else {
+                $grouped[] = $current;
+                $current = [
+                    'id' => $item->id,
+                    'schedule_ids' => [$item->id],
+                    'kelas_id' => $item->kelas_id,
+                    'kelas' => $item->kelas,
+                    'mata_pelajaran_id' => $item->mata_pelajaran_id,
+                    'mataPelajaran' => $item->mataPelajaran,
+                    'guru_id' => $item->guru_id,
+                    'guru' => $item->guru,
+                    'hari' => $item->hari,
+                    'jam_ke_mulai' => $item->jam_ke,
+                    'jam_ke_selesai' => $item->jam_ke,
+                    'jam_ke_array' => [$item->jam_ke],
+                    'jumlah_jp' => 1,
+                    'has_jurnal' => false,
+                    'jurnal' => null,
+                ];
+            }
+        }
+
+        if ($current !== null) {
+            $grouped[] = $current;
+        }
+
+        // Cocokkan dengan jurnal yang sudah diisi bila parameter disertakan
+        if ($existingJurnals && $existingJurnals->isNotEmpty()) {
+            foreach ($grouped as &$group) {
+                $matched = $existingJurnals->first(function ($jurnal) use ($group) {
+                    return $jurnal->kelas_id == $group['kelas_id']
+                        && $jurnal->mata_pelajaran_id == $group['mata_pelajaran_id']
+                        && ($jurnal->jam_ke_mulai <= $group['jam_ke_selesai'] && $jurnal->jam_ke_selesai >= $group['jam_ke_mulai']);
+                });
+
+                if ($matched) {
+                    $group['has_jurnal'] = true;
+                    $group['jurnal'] = $matched;
+                }
+            }
+            unset($group);
+        }
+
+        return collect($grouped);
+    }
 }

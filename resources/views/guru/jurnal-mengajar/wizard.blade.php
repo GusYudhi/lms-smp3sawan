@@ -9,7 +9,11 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.index') }}">Jurnal Mengajar</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}">Pilih Jurnal</a></li>
+                    @if(($returnTo ?? request('return_to')) === 'today')
+                        <li class="breadcrumb-item"><a href="{{ route('guru.jadwal-mengajar.today') }}">Jadwal Hari Ini</a></li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}">Pilih Jurnal</a></li>
+                    @endif
                     <li class="breadcrumb-item active">Isi Jurnal</li>
                 </ol>
             </nav>
@@ -49,7 +53,7 @@
                     <p class="mb-0"><strong>Mata Pelajaran:</strong> {{ $mataPelajaran->nama_mapel }}</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary">
+                    <a href="{{ ($returnTo ?? request('return_to')) === 'today' ? route('guru.jadwal-mengajar.today') : route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Kembali
                     </a>
                 </div>
@@ -61,6 +65,7 @@
     <!-- Form Wizard -->
     <form action="{{ route('guru.jurnal-mengajar.store') }}" method="POST" id="formWizard">
         @csrf
+        <input type="hidden" name="return_to" value="{{ $returnTo ?? request('return_to', 'create') }}">
         <input type="hidden" name="tanggal" value="{{ $tanggal }}">
         <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
         <input type="hidden" name="mata_pelajaran_id" value="{{ $mataPelajaran->id }}">

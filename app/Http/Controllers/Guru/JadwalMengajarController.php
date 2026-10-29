@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\JadwalPelajaran;
 use App\Models\FixedSchedule;
-use App\Models\Kelas;
+use App\Models\JadwalPelajaran;
 use App\Models\JamPelajaran;
+use App\Models\Kelas;
 use App\Models\Semester;
-use Illuminate\Support\Facades\DB;
 
 class JadwalMengajarController extends Controller
 {
@@ -19,7 +17,9 @@ class JadwalMengajarController extends Controller
     public function index()
     {
         // Ensure user is a teacher
-        if (!auth()->user()->isGuru()) {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (! $user || ! $user->isGuru()) {
             abort(403, 'Unauthorized access');
         }
 
@@ -37,8 +37,9 @@ class JadwalMengajarController extends Controller
         //    $kelasQuery->where('tahun_pelajaran_id', $tahunPelajaranId);
         // }
 
-        $kelas = $kelasQuery->get()->map(function($k) {
-            $k->full_name = $k->tingkat . ' ' . $k->nama_kelas;
+        $kelas = $kelasQuery->get()->map(function ($k) {
+            $k->full_name = $k->tingkat.' '.$k->nama_kelas;
+
             return $k;
         });
 
@@ -105,13 +106,13 @@ class JadwalMengajarController extends Controller
                             'mata_pelajaran' => [
                                 'id' => $schedule->mata_pelajaran_id,
                                 'nama_mapel' => $schedule->mataPelajaran->nama_mapel ?? '-',
-                                'kode_mapel' => $schedule->mataPelajaran->kode_mapel ?? '-'
+                                'kode_mapel' => $schedule->mataPelajaran->kode_mapel ?? '-',
                             ],
                             'guru' => [
                                 'id' => $schedule->guru_id,
-                                'name' => $schedule->guru->name ?? '-'
+                                'name' => $schedule->guru->name ?? '-',
                             ],
-                            'is_current_teacher' => $isCurrentTeacher
+                            'is_current_teacher' => $isCurrentTeacher,
                         ];
                     }
                 }
@@ -121,7 +122,7 @@ class JadwalMengajarController extends Controller
                     if ($fixed->hari === $day) {
                         $organized[$day][$fixed->jam_ke] = [
                             'type' => 'fixed',
-                            'keterangan' => $fixed->keterangan
+                            'keterangan' => $fixed->keterangan,
                         ];
                     }
                 }
@@ -131,7 +132,7 @@ class JadwalMengajarController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'error' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -142,11 +143,13 @@ class JadwalMengajarController extends Controller
     public function today()
     {
         // Ensure user is a teacher
-        if (!auth()->user()->isGuru()) {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (! $user || ! $user->isGuru()) {
             abort(403, 'Unauthorized access');
         }
 
-        $currentUserId = auth()->id();
+        $currentUserId = $user->id;
         $today = \Carbon\Carbon::now()->locale('id')->dayName;
 
         $activeSemester = Semester::where('is_active', true)->first();
@@ -161,21 +164,45 @@ class JadwalMengajarController extends Controller
             $query->where('semester_id', $semesterId);
         }
 
-        $schedules = $query->orderBy('jam_ke')->get();
+        $rawSchedules = $query->orderBy('jam_ke')->get();
 
-        // Transform for view compatibility if needed, or update view. 
-        // View likely accesses object properties directly.
-        // But the previous query selected 'kelas_full'. We need to append it.
-        $schedules->transform(function($s) {
-            if ($s->kelas) {
-                $s->kelas_full = $s->kelas->tingkat . ' ' . $s->kelas->nama_kelas;
-            }
-            return $s;
+        // Ambil jurnal yang sudah diisi hari ini oleh guru
+        $todayJurnals = \App\Models\JurnalMengajar::where('guru_id', $currentUserId)
+            ->whereDate('tanggal', \Carbon\Carbon::today())
+            ->get();
+
+        // Gabungkan jadwal jam berurutan untuk kelas dan mapel yang sama
+        $grouped = JadwalPelajaran::groupConsecutiveSchedules($rawSchedules, $todayJurnals);
+
+        $schedules = $grouped->map(function ($item) {
+            $obj = (object) $item;
+            $obj->kelas_full = $item['kelas']
+                ? ($item['kelas']->tingkat.' '.$item['kelas']->nama_kelas)
+                : '-';
+
+            return $obj;
         });
 
         // Get jam pelajaran details
-        $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get()->keyBy('jam_ke');
+        $jamQuery = JamPelajaran::orderBy('jam_ke');
+        if ($semesterId) {
+            $jamQuery->where('semester_id', $semesterId);
+        }
+        $jamPelajarans = $jamQuery->get()->keyBy('jam_ke');
 
-        return view('guru.jadwal-mengajar.today', compact('schedules', 'jamPelajarans', 'today'));
+        $totalJp = $schedules->sum('jumlah_jp');
+        $totalSesi = $schedules->count();
+        $sesiTerisi = $schedules->where('has_jurnal', true)->count();
+        $sesiBelumTerisi = $schedules->where('has_jurnal', false)->count();
+
+        return view('guru.jadwal-mengajar.today', compact(
+            'schedules',
+            'jamPelajarans',
+            'today',
+            'totalJp',
+            'totalSesi',
+            'sesiTerisi',
+            'sesiBelumTerisi'
+        ));
     }
 }
