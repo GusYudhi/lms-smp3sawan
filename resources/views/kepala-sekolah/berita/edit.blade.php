@@ -13,12 +13,12 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('kepala-sekolah.berita.update', $beritum->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('kepala-sekolah.berita.update', $berita->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
                     <label for="judul" class="form-label">Judul Berita</label>
-                    <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul" name="judul" value="{{ old('judul', $beritum->judul) }}" required>
+                    <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul" name="judul" value="{{ old('judul', $berita->judul) }}" required>
                     @error('judul')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -26,7 +26,7 @@
 
                 <div class="mb-3">
                     <label for="tanggal" class="form-label">Tanggal</label>
-                    <input type="date" class="form-control @error('tanggal') is-invalid @enderror" id="tanggal" name="tanggal" value="{{ old('tanggal', $beritum->tanggal->format('Y-m-d')) }}" required>
+                    <input type="date" class="form-control @error('tanggal') is-invalid @enderror" id="tanggal" name="tanggal" value="{{ old('tanggal', $berita->tanggal ? $berita->tanggal->format('Y-m-d') : '') }}" required>
                     @error('tanggal')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -34,9 +34,9 @@
 
                 <div class="mb-3">
                     <label for="foto" class="form-label">Foto Utama</label>
-                    @if($beritum->foto)
+                    @if($berita->foto)
                         <div class="mb-2">
-                            <img src="{{ asset('storage/' . $beritum->foto) }}" alt="Current Photo" width="150" class="img-thumbnail">
+                            <img src="{{ asset('storage/' . $berita->foto) }}" alt="Current Photo" width="150" class="img-thumbnail">
                         </div>
                     @endif
                     <input type="file" class="form-control @error('foto') is-invalid @enderror" id="foto" name="foto" accept="image/*">
@@ -48,7 +48,7 @@
 
                 <div class="mb-3">
                     <label for="konten" class="form-label">Konten Berita</label>
-                    <textarea class="form-control @error('konten') is-invalid @enderror" id="konten" name="konten" rows="10" required>{{ old('konten', $beritum->konten) }}</textarea>
+                    <textarea class="form-control @error('konten') is-invalid @enderror" id="konten" name="konten" rows="10" required>{{ old('konten', $berita->konten) }}</textarea>
                     @error('konten')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

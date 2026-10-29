@@ -106,6 +106,20 @@ class ImageCompressionUploadTest extends TestCase
         Storage::disk('public')->assertExists($berita->foto);
     }
 
+    public function test_admin_can_access_edit_berita_page()
+    {
+        $admin = $this->createAdmin();
+        $berita = Berita::create([
+            'judul' => 'Berita untuk diedit',
+            'konten' => 'Isi berita contoh.',
+            'tanggal' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.berita.edit', $berita->id));
+        $response->assertStatus(200);
+        $response->assertSee('Berita untuk diedit');
+    }
+
     public function test_admin_can_upload_prestasi_compressed_to_webp()
     {
         $admin = $this->createAdmin();
