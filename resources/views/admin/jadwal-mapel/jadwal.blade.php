@@ -798,7 +798,14 @@ $(document).ready(function() {
 
         // Update Select2 values
         $('#mata_pelajaran_id').val(data.mata_pelajaran.id).trigger('change');
-        $('#guru_id').val(data.guru.id).trigger('change');
+        if (data.guru) {
+            if ($('#guru_id option[value="' + data.guru.id + '"]').length === 0) {
+                const legacyText = data.guru.name + ' (Pensiun / Non-aktif)';
+                const legacyOption = new Option(legacyText, data.guru.id, true, true);
+                $('#guru_id').append(legacyOption);
+            }
+            $('#guru_id').val(data.guru.id).trigger('change');
+        }
         $('#conflict-alert').addClass('d-none');
         $('#btn-save').prop('disabled', false);
 

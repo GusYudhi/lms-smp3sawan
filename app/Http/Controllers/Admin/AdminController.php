@@ -31,6 +31,7 @@ class AdminController extends Controller
         $search = $request->get('search');
         $mataPelajaranFilter = $request->get('mata_pelajaran');
         $statusKepegawaianFilter = $request->get('status_kepegawaian');
+        $statusAktifFilter = $request->get('status_aktif');
         $genderFilter = $request->get('gender');
 
         // get user with profile guru and mata pelajaran to avoid N+1
@@ -76,6 +77,12 @@ class AdminController extends Controller
             });
         }
 
+        // Filter by status aktif
+        if ($statusAktifFilter !== null && $statusAktifFilter !== '') {
+            $isActiveVal = ($statusAktifFilter === '1' || $statusAktifFilter === 'aktif');
+            $query->where('guru_profiles.is_active', $isActiveVal);
+        }
+
         $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
             ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")
@@ -87,7 +94,7 @@ class AdminController extends Controller
         // Get list mata pelajaran untuk filter
         $mataPelajaranList = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
 
-        return view('admin.guru.index', compact('teachers', 'mataPelajaranList', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter'));
+        return view('admin.guru.index', compact('teachers', 'mataPelajaranList', 'search', 'mataPelajaranFilter', 'statusKepegawaianFilter', 'statusAktifFilter'));
     }
 
     /**
@@ -143,6 +150,12 @@ class AdminController extends Controller
                     $q->where('nama_mapel', 'like', "%{$mataPelajaran}%");
                 });
             });
+        }
+
+        // Filter by status aktif
+        if ($request->filled('status_aktif')) {
+            $isActiveVal = ($request->status_aktif === '1' || $request->status_aktif === 'aktif');
+            $query->where('guru_profiles.is_active', $isActiveVal);
         }
 
         $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
@@ -430,6 +443,7 @@ class AdminController extends Controller
                 'golongan' => 'nullable|string|max:10',
                 'can_manage_berita' => 'nullable|boolean',
                 'can_manage_prestasi' => 'nullable|boolean',
+                'is_pensiun' => 'nullable|boolean',
             ];
 
             // Add password validation only if provided
@@ -493,6 +507,12 @@ class AdminController extends Controller
                 $photoPath = basename($compressedPath);
             }
 
+            // Status keaktifan (pensiun/pindah) & penyesuaian wali kelas
+            $isPensiun = $request->boolean('is_pensiun');
+            $isActive = !$isPensiun;
+            // Jika pensiun/pindah, otomatis lepaskan jabatan wali kelas agar tidak menggantung
+            $kelasId = $isActive ? $request->input('kelas_id') : null;
+
             // Update GuruProfile
             $profile = $teacher->guruProfile()->updateOrCreate(
                 ['user_id' => $teacher->id],
@@ -509,7 +529,8 @@ class AdminController extends Controller
                     'golongan' => $request->input('golongan'),
                     'jabatan_di_sekolah' => $request->input('jabatan_di_sekolah'),
                     'mata_pelajaran_id' => $primaryMapelId,
-                    'kelas_id' => $request->input('kelas_id'),
+                    'kelas_id' => $kelasId,
+                    'is_active' => $isActive,
                     'foto_profil' => $photoPath,
                     'can_manage_berita' => $request->has('can_manage_berita'),
                     'can_manage_prestasi' => $request->has('can_manage_prestasi'),

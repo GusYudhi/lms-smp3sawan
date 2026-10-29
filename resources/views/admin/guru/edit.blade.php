@@ -390,6 +390,32 @@
                                     @enderror
                                 </div>
                             </div>
+
+                            <div class="row g-3 mt-3">
+                                <div class="col-12">
+                                    <div class="p-3 border rounded bg-light">
+                                        <div class="form-check form-switch mb-0">
+                                            @php
+                                                $isInactive = false;
+                                                if (old('is_pensiun') !== null) {
+                                                    $isInactive = (bool) old('is_pensiun');
+                                                } elseif ($teacher->guruProfile) {
+                                                    $isInactive = !$teacher->guruProfile->is_active;
+                                                }
+                                            @endphp
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="is_pensiun" name="is_pensiun" value="1"
+                                                   {{ $isInactive ? 'checked' : '' }}>
+                                            <label class="form-check-label fw-bold text-danger" for="is_pensiun">
+                                                <i class="fas fa-user-clock me-1"></i> Guru Pensiun / Pindah Tugas
+                                            </label>
+                                            <div class="form-text mt-1 text-muted">
+                                                Centang jika guru ini sudah pensiun atau pindah tugas. Guru tidak akan muncul lagi di pilihan jadwal pelajaran baru, status wali kelas otomatis dikosongkan, dan akses login dinonaktifkan. Seluruh riwayat lama tetap tersimpan.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Password Section (Optional) -->

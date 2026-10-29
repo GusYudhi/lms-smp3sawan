@@ -182,7 +182,7 @@
                             </div>
 
                             <!-- Mata Pelajaran Filter -->
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label for="mapelFilter" class="form-label text-medium-contrast fw-medium">Mata Pelajaran</label>
                                 <select name="mata_pelajaran" id="mapelFilter" class="form-select">
                                     <option value="">Semua Mata Pelajaran</option>
@@ -196,22 +196,32 @@
 
                             <!-- Status Kepegawaian Filter -->
                             <div class="col-md-2">
-                                <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
+                                <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Kepegawaian</label>
                                 <select name="status_kepegawaian" id="statusFilter" class="form-select">
-                                    <option value="">Semua Status</option>
+                                    <option value="">Semua Kepegawaian</option>
                                     <option value="PNS" {{ ($statusKepegawaianFilter ?? '') === 'PNS' ? 'selected' : '' }}>PNS</option>
                                     <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
                                     <option value="Honorer" {{ ($statusKepegawaianFilter ?? '') === 'Honorer' ? 'selected' : '' }}>Honorer</option>
                                 </select>
                             </div>
 
-                            <!-- Gender Filter -->
+                            <!-- Status Keaktifan Filter -->
                             <div class="col-md-2">
+                                <label for="statusAktifFilter" class="form-label text-medium-contrast fw-medium">Status Akun</label>
+                                <select name="status_aktif" id="statusAktifFilter" class="form-select">
+                                    <option value="">Semua Status</option>
+                                    <option value="1" {{ ($statusAktifFilter ?? '') === '1' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="0" {{ ($statusAktifFilter ?? '') === '0' ? 'selected' : '' }}>Pensiun / Pindah</option>
+                                </select>
+                            </div>
+
+                            <!-- Gender Filter -->
+                            <div class="col-md-1">
                                 <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Gender</label>
                                 <select name="gender" id="genderFilter" class="form-select">
-                                    <option value="">Semua Gender</option>
-                                    <option value="L" {{ ($genderFilter ?? request('gender')) === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="P" {{ ($genderFilter ?? request('gender')) === 'P' ? 'selected' : '' }}>Perempuan</option>
+                                    <option value="">Semua</option>
+                                    <option value="L" {{ ($genderFilter ?? request('gender')) === 'L' ? 'selected' : '' }}>L</option>
+                                    <option value="P" {{ ($genderFilter ?? request('gender')) === 'P' ? 'selected' : '' }}>P</option>
                                 </select>
                             </div>
 
@@ -369,6 +379,7 @@ let searchAbortController = null;
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('teacherSearch');
     const statusFilter = document.getElementById('statusFilter');
+    const statusAktifFilter = document.getElementById('statusAktifFilter');
     const genderFilter = document.getElementById('genderFilter');
     const mapelFilter = document.getElementById('mapelFilter');
     const filterForm = document.getElementById('filterForm');
@@ -404,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Immediate filter on select change (AJAX)
-    [statusFilter, genderFilter, mapelFilter].forEach(element => {
+    [statusFilter, statusAktifFilter, genderFilter, mapelFilter].forEach(element => {
         if (element) {
             element.addEventListener('change', function() {
                 currentPage = 1;
@@ -435,17 +446,20 @@ function performAjaxSearch() {
 
     const searchInput = document.getElementById('teacherSearch');
     const statusFilter = document.getElementById('statusFilter');
+    const statusAktifFilter = document.getElementById('statusAktifFilter');
     const genderElement = document.getElementById('genderFilter');
     const mapelElement = document.getElementById('mapelFilter');
 
     const searchValue = searchInput ? searchInput.value.trim() : '';
     const statusValue = statusFilter ? statusFilter.value : '';
+    const statusAktifValue = statusAktifFilter ? statusAktifFilter.value : '';
     const genderValue = genderElement ? genderElement.value : '';
     const mapelValue = mapelElement ? mapelElement.value : '';
 
     const params = new URLSearchParams({
         search: searchValue,
         status: statusValue,
+        status_aktif: statusAktifValue,
         gender: genderValue,
         mata_pelajaran: mapelValue,
         page: currentPage

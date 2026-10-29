@@ -125,9 +125,15 @@
                     @endif
                 </td>
                 <td class="text-center">
-                    <span class="badge bg-success-subtle text-success border">
-                        <i class="fas fa-check-circle me-1"></i>Aktif
-                    </span>
+                    @if($teacher->guruProfile?->is_active ?? true)
+                        <span class="badge bg-success-subtle text-success border">
+                            <i class="fas fa-check-circle me-1"></i>Aktif
+                        </span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger border" title="Pensiun / Pindah">
+                            <i class="fas fa-user-slash me-1"></i>Pensiun / Pindah
+                        </span>
+                    @endif
                 </td>
                 <td class="text-center">
                     <div class="btn-group-vertical gap-1" role="group">

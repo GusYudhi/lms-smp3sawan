@@ -40,6 +40,7 @@ class JadwalPelajaranController extends Controller
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
         $gurus = User::where('users.role', 'guru')
             ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
+            ->where('guru_profiles.is_active', true)
             ->select('users.*')
             ->with(['guruProfile.mataPelajaran', 'guruProfile.mataPelajarans']) // Eager load profile to get all mata pelajaran
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
