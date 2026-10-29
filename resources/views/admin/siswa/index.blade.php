@@ -187,7 +187,7 @@
                             <!-- Show Entries -->
                             <div class="col-md-2">
                                 <label for="perPageFilter" class="form-label text-medium-contrast fw-medium">Tampilkan</label>
-                                <select name="per_page" id="perPageFilter" class="form-select auto-submit">
+                                <select name="per_page" id="perPageFilter" class="form-select">
                                     <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 data</option>
                                     <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20 data</option>
                                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 data</option>
@@ -217,7 +217,7 @@
                             <!-- Class Filter -->
                             <div class="col-md-2">
                                 <label for="classFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
-                                <select name="kelas" id="classFilter" class="form-select auto-submit">
+                                <select name="kelas" id="classFilter" class="form-select">
                                     <option value="">Semua Kelas</option>
                                     <option value="7" {{ request('kelas') == '7' ? 'selected' : '' }}>Kelas 7 (Semua)</option>
                                     <option value="8" {{ request('kelas') == '8' ? 'selected' : '' }}>Kelas 8 (Semua)</option>
@@ -249,7 +249,7 @@
                             <!-- Gender Filter -->
                             <div class="col-md-2">
                                 <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Jenis Kelamin</label>
-                                <select name="jenis_kelamin" id="genderFilter" class="form-select auto-submit">
+                                <select name="jenis_kelamin" id="genderFilter" class="form-select">
                                     <option value="">Semua</option>
                                     <option value="L" {{ request('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki</option>
                                     <option value="P" {{ request('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan</option>
@@ -259,7 +259,7 @@
                             <!-- Status Filter -->
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
-                                <select name="status" id="statusFilter" class="form-select auto-submit">
+                                <select name="status" id="statusFilter" class="form-select">
                                     <option value="">Semua Status</option>
                                     <option value="AKTIF" {{ request('status') === 'AKTIF' ? 'selected' : '' }}>Aktif</option>
                                     <option value="LULUS" {{ request('status') === 'LULUS' ? 'selected' : '' }}>Lulus</option>
@@ -593,43 +593,54 @@
 // Global variables
 let searchTimeout;
 let currentPage = 1;
-let isLoading = false;
+let searchAbortController = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('studentSearch');
     const genderFilter = document.getElementById('genderFilter');
     const classFilter = document.getElementById('classFilter');
     const statusFilter = document.getElementById('statusFilter');
+    const perPageFilter = document.getElementById('perPageFilter');
     const filterForm = document.getElementById('filterForm');
 
-    // Prevent form submission
-    filterForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-    });
-
-    // Real-time search with debouncing (AJAX)
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
+    // Prevent full form submission and route through AJAX
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
             currentPage = 1;
             performAjaxSearch();
-        }, 500);
-    });
+        });
+    }
+
+    // Real-time search with debouncing (AJAX)
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                performAjaxSearch();
+            }, 400);
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                currentPage = 1;
+                performAjaxSearch();
+            }
+        });
+    }
 
     // Immediate filter on select change (AJAX)
-    genderFilter.addEventListener('change', function() {
-        currentPage = 1;
-        performAjaxSearch();
-    });
-
-    classFilter.addEventListener('change', function() {
-        currentPage = 1;
-        performAjaxSearch();
-    });
-
-    statusFilter.addEventListener('change', function() {
-        currentPage = 1;
-        performAjaxSearch();
+    [genderFilter, classFilter, statusFilter, perPageFilter].forEach(element => {
+        if (element) {
+            element.addEventListener('change', function() {
+                currentPage = 1;
+                performAjaxSearch();
+            });
+        }
     });
 
     // Auto-hide alerts
@@ -645,21 +656,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // AJAX search function
 function performAjaxSearch() {
-    if (isLoading) return;
+    if (searchAbortController) {
+        searchAbortController.abort();
+    }
+    searchAbortController = new AbortController();
 
-    isLoading = true;
     showLoadingState();
 
-    const searchValue = document.getElementById('studentSearch').value;
-    const genderValue = document.getElementById('genderFilter').value;
-    const classValue = document.getElementById('classFilter').value;
-    const statusValue = document.getElementById('statusFilter').value;
+    const searchInput = document.getElementById('studentSearch');
+    const genderFilter = document.getElementById('genderFilter');
+    const classFilter = document.getElementById('classFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const perPageFilter = document.getElementById('perPageFilter');
+
+    const searchValue = searchInput ? searchInput.value.trim() : '';
+    const genderValue = genderFilter ? genderFilter.value : '';
+    const classValue = classFilter ? classFilter.value : '';
+    const statusValue = statusFilter ? statusFilter.value : '';
+    const perPageValue = perPageFilter ? perPageFilter.value : '15';
 
     const params = new URLSearchParams({
         search: searchValue,
         jenis_kelamin: genderValue,
         kelas: classValue,
         status: statusValue,
+        per_page: perPageValue,
         page: currentPage
     });
 
@@ -672,19 +693,35 @@ function performAjaxSearch() {
 
     fetch(url, {
         method: 'GET',
+        signal: searchAbortController.signal,
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : ''
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         // Update table content
-        document.getElementById('table-container').innerHTML = data.html;
-        document.getElementById('pagination-container').innerHTML = data.pagination;
-        document.getElementById('table-info').innerHTML = data.info;
+        const tableContainer = document.getElementById('table-container');
+        const paginationContainer = document.getElementById('pagination-container');
+        const tableInfo = document.getElementById('table-info');
+
+        if (tableContainer && data.html !== undefined) {
+            tableContainer.innerHTML = data.html;
+        }
+        if (paginationContainer && data.pagination !== undefined) {
+            paginationContainer.innerHTML = data.pagination;
+        }
+        if (tableInfo && data.info !== undefined) {
+            tableInfo.innerHTML = data.info;
+        }
 
         // Update URL
         const newUrl = new URL(window.location);
@@ -696,18 +733,21 @@ function performAjaxSearch() {
         else newUrl.searchParams.delete('kelas');
         if (statusValue) newUrl.searchParams.set('status', statusValue);
         else newUrl.searchParams.delete('status');
+        if (perPageValue && perPageValue != 15) newUrl.searchParams.set('per_page', perPageValue);
+        else newUrl.searchParams.delete('per_page');
         if (currentPage > 1) newUrl.searchParams.set('page', currentPage);
         else newUrl.searchParams.delete('page');
 
         window.history.pushState({}, '', newUrl);
         hideLoadingState();
-        isLoading = false;
     })
     .catch(error => {
+        if (error.name === 'AbortError') {
+            return;
+        }
         console.error('AJAX Error:', error);
         showToast('error', 'Terjadi kesalahan saat mencari data');
         hideLoadingState();
-        isLoading = false;
     });
 }
 
@@ -821,33 +861,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const importBtnText = document.getElementById('importBtnText');
     const importBtnLoading = document.getElementById('importBtnLoading');
 
-    if (importForm) {
+    if (importForm && importBtn && importBtnText && importBtnLoading) {
         importForm.addEventListener('submit', function() {
             importBtn.disabled = true;
             importBtnText.classList.add('d-none');
             importBtnLoading.classList.remove('d-none');
-        });
-    }
-
-    // Auto-submit functionality
-    const filterForm = document.getElementById('filterForm');
-    const autoSubmitElements = document.querySelectorAll('.auto-submit');
-    const searchInput = document.querySelector('.search-input');
-
-    // Auto-submit untuk dropdown
-    autoSubmitElements.forEach(element => {
-        element.addEventListener('change', function() {
-            filterForm.submit();
-        });
-    });
-
-    // Submit saat tekan Enter di search input
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                filterForm.submit();
-            }
         });
     }
 });

@@ -31,6 +31,7 @@ class AdminController extends Controller
         $search = $request->get('search');
         $mataPelajaranFilter = $request->get('mata_pelajaran');
         $statusKepegawaianFilter = $request->get('status_kepegawaian');
+        $genderFilter = $request->get('gender');
 
         // get user with profile guru and mata pelajaran to avoid N+1
         $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
@@ -61,6 +62,13 @@ class AdminController extends Controller
         if ($statusKepegawaianFilter) {
             $query->whereHas('guruProfile', function($q) use ($statusKepegawaianFilter) {
                 $q->where('status_kepegawaian', $statusKepegawaianFilter);
+            });
+        }
+
+        // Filter by gender
+        if ($genderFilter) {
+            $query->whereHas('guruProfile', function($q) use ($genderFilter) {
+                $q->where('jenis_kelamin', $genderFilter);
             });
         }
 
@@ -118,6 +126,14 @@ class AdminController extends Controller
             });
         }
 
+        // Filter by mata pelajaran if needed
+        if ($request->filled('mata_pelajaran')) {
+            $mataPelajaran = $request->mata_pelajaran;
+            $query->whereHas('guruProfile.mataPelajaran', function($q) use ($mataPelajaran) {
+                $q->where('nama_mapel', 'like', "%{$mataPelajaran}%");
+            });
+        }
+
         $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
             ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")
@@ -133,7 +149,7 @@ class AdminController extends Controller
                 'info' => view('admin.guru.partials.table-info', compact('teachers'))->render(),
                 'total' => $teachers->total(),
                 'current_page' => $teachers->currentPage(),
-                'filters' => $request->only(['search', 'status', 'gender'])
+                'filters' => $request->only(['search', 'status', 'gender', 'mata_pelajaran'])
             ]);
         }
 

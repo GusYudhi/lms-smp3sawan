@@ -236,4 +236,68 @@ class AdminGuruDanJadwalKodeGuruTest extends TestCase
         // Check HTML renders option with Guru PopUp Test (TST)
         $response->assertSee('Guru PopUp Test (TST)');
     }
+
+    public function test_admin_siswa_search_ajax_returns_json_with_filters(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.siswa.search', [
+            'kelas' => '7A',
+            'per_page' => 20,
+        ]), [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'html',
+            'pagination',
+            'info',
+            'total',
+            'current_page',
+            'filters',
+        ]);
+    }
+
+    public function test_admin_guru_search_ajax_with_mapel_filter(): void
+    {
+        $mapel = \App\Models\MataPelajaran::firstOrCreate(
+            ['nama_mapel' => 'Bahasa Bali Test'],
+            ['kode_mapel' => 'BLI', 'is_active' => true]
+        );
+
+        $guruBali = User::create([
+            'name' => 'Guru Mapel Bali',
+            'email' => 'gurubali@smp3sawan.sch.id',
+            'password' => bcrypt('password'),
+            'role' => 'guru',
+            'is_active' => true,
+        ]);
+        GuruProfile::create([
+            'user_id' => $guruBali->id,
+            'nama' => 'Guru Mapel Bali',
+            'mata_pelajaran_id' => $mapel->id,
+            'kode_guru' => 'BL1',
+            'nip' => '999901',
+            'status_kepegawaian' => 'PNS',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.guru.search', [
+            'mata_pelajaran' => 'Bahasa Bali Test',
+        ]), [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'html',
+            'pagination',
+            'info',
+            'total',
+            'current_page',
+            'filters',
+        ]);
+        $data = $response->json();
+        $this->assertStringContainsString('Guru Mapel Bali', $data['html']);
+    }
 }

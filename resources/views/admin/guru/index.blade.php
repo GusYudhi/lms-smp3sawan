@@ -184,7 +184,7 @@
                             <!-- Mata Pelajaran Filter -->
                             <div class="col-md-3">
                                 <label for="mapelFilter" class="form-label text-medium-contrast fw-medium">Mata Pelajaran</label>
-                                <select name="mata_pelajaran" id="mapelFilter" class="form-select auto-submit">
+                                <select name="mata_pelajaran" id="mapelFilter" class="form-select">
                                     <option value="">Semua Mata Pelajaran</option>
                                     @foreach($mataPelajaranList as $mapel)
                                     <option value="{{ $mapel->nama_mapel }}" {{ ($mataPelajaranFilter ?? '') == $mapel->nama_mapel ? 'selected' : '' }}>
@@ -197,7 +197,7 @@
                             <!-- Status Kepegawaian Filter -->
                             <div class="col-md-2">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status</label>
-                                <select name="status_kepegawaian" id="statusFilter" class="form-select auto-submit">
+                                <select name="status_kepegawaian" id="statusFilter" class="form-select">
                                     <option value="">Semua Status</option>
                                     <option value="PNS" {{ ($statusKepegawaianFilter ?? '') === 'PNS' ? 'selected' : '' }}>PNS</option>
                                     <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') === 'PPPK' ? 'selected' : '' }}>PPPK</option>
@@ -208,10 +208,10 @@
                             <!-- Gender Filter -->
                             <div class="col-md-2">
                                 <label for="genderFilter" class="form-label text-medium-contrast fw-medium">Gender</label>
-                                <select name="gender" id="genderFilter" class="form-select auto-submit">
+                                <select name="gender" id="genderFilter" class="form-select">
                                     <option value="">Semua Gender</option>
-                                    <option value="L" {{ request('gender') === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="P" {{ request('gender') === 'P' ? 'selected' : '' }}>Perempuan</option>
+                                    <option value="L" {{ ($genderFilter ?? request('gender')) === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="P" {{ ($genderFilter ?? request('gender')) === 'P' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
                             </div>
 
@@ -364,18 +364,22 @@
 // Global variables
 let searchTimeout;
 let currentPage = 1;
-let isLoading = false;
+let searchAbortController = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('teacherSearch');
     const statusFilter = document.getElementById('statusFilter');
     const genderFilter = document.getElementById('genderFilter');
+    const mapelFilter = document.getElementById('mapelFilter');
     const filterForm = document.getElementById('filterForm');
 
-    // Prevent form submission only if form exists
+    // Prevent full form submission and route through AJAX
     if (filterForm) {
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            clearTimeout(searchTimeout);
+            currentPage = 1;
+            performAjaxSearch();
         });
     }
 
@@ -386,24 +390,28 @@ document.addEventListener('DOMContentLoaded', function() {
             searchTimeout = setTimeout(() => {
                 currentPage = 1;
                 performAjaxSearch();
-            }, 500);
+            }, 400);
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                currentPage = 1;
+                performAjaxSearch();
+            }
         });
     }
 
     // Immediate filter on select change (AJAX)
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            currentPage = 1;
-            performAjaxSearch();
-        });
-    }
-
-    if (genderFilter) {
-        genderFilter.addEventListener('change', function() {
-            currentPage = 1;
-            performAjaxSearch();
-        });
-    }
+    [statusFilter, genderFilter, mapelFilter].forEach(element => {
+        if (element) {
+            element.addEventListener('change', function() {
+                currentPage = 1;
+                performAjaxSearch();
+            });
+        }
+    });
 
     // Auto-hide alerts
     const alerts = document.querySelectorAll('.alert.alert-dismissible');
@@ -418,20 +426,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // AJAX search function
 function performAjaxSearch() {
-    if (isLoading) return;
+    if (searchAbortController) {
+        searchAbortController.abort();
+    }
+    searchAbortController = new AbortController();
 
-    isLoading = true;
     showLoadingState();
 
-    const searchValue = document.getElementById('teacherSearch').value;
-    const statusValue = document.getElementById('statusFilter').value;
+    const searchInput = document.getElementById('teacherSearch');
+    const statusFilter = document.getElementById('statusFilter');
     const genderElement = document.getElementById('genderFilter');
+    const mapelElement = document.getElementById('mapelFilter');
+
+    const searchValue = searchInput ? searchInput.value.trim() : '';
+    const statusValue = statusFilter ? statusFilter.value : '';
     const genderValue = genderElement ? genderElement.value : '';
+    const mapelValue = mapelElement ? mapelElement.value : '';
 
     const params = new URLSearchParams({
         search: searchValue,
         status: statusValue,
         gender: genderValue,
+        mata_pelajaran: mapelValue,
         page: currentPage
     });
 
@@ -444,19 +460,35 @@ function performAjaxSearch() {
 
     fetch(url, {
         method: 'GET',
+        signal: searchAbortController.signal,
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : ''
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         // Update table content
-        document.getElementById('table-container').innerHTML = data.html;
-        document.getElementById('pagination-container').innerHTML = data.pagination;
-        document.getElementById('table-info').innerHTML = data.info;
+        const tableContainer = document.getElementById('table-container');
+        const paginationContainer = document.getElementById('pagination-container');
+        const tableInfo = document.getElementById('table-info');
+
+        if (tableContainer && data.html !== undefined) {
+            tableContainer.innerHTML = data.html;
+        }
+        if (paginationContainer && data.pagination !== undefined) {
+            paginationContainer.innerHTML = data.pagination;
+        }
+        if (tableInfo && data.info !== undefined) {
+            tableInfo.innerHTML = data.info;
+        }
 
         // Update URL
         const newUrl = new URL(window.location);
@@ -466,18 +498,21 @@ function performAjaxSearch() {
         else newUrl.searchParams.delete('status');
         if (genderValue) newUrl.searchParams.set('gender', genderValue);
         else newUrl.searchParams.delete('gender');
+        if (mapelValue) newUrl.searchParams.set('mata_pelajaran', mapelValue);
+        else newUrl.searchParams.delete('mata_pelajaran');
         if (currentPage > 1) newUrl.searchParams.set('page', currentPage);
         else newUrl.searchParams.delete('page');
 
         window.history.pushState({}, '', newUrl);
         hideLoadingState();
-        isLoading = false;
     })
     .catch(error => {
+        if (error.name === 'AbortError') {
+            return;
+        }
         console.error('AJAX Error:', error);
         showToast('error', 'Terjadi kesalahan saat mencari data');
         hideLoadingState();
-        isLoading = false;
     });
 }
 
@@ -563,30 +598,6 @@ document.addEventListener('DOMContentLoaded', function() {
             importBtn.disabled = true;
             importBtnText.classList.add('d-none');
             importBtnLoading.classList.remove('d-none');
-        });
-    }
-
-    // Auto-submit functionality
-    const filterForm = document.getElementById('filterForm');
-    const autoSubmitElements = document.querySelectorAll('.auto-submit');
-    const searchInput = document.querySelector('.search-input');
-
-    // Auto-submit untuk dropdown
-    if (autoSubmitElements.length > 0 && filterForm) {
-        autoSubmitElements.forEach(element => {
-            element.addEventListener('change', function() {
-                filterForm.submit();
-            });
-        });
-    }
-
-    // Submit saat tekan Enter di search input
-    if (searchInput && filterForm) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                filterForm.submit();
-            }
         });
     }
 });
