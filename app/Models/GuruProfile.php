@@ -58,6 +58,44 @@ class GuruProfile extends Model
     }
 
     /**
+     * Get all subjects taught by the teacher (both primary and additional).
+     */
+    public function mataPelajarans()
+    {
+        return $this->belongsToMany(MataPelajaran::class, 'guru_mata_pelajaran', 'guru_profile_id', 'mata_pelajaran_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get additional subjects taught by the teacher (excluding primary subject).
+     */
+    public function mataPelajaransTambahan()
+    {
+        return $this->belongsToMany(MataPelajaran::class, 'guru_mata_pelajaran', 'guru_profile_id', 'mata_pelajaran_id')
+            ->where('mata_pelajarans.id', '!=', $this->mata_pelajaran_id ?? 0)
+            ->withTimestamps();
+    }
+
+    /**
+     * Get array of all subject IDs taught by the teacher.
+     */
+    public function getAllMataPelajaranIdsAttribute(): array
+    {
+        $ids = [];
+        if ($this->relationLoaded('mataPelajarans')) {
+            $ids = $this->mataPelajarans->pluck('id')->all();
+        } else {
+            $ids = $this->mataPelajarans()->pluck('mata_pelajarans.id')->all();
+        }
+
+        if ($this->mata_pelajaran_id && !in_array($this->mata_pelajaran_id, $ids)) {
+            $ids[] = $this->mata_pelajaran_id;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
      * Get subjects as a comma-separated string (backward compatibility).
      */
     public function getSubjectsStringAttribute()

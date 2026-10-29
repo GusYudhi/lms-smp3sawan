@@ -41,7 +41,7 @@ class JadwalPelajaranController extends Controller
         $gurus = User::where('users.role', 'guru')
             ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
             ->select('users.*')
-            ->with('guruProfile') // Eager load profile to get mata_pelajaran_id
+            ->with(['guruProfile.mataPelajaran', 'guruProfile.mataPelajarans']) // Eager load profile to get all mata pelajaran
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
             ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")

@@ -295,7 +295,17 @@
                             <select class="form-select select2" id="guru_id" name="guru_id" required>
                                 <option value="">Pilih Guru</option>
                                 @foreach($gurus as $g)
-                                    <option value="{{ $g->id }}" data-mapel-id="{{ $g->guruProfile->mata_pelajaran_id ?? '' }}">{{ $g->name }}{{ $g->guruProfile?->kode_guru ? ' (' . $g->guruProfile->kode_guru . ')' : '' }}</option>
+                                    @php
+                                        $mapelIds = $g->guruProfile?->mataPelajarans ? $g->guruProfile->mataPelajarans->pluck('id')->all() : [];
+                                        if ($g->guruProfile?->mata_pelajaran_id && !in_array($g->guruProfile->mata_pelajaran_id, $mapelIds)) {
+                                            $mapelIds[] = $g->guruProfile->mata_pelajaran_id;
+                                        }
+                                        $primaryMapelId = $g->guruProfile?->mata_pelajaran_id ?? ($mapelIds[0] ?? '');
+                                    @endphp
+                                    <option value="{{ $g->id }}"
+                                            data-primary-mapel-id="{{ $primaryMapelId }}"
+                                            data-mapel-id="{{ $primaryMapelId }}"
+                                            data-mapel-ids="{{ json_encode(array_values(array_unique($mapelIds))) }}">{{ $g->name }}{{ $g->guruProfile?->kode_guru ? ' (' . $g->guruProfile->kode_guru . ')' : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -466,10 +476,25 @@ $(document).ready(function() {
     let allGuruOptions = [];
     $guruSelect.find('option').each(function() {
         if ($(this).val()) { // Skip placeholder
+            const rawMapelIds = $(this).data('mapel-ids');
+            let mapelIds = [];
+            if (Array.isArray(rawMapelIds)) {
+                mapelIds = rawMapelIds.map(Number);
+            } else if (typeof rawMapelIds === 'string' && rawMapelIds.length) {
+                try {
+                    mapelIds = JSON.parse(rawMapelIds).map(Number);
+                } catch(e) {
+                    mapelIds = [Number($(this).data('mapel-id'))];
+                }
+            } else if ($(this).data('mapel-id')) {
+                mapelIds = [Number($(this).data('mapel-id'))];
+            }
+
             allGuruOptions.push({
                 id: $(this).val(),
                 text: $(this).text().trim(),
-                mapelId: $(this).data('mapel-id')
+                primaryMapelId: $(this).data('primary-mapel-id') || $(this).data('mapel-id'),
+                mapelIds: mapelIds
             });
         }
     });
@@ -489,14 +514,17 @@ $(document).ready(function() {
         let foundCurrent = false;
 
         if (selectedMapelId) {
+            const numSelectedMapelId = Number(selectedMapelId);
             // Filter teachers
             allGuruOptions.forEach(guru => {
                 // Show teacher IF:
                 // 1. Subject is Multi-Teacher (Universal) -> Show Everyone
-                // 2. OR Teacher teaches this subject
-                if (isMultiTeacher || guru.mapelId == selectedMapelId) {
+                // 2. OR Teacher teaches this subject (either as primary or additional)
+                if (isMultiTeacher || guru.mapelIds.includes(numSelectedMapelId)) {
                     const newOption = new Option(guru.text, guru.id, false, false);
-                    $(newOption).attr('data-mapel-id', guru.mapelId);
+                    $(newOption).attr('data-mapel-id', guru.primaryMapelId);
+                    $(newOption).attr('data-primary-mapel-id', guru.primaryMapelId);
+                    $(newOption).attr('data-mapel-ids', JSON.stringify(guru.mapelIds));
                     $guruSelect.append(newOption);
                     
                     if (guru.id == currentGuruId) foundCurrent = true;
@@ -506,7 +534,9 @@ $(document).ready(function() {
             // If no subject selected, show all teachers
             allGuruOptions.forEach(guru => {
                 const newOption = new Option(guru.text, guru.id, false, false);
-                $(newOption).attr('data-mapel-id', guru.mapelId);
+                $(newOption).attr('data-mapel-id', guru.primaryMapelId);
+                $(newOption).attr('data-primary-mapel-id', guru.primaryMapelId);
+                $(newOption).attr('data-mapel-ids', JSON.stringify(guru.mapelIds));
                 $guruSelect.append(newOption);
                 if (guru.id == currentGuruId) foundCurrent = true;
             });
@@ -533,13 +563,16 @@ $(document).ready(function() {
         // Prevent infinite loop if triggered by script
         if (!selectedGuruId) return;
 
-        const selectedOption = $(this).find('option:selected');
-        const mapelId = selectedOption.data('mapel-id');
-
-        if (mapelId) {
-            // Check if current mapel is different to avoid unnecessary triggers
-            if ($mapelSelect.val() != mapelId) {
-                $mapelSelect.val(mapelId).trigger('change');
+        const guruObj = allGuruOptions.find(g => g.id == selectedGuruId);
+        if (guruObj && guruObj.mapelIds.length > 0) {
+            const currentMapelId = Number($mapelSelect.val());
+            // Jika mapel saat ini belum dipilih atau guru tidak mengajar mapel tersebut,
+            // otomatis pilih mapel utama (atau mapel pertama) guru tersebut
+            if (!currentMapelId || !guruObj.mapelIds.includes(currentMapelId)) {
+                const targetMapelId = guruObj.primaryMapelId || guruObj.mapelIds[0];
+                if (targetMapelId && $mapelSelect.val() != targetMapelId) {
+                    $mapelSelect.val(targetMapelId).trigger('change');
+                }
             }
         }
         

@@ -208,23 +208,6 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran (opsional)</label>
-                                    <select class="form-select select2 @error('mata_pelajaran') is-invalid @enderror"
-                                            id="mata_pelajaran" name="mata_pelajaran">
-                                        <option value="">Pilih Mata Pelajaran</option>
-                                        @foreach($mataPelajarans as $mapel)
-                                            <option value="{{ $mapel->id }}" {{ old('mata_pelajaran') == $mapel->id ? 'selected' : '' }}>
-                                                {{ $mapel->nama_mapel }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="form-text">Pilih satu mata pelajaran utama</div>
-                                    @error('mata_pelajaran')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
                                     <label for="kelas_id" class="form-label fw-medium">Wali Kelas (opsional)</label>
                                     <select class="form-select @error('kelas_id') is-invalid @enderror"
                                             id="kelas_id" name="kelas_id">
@@ -240,6 +223,54 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                @php
+                                    $currentPrimaryId = old('mata_pelajaran');
+                                    $selectedAdditionalIds = old('mata_pelajaran_tambahan', []);
+                                    if (!is_array($selectedAdditionalIds)) {
+                                        $selectedAdditionalIds = [];
+                                    }
+                                @endphp
+                                <div class="col-md-6">
+                                    <label for="mata_pelajaran" class="form-label fw-medium">Mata Pelajaran Utama (opsional)</label>
+                                    <select class="form-select select2 @error('mata_pelajaran') is-invalid @enderror"
+                                            id="mata_pelajaran" name="mata_pelajaran">
+                                        <option value="">Pilih Mata Pelajaran Utama</option>
+                                        @foreach($mataPelajarans as $mapel)
+                                            <option value="{{ $mapel->id }}" {{ $currentPrimaryId == $mapel->id ? 'selected' : '' }}>
+                                                {{ $mapel->nama_mapel }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-text">Pilih satu mata pelajaran utama</div>
+                                    @error('mata_pelajaran')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="mata_pelajaran_tambahan" class="form-label fw-medium">Mata Pelajaran Tambahan (opsional)</label>
+                                    <select class="form-select select2 @error('mata_pelajaran_tambahan') is-invalid @enderror"
+                                            id="mata_pelajaran_tambahan" name="mata_pelajaran_tambahan[]" multiple="multiple">
+                                        @foreach($mataPelajarans as $mapel)
+                                            <option value="{{ $mapel->id }}"
+                                                {{ in_array($mapel->id, $selectedAdditionalIds) ? 'selected' : '' }}
+                                                {{ $currentPrimaryId == $mapel->id ? 'disabled' : '' }}>
+                                                {{ $mapel->nama_mapel }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-text">Dapat memilih lebih dari 1 mata pelajaran tambahan</div>
+                                    @error('mata_pelajaran_tambahan')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    @error('mata_pelajaran_tambahan.*')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                             </div>
                         </div>
 
@@ -344,11 +375,47 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
-    $('.select2').select2({
+    $('#mata_pelajaran').select2({
         theme: 'bootstrap-5',
         width: '100%',
-        placeholder: 'Pilih Mata Pelajaran'
+        placeholder: 'Pilih Mata Pelajaran Utama'
     });
+
+    $('#mata_pelajaran_tambahan').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Pilih Mata Pelajaran Tambahan (Opsional)'
+    });
+
+    // Mencegah duplikasi antara mapel utama dan mapel tambahan
+    const $mapelUtama = $('#mata_pelajaran');
+    const $mapelTambahan = $('#mata_pelajaran_tambahan');
+
+    $mapelUtama.on('change', function() {
+        const utamaVal = $(this).val();
+
+        // Enable kembali semua opsi tambahan
+        $mapelTambahan.find('option').prop('disabled', false);
+
+        if (utamaVal) {
+            // Jika ada nilai di tambahan yang sama dengan utama, hapus pilihannya
+            let currentTambahanVals = $mapelTambahan.val() || [];
+            if (currentTambahanVals.includes(utamaVal)) {
+                currentTambahanVals = currentTambahanVals.filter(v => v !== utamaVal);
+                $mapelTambahan.val(currentTambahanVals);
+            }
+            // Nonaktifkan opsi mapel utama di dropdown tambahan
+            $mapelTambahan.find('option[value="' + utamaVal + '"]').prop('disabled', true);
+        }
+
+        $mapelTambahan.trigger('change.select2');
+    });
+
+    // Trigger on load agar opsi utama ter-disable di tambahan jika sudah terpilih
+    if ($mapelUtama.val()) {
+        $mapelTambahan.find('option[value="' + $mapelUtama.val() + '"]').prop('disabled', true);
+        $mapelTambahan.trigger('change.select2');
+    }
 
     const statusKepegawaian = document.getElementById('status_kepegawaian');
     const golonganField = document.getElementById('golongan');

@@ -71,7 +71,7 @@ class UserManagementService
             ]);
 
             // Create teacher profile
-            $user->guruProfile()->create([
+            $profile = $user->guruProfile()->create([
                 'nama' => $userData['name'],
                 'nip' => $profileData['nip'] ?? null,
                 'kode_guru' => $profileData['kode_guru'] ?? null,
@@ -92,7 +92,24 @@ class UserManagementService
                 'is_active' => true,
             ]);
 
-            return $user->load('guruProfile');
+            // Sync all subjects (primary + additional) to pivot table
+            $allMapelIds = [];
+            if (!empty($profileData['mata_pelajaran_id'])) {
+                $allMapelIds[] = (int) $profileData['mata_pelajaran_id'];
+            }
+            if (!empty($profileData['mata_pelajaran_tambahan']) && is_array($profileData['mata_pelajaran_tambahan'])) {
+                foreach ($profileData['mata_pelajaran_tambahan'] as $tId) {
+                    if (!empty($tId)) {
+                        $allMapelIds[] = (int) $tId;
+                    }
+                }
+            }
+            $allMapelIds = array_values(array_unique(array_filter($allMapelIds)));
+            if (!empty($allMapelIds)) {
+                $profile->mataPelajarans()->sync($allMapelIds);
+            }
+
+            return $user->load(['guruProfile.mataPelajaran', 'guruProfile.mataPelajarans']);
         });
     }
 

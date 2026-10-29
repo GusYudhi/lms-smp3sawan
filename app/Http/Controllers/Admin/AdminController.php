@@ -34,7 +34,7 @@ class AdminController extends Controller
         $genderFilter = $request->get('gender');
 
         // get user with profile guru and mata pelajaran to avoid N+1
-        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
+        $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran', 'guruProfile.mataPelajarans'])
             ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
             ->select('users.*')
             ->whereIn('users.role', ['guru', 'kepala_sekolah']);
@@ -51,10 +51,14 @@ class AdminController extends Controller
             });
         }
 
-        // Filter by mata pelajaran
+        // Filter by mata pelajaran (bisa sebagai mapel utama atau mapel tambahan)
         if ($mataPelajaranFilter) {
-            $query->whereHas('guruProfile.mataPelajaran', function($q) use ($mataPelajaranFilter) {
-                $q->where('nama_mapel', 'like', "%{$mataPelajaranFilter}%");
+            $query->whereHas('guruProfile', function($gp) use ($mataPelajaranFilter) {
+                $gp->whereHas('mataPelajaran', function($q) use ($mataPelajaranFilter) {
+                    $q->where('nama_mapel', 'like', "%{$mataPelajaranFilter}%");
+                })->orWhereHas('mataPelajarans', function($q) use ($mataPelajaranFilter) {
+                    $q->where('nama_mapel', 'like', "%{$mataPelajaranFilter}%");
+                });
             });
         }
 
@@ -94,7 +98,7 @@ class AdminController extends Controller
         $query = User::whereIn('users.role', ['guru', 'kepala_sekolah'])
             ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
             ->select('users.*')
-            ->with(['guruProfile.mataPelajaran']);
+            ->with(['guruProfile.kelas', 'guruProfile.mataPelajaran', 'guruProfile.mataPelajarans']);
 
         // Search functionality
         if ($request->filled('search')) {
@@ -106,6 +110,9 @@ class AdminController extends Controller
                       $sub->where('nip', 'LIKE', "%{$search}%")
                           ->orWhere('kode_guru', 'LIKE', "%{$search}%")
                           ->orWhereHas('mataPelajaran', function($mp) use ($search) {
+                              $mp->where('nama_mapel', 'LIKE', "%{$search}%");
+                          })
+                          ->orWhereHas('mataPelajarans', function($mp) use ($search) {
                               $mp->where('nama_mapel', 'LIKE', "%{$search}%");
                           });
                   });
@@ -126,11 +133,15 @@ class AdminController extends Controller
             });
         }
 
-        // Filter by mata pelajaran if needed
+        // Filter by mata pelajaran if needed (utama maupun tambahan)
         if ($request->filled('mata_pelajaran')) {
             $mataPelajaran = $request->mata_pelajaran;
-            $query->whereHas('guruProfile.mataPelajaran', function($q) use ($mataPelajaran) {
-                $q->where('nama_mapel', 'like', "%{$mataPelajaran}%");
+            $query->whereHas('guruProfile', function($gp) use ($mataPelajaran) {
+                $gp->whereHas('mataPelajaran', function($q) use ($mataPelajaran) {
+                    $q->where('nama_mapel', 'like', "%{$mataPelajaran}%");
+                })->orWhereHas('mataPelajarans', function($q) use ($mataPelajaran) {
+                    $q->where('nama_mapel', 'like', "%{$mataPelajaran}%");
+                });
             });
         }
 
@@ -189,11 +200,16 @@ class AdminController extends Controller
                 'golongan' => 'nullable|string|max:10',
                 'jabatan_di_sekolah' => 'required|string|max:100',
                 'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
+                'mata_pelajaran_tambahan' => 'nullable|array',
+                'mata_pelajaran_tambahan.*' => 'exists:mata_pelajarans,id|different:mata_pelajaran',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'password' => 'required|string|min:8|confirmed',
                 'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
                 'can_manage_berita' => 'nullable|boolean',
                 'can_manage_prestasi' => 'nullable|boolean',
+            ], [
+                'mata_pelajaran_tambahan.*.different' => 'Mata pelajaran tambahan tidak boleh sama dengan mata pelajaran utama.',
+                'mata_pelajaran_tambahan.*.exists' => 'Mata pelajaran tambahan yang dipilih tidak valid.',
             ]);
 
             // Handle profile photo upload untuk guru_profiles
@@ -234,6 +250,7 @@ class AdminController extends Controller
                 'golongan' => $validatedData['golongan'] ?? null,
                 'jabatan_di_sekolah' => $validatedData['jabatan_di_sekolah'] ?? null,
                 'mata_pelajaran_id' => $validatedData['mata_pelajaran'] ?? null,
+                'mata_pelajaran_tambahan' => $validatedData['mata_pelajaran_tambahan'] ?? [],
                 'kelas_id' => $validatedData['kelas_id'] ?? null,
                 'foto_profil' => $fotoProfilPath, // Simpan ke guru_profiles.foto_profil
                 'can_manage_berita' => $request->has('can_manage_berita'),
@@ -334,7 +351,9 @@ class AdminController extends Controller
     public function showGuru($id)
     {
         try {
-            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->findOrFail($id);
+            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])
+                ->with(['guruProfile.kelas', 'guruProfile.mataPelajaran', 'guruProfile.mataPelajarans'])
+                ->findOrFail($id);
 
             return view('admin.guru.show', compact('teacher'));
 
@@ -350,7 +369,9 @@ class AdminController extends Controller
     public function editGuru($id)
     {
         try {
-            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with(['guruProfile.kelas'])->findOrFail($id);
+            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])
+                ->with(['guruProfile.kelas', 'guruProfile.mataPelajaran', 'guruProfile.mataPelajarans'])
+                ->findOrFail($id);
 
             // Get active semester
             // Get all active master mata pelajaran
@@ -375,7 +396,7 @@ class AdminController extends Controller
     public function updateGuru(Request $request, $id)
     {
         try {
-            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with('guruProfile')->findOrFail($id);
+            $teacher = User::whereIn('role', ['guru', 'kepala_sekolah'])->with(['guruProfile.mataPelajarans'])->findOrFail($id);
             $profileId = $teacher->guruProfile ? $teacher->guruProfile->id : null;
 
             // Validation rules
@@ -388,6 +409,8 @@ class AdminController extends Controller
                 'nomor_telepon' => 'nullable|string|max:20',
                 'jabatan_di_sekolah' => 'nullable|string|max:100',
                 'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
+                'mata_pelajaran_tambahan' => 'nullable|array',
+                'mata_pelajaran_tambahan.*' => 'exists:mata_pelajarans,id|different:mata_pelajaran',
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
@@ -403,7 +426,12 @@ class AdminController extends Controller
                 $rules['password'] = 'string|min:8|confirmed';
             }
 
-            $request->validate($rules);
+            $messages = [
+                'mata_pelajaran_tambahan.*.different' => 'Mata pelajaran tambahan tidak boleh sama dengan mata pelajaran utama.',
+                'mata_pelajaran_tambahan.*.exists' => 'Mata pelajaran tambahan yang dipilih tidak valid.',
+            ];
+
+            $request->validate($rules, $messages);
 
             // Tentukan role berdasarkan jabatan
             $role = 'guru'; // Default role
@@ -443,7 +471,7 @@ class AdminController extends Controller
             }
 
             // Update GuruProfile
-            $teacher->guruProfile()->updateOrCreate(
+            $profile = $teacher->guruProfile()->updateOrCreate(
                 ['user_id' => $teacher->id],
                 [
                     'nama' => $request->input('name'),
@@ -465,6 +493,21 @@ class AdminController extends Controller
                     'password' => $request->filled('password') ? Hash::make($request->input('password')) : ($teacher->guruProfile->password ?? $teacher->password),
                 ]
             );
+
+            // Sync all subjects (primary + additional) to pivot table
+            $allMapelIds = [];
+            if ($request->filled('mata_pelajaran')) {
+                $allMapelIds[] = (int) $request->input('mata_pelajaran');
+            }
+            if ($request->filled('mata_pelajaran_tambahan') && is_array($request->input('mata_pelajaran_tambahan'))) {
+                foreach ($request->input('mata_pelajaran_tambahan') as $tId) {
+                    if (!empty($tId)) {
+                        $allMapelIds[] = (int) $tId;
+                    }
+                }
+            }
+            $allMapelIds = array_values(array_unique(array_filter($allMapelIds)));
+            $profile->mataPelajarans()->sync($allMapelIds);
 
             Log::info('Teacher updated successfully', ['teacher_id' => $teacher->id, 'updated_by' => auth()->id()]);
 

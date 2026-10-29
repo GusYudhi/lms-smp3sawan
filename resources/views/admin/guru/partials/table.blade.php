@@ -49,8 +49,29 @@
                     @endif
                 </td>
                 <td class="text-center">
-                    @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
-                        <span class="badge bg-primary-subtle text-primary border">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                    @php
+                        $primaryMapel = $teacher->guruProfile?->mataPelajaran;
+                        $tambahanMapels = $teacher->guruProfile?->mataPelajarans ? $teacher->guruProfile->mataPelajarans->where('id', '!=', $teacher->guruProfile->mata_pelajaran_id) : collect();
+                    @endphp
+                    @if($primaryMapel)
+                        <div class="d-flex flex-wrap justify-content-center gap-1">
+                            <span class="badge bg-primary-subtle text-primary border" title="Mata Pelajaran Utama">
+                                {{ $primaryMapel->nama_mapel }}
+                            </span>
+                            @foreach($tambahanMapels as $tambahan)
+                                <span class="badge bg-secondary-subtle text-secondary border" title="Mata Pelajaran Tambahan">
+                                    {{ $tambahan->nama_mapel }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @elseif($tambahanMapels->isNotEmpty())
+                        <div class="d-flex flex-wrap justify-content-center gap-1">
+                            @foreach($tambahanMapels as $tambahan)
+                                <span class="badge bg-secondary-subtle text-secondary border">
+                                    {{ $tambahan->nama_mapel }}
+                                </span>
+                            @endforeach
+                        </div>
                     @else
                         <span class="text-muted fst-italic">-</span>
                     @endif

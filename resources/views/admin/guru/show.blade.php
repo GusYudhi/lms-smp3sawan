@@ -55,8 +55,19 @@
                                     <div class="d-flex flex-column">
                                         <span class="small text-muted">Mata Pelajaran</span>
                                         <div class="mt-1">
-                                            @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
-                                                <span class="badge bg-primary-subtle text-primary border me-1 mb-1">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                                            @php
+                                                $primaryMapel = $teacher->guruProfile?->mataPelajaran;
+                                                $tambahanMapels = $teacher->guruProfile?->mataPelajarans ? $teacher->guruProfile->mataPelajarans->where('id', '!=', $teacher->guruProfile->mata_pelajaran_id) : collect();
+                                            @endphp
+                                            @if($primaryMapel)
+                                                <span class="badge bg-primary-subtle text-primary border me-1 mb-1" title="Utama">{{ $primaryMapel->nama_mapel }}</span>
+                                                @foreach($tambahanMapels as $tambahan)
+                                                    <span class="badge bg-secondary-subtle text-secondary border me-1 mb-1" title="Tambahan">{{ $tambahan->nama_mapel }}</span>
+                                                @endforeach
+                                            @elseif($tambahanMapels->isNotEmpty())
+                                                @foreach($tambahanMapels as $tambahan)
+                                                    <span class="badge bg-secondary-subtle text-secondary border me-1 mb-1">{{ $tambahan->nama_mapel }}</span>
+                                                @endforeach
                                             @else
                                                 <span class="fw-semibold">-</span>
                                             @endif
@@ -185,8 +196,19 @@
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Mata Pelajaran</span>
                                 <div class="mt-1">
-                                    @if($teacher->guruProfile && $teacher->guruProfile->mataPelajaran)
-                                        <span class="badge bg-primary-subtle text-primary border me-1 mb-1">{{ $teacher->guruProfile->mataPelajaran->nama_mapel }}</span>
+                                    @php
+                                        $primaryMapel2 = $teacher->guruProfile?->mataPelajaran;
+                                        $tambahanMapels2 = $teacher->guruProfile?->mataPelajarans ? $teacher->guruProfile->mataPelajarans->where('id', '!=', $teacher->guruProfile->mata_pelajaran_id) : collect();
+                                    @endphp
+                                    @if($primaryMapel2)
+                                        <span class="badge bg-primary-subtle text-primary border me-1 mb-1" title="Utama">{{ $primaryMapel2->nama_mapel }}</span>
+                                        @foreach($tambahanMapels2 as $tambahan)
+                                            <span class="badge bg-secondary-subtle text-secondary border me-1 mb-1" title="Tambahan">{{ $tambahan->nama_mapel }}</span>
+                                        @endforeach
+                                    @elseif($tambahanMapels2->isNotEmpty())
+                                        @foreach($tambahanMapels2 as $tambahan)
+                                            <span class="badge bg-secondary-subtle text-secondary border me-1 mb-1">{{ $tambahan->nama_mapel }}</span>
+                                        @endforeach
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif

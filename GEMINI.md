@@ -13,9 +13,9 @@
 
 ### 1. Database Relationships
 *   **Teacher - Subject (Guru - Mapel):** 
-    *   **Structure:** One-to-Many (Strict). A teacher (`guru_profiles`) teaches exactly **one** main subject (`mata_pelajaran_id`).
-    *   **Reason:** Simplifies scheduling logic and data integrity. Legacy pivot tables or string-based columns have been removed.
-    *   **Code:** `GuruProfile` belongsTo `MataPelajaran`. `MataPelajaran` hasMany `GuruProfile`.
+    *   **Structure:** Hybrid (Many-to-Many via pivot `guru_mata_pelajaran` + Primary Subject on `guru_profiles.mata_pelajaran_id`).
+    *   **Reason:** Memungkinkan guru mengajar lebih dari 1 mata pelajaran (Mapel Utama + Mapel Tambahan) dengan proteksi anti-duplikasi, sekaligus menjaga *backward compatibility* 100% pada rekap, export/import, dan profil guru.
+    *   **Code:** `GuruProfile` belongsTo `MataPelajaran` (`mata_pelajaran_id`, Utama) & belongsToMany `MataPelajaran` via `guru_mata_pelajaran` (`mataPelajarans`, Seluruh Mapel).
 
 ### 2. User Roles & Access
 *   **Admin:** Master data, User management, Scheduling.

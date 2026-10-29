@@ -30,11 +30,20 @@ class MataPelajaran extends Model
     }
 
     /**
-     * The teachers that teach this subject.
+     * The teachers that teach this subject (as primary subject).
      */
     public function guruProfiles()
     {
         return $this->hasMany(GuruProfile::class, 'mata_pelajaran_id');
+    }
+
+    /**
+     * All teacher profiles teaching this subject (primary and additional).
+     */
+    public function allGuruProfiles()
+    {
+        return $this->belongsToMany(GuruProfile::class, 'guru_mata_pelajaran', 'mata_pelajaran_id', 'guru_profile_id')
+            ->withTimestamps();
     }
 
     public function materiPelajarans()
@@ -54,6 +63,7 @@ class MataPelajaran extends Model
     {
         return $this->jadwalPelajarans()->exists()
             || $this->guruProfiles()->exists()
+            || $this->allGuruProfiles()->exists()
             || $this->materiPelajarans()->exists()
             || $this->jurnalMengajars()->exists();
     }
