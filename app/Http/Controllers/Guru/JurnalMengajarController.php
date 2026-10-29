@@ -80,12 +80,19 @@ class JurnalMengajarController extends Controller
         $tanggal = $request->get('tanggal', date('Y-m-d'));
         $hari = Carbon::parse($tanggal)->locale('id')->dayName;
 
-        // Ambil jadwal mengajar guru untuk hari tertentu
-        $jadwals = JadwalPelajaran::with(['kelas', 'mataPelajaran'])
+        // Ambil data semester aktif
+        $semesterAktif = Semester::where('is_active', true)->first();
+
+        // Ambil jadwal mengajar guru untuk hari tertentu (dibatasi semester aktif)
+        $jadwalQuery = JadwalPelajaran::with(['kelas', 'mataPelajaran'])
             ->where('guru_id', $guru->id)
-            ->where('hari', $hari)
-            ->orderBy('jam_ke')
-            ->get();
+            ->where('hari', $hari);
+
+        if ($semesterAktif) {
+            $jadwalQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        $jadwals = $jadwalQuery->orderBy('jam_ke')->get();
 
         // Ambil jurnal yang sudah diisi di hari ini
         $jurnalSudahDiisi = JurnalMengajar::where('guru_id', $guru->id)
@@ -103,8 +110,6 @@ class JurnalMengajarController extends Controller
             ];
         })->values();
 
-        // Ambil data jam pelajaran dari semester aktif
-        $semesterAktif = Semester::where('is_active', true)->first();
         $jamPelajarans = [];
 
         if ($semesterAktif) {

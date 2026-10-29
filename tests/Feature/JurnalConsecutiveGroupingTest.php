@@ -193,6 +193,106 @@ class JurnalConsecutiveGroupingTest extends TestCase
         $this->assertEquals(1, $grouped[1]['jumlah_jp']);
     }
 
+    public function test_group_consecutive_schedules_handles_duplicate_jam_ke_without_fragmenting_blocks()
+    {
+        $today = Carbon::now()->locale('id')->dayName;
+
+        // Simulasi kondisi duplikasi: Jam 1 dan Jam 2 masing-masing memiliki 2 baris (misal dari multiple semester/import)
+        $s1_a = JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 1,
+        ]);
+        $s1_b = JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 1,
+        ]);
+        $s2_a = JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 2,
+        ]);
+        $s2_b = JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 2,
+        ]);
+
+        $schedules = collect([$s1_a, $s1_b, $s2_a, $s2_b]);
+        $grouped = JadwalPelajaran::groupConsecutiveSchedules($schedules);
+
+        // Harus tetap menjadi 1 blok terpadu (Jam 1 - 2), TIDAK terpecah menjadi Jam 1, Jam 1-2, dan Jam 2
+        $this->assertCount(1, $grouped);
+        $block = $grouped->first();
+        $this->assertEquals(1, $block['jam_ke_mulai']);
+        $this->assertEquals(2, $block['jam_ke_selesai']);
+        $this->assertEquals(2, $block['jumlah_jp']);
+        $this->assertEquals([1, 2], $block['jam_ke_array']);
+    }
+
+    public function test_jurnal_create_page_only_queries_active_semester_schedules()
+    {
+        $today = Carbon::now()->locale('id')->dayName;
+
+        // Semester lama yang tidak aktif
+        $oldSemester = Semester::create([
+            'nama' => 'Semester Lama Inaktif',
+            'semester_ke' => 2,
+            'tahun_pelajaran_id' => $this->semester->tahun_pelajaran_id,
+            'tanggal_mulai' => now()->subYear()->toDateString(),
+            'tanggal_selesai' => now()->subMonths(6)->toDateString(),
+            'is_active' => false,
+        ]);
+
+        // Buat jadwal di semester lama (Jam 1 di Kelas 7A)
+        JadwalPelajaran::create([
+            'semester_id' => $oldSemester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 1,
+        ]);
+
+        // Buat jadwal di semester aktif (Jam 1 dan Jam 2 di Kelas 7A)
+        JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 1,
+        ]);
+        JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelas7A->id,
+            'mata_pelajaran_id' => $this->mapelMtk->id,
+            'guru_id' => $this->guru->id,
+            'hari' => $today,
+            'jam_ke' => 2,
+        ]);
+
+        $response = $this->actingAs($this->guru)->get(route('guru.jurnal-mengajar.create'));
+        $response->assertStatus(200);
+
+        // Hanya boleh ada blok "Jam ke-1 - 2", TIDAK boleh ada blok ganda "Jam ke-1"
+        $response->assertSee('Jam ke-1 - 2');
+        $response->assertDontSee('Jam ke-1</h5>', false); // Cek header kartu tidak ada yang hanya Jam ke-1
+    }
+
     public function test_guru_today_schedule_page_displays_grouped_blocks_and_wizard_link()
     {
         $today = Carbon::now()->locale('id')->dayName;

@@ -58,7 +58,13 @@ class JadwalPelajaran extends Model
             return collect();
         }
 
-        $sorted = $schedules->sortBy('jam_ke')->values();
+        // Deduplikasi jadwal berdasarkan kelas_id, mata_pelajaran_id, dan jam_ke
+        // agar duplikasi data (misal re-import atau filter semester longgar) tidak merusak pengelompokan
+        $unique = $schedules->unique(function ($item) {
+            return $item->kelas_id . '_' . $item->mata_pelajaran_id . '_' . $item->jam_ke;
+        });
+
+        $sorted = $unique->sortBy('jam_ke')->values();
         $grouped = [];
         $current = null;
 
@@ -84,36 +90,47 @@ class JadwalPelajaran extends Model
                 continue;
             }
 
-            // Jika kelas sama, mapel sama, dan jam_ke bersambung (+1)
+            // Jika kelas sama dan mapel sama
             if (
                 $current['kelas_id'] == $item->kelas_id &&
-                $current['mata_pelajaran_id'] == $item->mata_pelajaran_id &&
-                $item->jam_ke == ($current['jam_ke_selesai'] + 1)
+                $current['mata_pelajaran_id'] == $item->mata_pelajaran_id
             ) {
-                $current['jam_ke_selesai'] = $item->jam_ke;
-                $current['jam_ke_array'][] = $item->jam_ke;
-                $current['jumlah_jp'] = count($current['jam_ke_array']);
-                $current['schedule_ids'][] = $item->id;
-            } else {
-                $grouped[] = $current;
-                $current = [
-                    'id' => $item->id,
-                    'schedule_ids' => [$item->id],
-                    'kelas_id' => $item->kelas_id,
-                    'kelas' => $item->kelas,
-                    'mata_pelajaran_id' => $item->mata_pelajaran_id,
-                    'mataPelajaran' => $item->mataPelajaran,
-                    'guru_id' => $item->guru_id,
-                    'guru' => $item->guru,
-                    'hari' => $item->hari,
-                    'jam_ke_mulai' => $item->jam_ke,
-                    'jam_ke_selesai' => $item->jam_ke,
-                    'jam_ke_array' => [$item->jam_ke],
-                    'jumlah_jp' => 1,
-                    'has_jurnal' => false,
-                    'jurnal' => null,
-                ];
+                // Jika jam_ke sudah tercakup di dalam blok ini (duplikasi), jangan pecah grup
+                if (in_array($item->jam_ke, $current['jam_ke_array'])) {
+                    if (!in_array($item->id, $current['schedule_ids'])) {
+                        $current['schedule_ids'][] = $item->id;
+                    }
+                    continue;
+                }
+
+                // Jika jam_ke bersambung (+1)
+                if ($item->jam_ke == ($current['jam_ke_selesai'] + 1)) {
+                    $current['jam_ke_selesai'] = $item->jam_ke;
+                    $current['jam_ke_array'][] = $item->jam_ke;
+                    $current['jumlah_jp'] = count($current['jam_ke_array']);
+                    $current['schedule_ids'][] = $item->id;
+                    continue;
+                }
             }
+
+            $grouped[] = $current;
+            $current = [
+                'id' => $item->id,
+                'schedule_ids' => [$item->id],
+                'kelas_id' => $item->kelas_id,
+                'kelas' => $item->kelas,
+                'mata_pelajaran_id' => $item->mata_pelajaran_id,
+                'mataPelajaran' => $item->mataPelajaran,
+                'guru_id' => $item->guru_id,
+                'guru' => $item->guru,
+                'hari' => $item->hari,
+                'jam_ke_mulai' => $item->jam_ke,
+                'jam_ke_selesai' => $item->jam_ke,
+                'jam_ke_array' => [$item->jam_ke],
+                'jumlah_jp' => 1,
+                'has_jurnal' => false,
+                'jurnal' => null,
+            ];
         }
 
         if ($current !== null) {
