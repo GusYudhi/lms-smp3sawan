@@ -17,11 +17,17 @@ class AdminJadwalUpdateTest extends TestCase
     use DatabaseTransactions;
 
     protected $admin;
+
     protected $semester;
+
     protected $kelasA;
+
     protected $kelasB;
+
     protected $teacher;
+
     protected $mapel1;
+
     protected $mapel2;
 
     protected function setUp(): void
@@ -79,7 +85,7 @@ class AdminJadwalUpdateTest extends TestCase
         );
 
         $this->teacher = User::factory()->create([
-            'email' => 'guru_jadwal_upd_' . uniqid() . '@guru.id',
+            'email' => 'guru_jadwal_upd_'.uniqid().'@guru.id',
             'role' => 'guru',
             'password' => bcrypt('password123'),
         ]);
@@ -87,8 +93,8 @@ class AdminJadwalUpdateTest extends TestCase
         GuruProfile::create([
             'user_id' => $this->teacher->id,
             'nama' => $this->teacher->name,
-            'nip' => 'NIP-JADWAL-' . uniqid(),
-            'kode_guru' => 'G' . substr(uniqid(), -3),
+            'nip' => 'NIP-JADWAL-'.uniqid(),
+            'kode_guru' => 'G'.substr(uniqid(), -3),
             'is_active' => true,
             'mata_pelajaran_id' => $this->mapel1->id,
         ]);
@@ -181,7 +187,7 @@ class AdminJadwalUpdateTest extends TestCase
     {
         // Guru lain
         $otherTeacher = User::factory()->create([
-            'email' => 'guru_other_' . uniqid() . '@guru.id',
+            'email' => 'guru_other_'.uniqid().'@guru.id',
             'role' => 'guru',
             'password' => bcrypt('password123'),
         ]);
