@@ -199,18 +199,31 @@ class AdminController extends Controller
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'golongan' => 'nullable|string|max:10',
                 'jabatan_di_sekolah' => 'required|string|max:100',
-                'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
-                'mata_pelajaran_tambahan' => 'nullable|array',
-                'mata_pelajaran_tambahan.*' => 'exists:mata_pelajarans,id|different:mata_pelajaran',
+                'mata_pelajaran' => 'nullable',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'password' => 'required|string|min:8|confirmed',
                 'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
                 'can_manage_berita' => 'nullable|boolean',
                 'can_manage_prestasi' => 'nullable|boolean',
-            ], [
-                'mata_pelajaran_tambahan.*.different' => 'Mata pelajaran tambahan tidak boleh sama dengan mata pelajaran utama.',
-                'mata_pelajaran_tambahan.*.exists' => 'Mata pelajaran tambahan yang dipilih tidak valid.',
             ]);
+
+            // Ekstraksi mata pelajaran (bisa array dari multi-select maupun single id)
+            $mapelInput = $request->input('mata_pelajaran');
+            $mapelIds = [];
+            if (is_array($mapelInput)) {
+                $mapelIds = array_values(array_unique(array_filter(array_map('intval', $mapelInput))));
+            } elseif (!empty($mapelInput)) {
+                $mapelIds = [(int)$mapelInput];
+            }
+            if ($request->filled('mata_pelajaran_tambahan') && is_array($request->input('mata_pelajaran_tambahan'))) {
+                foreach ($request->input('mata_pelajaran_tambahan') as $tId) {
+                    if (!empty($tId)) $mapelIds[] = (int)$tId;
+                }
+                $mapelIds = array_values(array_unique(array_filter($mapelIds)));
+            }
+
+            $primaryMapelId = !empty($mapelIds) ? $mapelIds[0] : null;
+            $additionalMapelIds = !empty($mapelIds) ? array_slice($mapelIds, 1) : [];
 
             // Handle profile photo upload untuk guru_profiles
             $fotoProfilPath = null;
@@ -249,8 +262,8 @@ class AdminController extends Controller
                 'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
                 'golongan' => $validatedData['golongan'] ?? null,
                 'jabatan_di_sekolah' => $validatedData['jabatan_di_sekolah'] ?? null,
-                'mata_pelajaran_id' => $validatedData['mata_pelajaran'] ?? null,
-                'mata_pelajaran_tambahan' => $validatedData['mata_pelajaran_tambahan'] ?? [],
+                'mata_pelajaran_id' => $primaryMapelId,
+                'mata_pelajaran_tambahan' => $additionalMapelIds,
                 'kelas_id' => $validatedData['kelas_id'] ?? null,
                 'foto_profil' => $fotoProfilPath, // Simpan ke guru_profiles.foto_profil
                 'can_manage_berita' => $request->has('can_manage_berita'),
@@ -408,9 +421,7 @@ class AdminController extends Controller
                 'jenis_kelamin' => 'required|in:L,P',
                 'nomor_telepon' => 'nullable|string|max:20',
                 'jabatan_di_sekolah' => 'nullable|string|max:100',
-                'mata_pelajaran' => 'nullable|exists:mata_pelajarans,id',
-                'mata_pelajaran_tambahan' => 'nullable|array',
-                'mata_pelajaran_tambahan.*' => 'exists:mata_pelajarans,id|different:mata_pelajaran',
+                'mata_pelajaran' => 'nullable',
                 'status_kepegawaian' => 'nullable|in:PNS,PPPK,HONORER',
                 'kelas_id' => 'nullable|exists:kelas,id',
                 'profile_photo' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
@@ -426,12 +437,24 @@ class AdminController extends Controller
                 $rules['password'] = 'string|min:8|confirmed';
             }
 
-            $messages = [
-                'mata_pelajaran_tambahan.*.different' => 'Mata pelajaran tambahan tidak boleh sama dengan mata pelajaran utama.',
-                'mata_pelajaran_tambahan.*.exists' => 'Mata pelajaran tambahan yang dipilih tidak valid.',
-            ];
+            $request->validate($rules);
 
-            $request->validate($rules, $messages);
+            // Ekstraksi mata pelajaran (bisa array dari multi-select maupun single id)
+            $mapelInput = $request->input('mata_pelajaran');
+            $mapelIds = [];
+            if (is_array($mapelInput)) {
+                $mapelIds = array_values(array_unique(array_filter(array_map('intval', $mapelInput))));
+            } elseif (!empty($mapelInput)) {
+                $mapelIds = [(int)$mapelInput];
+            }
+            if ($request->filled('mata_pelajaran_tambahan') && is_array($request->input('mata_pelajaran_tambahan'))) {
+                foreach ($request->input('mata_pelajaran_tambahan') as $tId) {
+                    if (!empty($tId)) $mapelIds[] = (int)$tId;
+                }
+                $mapelIds = array_values(array_unique(array_filter($mapelIds)));
+            }
+
+            $primaryMapelId = !empty($mapelIds) ? $mapelIds[0] : null;
 
             // Tentukan role berdasarkan jabatan
             $role = 'guru'; // Default role
@@ -485,7 +508,7 @@ class AdminController extends Controller
                     'status_kepegawaian' => $request->input('status_kepegawaian'),
                     'golongan' => $request->input('golongan'),
                     'jabatan_di_sekolah' => $request->input('jabatan_di_sekolah'),
-                    'mata_pelajaran_id' => $request->input('mata_pelajaran'),
+                    'mata_pelajaran_id' => $primaryMapelId,
                     'kelas_id' => $request->input('kelas_id'),
                     'foto_profil' => $photoPath,
                     'can_manage_berita' => $request->has('can_manage_berita'),
@@ -494,20 +517,8 @@ class AdminController extends Controller
                 ]
             );
 
-            // Sync all subjects (primary + additional) to pivot table
-            $allMapelIds = [];
-            if ($request->filled('mata_pelajaran')) {
-                $allMapelIds[] = (int) $request->input('mata_pelajaran');
-            }
-            if ($request->filled('mata_pelajaran_tambahan') && is_array($request->input('mata_pelajaran_tambahan'))) {
-                foreach ($request->input('mata_pelajaran_tambahan') as $tId) {
-                    if (!empty($tId)) {
-                        $allMapelIds[] = (int) $tId;
-                    }
-                }
-            }
-            $allMapelIds = array_values(array_unique(array_filter($allMapelIds)));
-            $profile->mataPelajarans()->sync($allMapelIds);
+            // Sync all subjects to pivot table
+            $profile->mataPelajarans()->sync($mapelIds);
 
             Log::info('Teacher updated successfully', ['teacher_id' => $teacher->id, 'updated_by' => auth()->id()]);
 

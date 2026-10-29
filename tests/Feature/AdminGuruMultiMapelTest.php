@@ -47,7 +47,7 @@ class AdminGuruMultiMapelTest extends TestCase
         );
     }
 
-    public function test_admin_can_create_teacher_with_multiple_subjects()
+    public function test_admin_can_create_teacher_with_multi_select_subjects()
     {
         $response = $this->actingAs($this->admin)->from(route('admin.guru.create'))->post(route('admin.guru.store'), [
             'name' => 'Guru Multi Mapel Baru',
@@ -57,8 +57,7 @@ class AdminGuruMultiMapelTest extends TestCase
             'nomor_telepon' => '08123456789',
             'jenis_kelamin' => 'L',
             'jabatan_di_sekolah' => 'Guru',
-            'mata_pelajaran' => $this->mapel1->id,
-            'mata_pelajaran_tambahan' => [$this->mapel2->id, $this->mapel3->id],
+            'mata_pelajaran' => [$this->mapel1->id, $this->mapel2->id, $this->mapel3->id],
             'status_kepegawaian' => 'PNS',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -80,7 +79,7 @@ class AdminGuruMultiMapelTest extends TestCase
         $this->assertContains($this->mapel3->id, $allSubjectIds);
     }
 
-    public function test_admin_can_update_teacher_with_multiple_subjects()
+    public function test_admin_can_update_teacher_with_multi_select_subjects()
     {
         $teacher = User::create([
             'name' => 'Guru Update Mapel',
@@ -107,25 +106,24 @@ class AdminGuruMultiMapelTest extends TestCase
             'email' => 'guru.updatemapel@sekolah.id',
             'jenis_kelamin' => 'P',
             'jabatan_di_sekolah' => 'Guru',
-            'mata_pelajaran' => $this->mapel1->id,
-            'mata_pelajaran_tambahan' => [$this->mapel2->id, $this->mapel3->id],
+            'mata_pelajaran' => [$this->mapel2->id, $this->mapel3->id], // Mapel 2 jadi utama
             'status_kepegawaian' => 'PNS',
         ]);
 
         $response->assertRedirect(route('admin.guru.index'));
 
         $profile->refresh();
-        $this->assertEquals($this->mapel1->id, $profile->mata_pelajaran_id);
+        $this->assertEquals($this->mapel2->id, $profile->mata_pelajaran_id);
 
         $allSubjectIds = $profile->mataPelajarans()->pluck('mata_pelajarans.id')->toArray();
-        $this->assertEqualsCanonicalizing([$this->mapel1->id, $this->mapel2->id, $this->mapel3->id], $allSubjectIds);
+        $this->assertEqualsCanonicalizing([$this->mapel2->id, $this->mapel3->id], $allSubjectIds);
 
         $additionalIds = $profile->mataPelajaransTambahan()->pluck('mata_pelajarans.id')->toArray();
-        $this->assertEqualsCanonicalizing([$this->mapel2->id, $this->mapel3->id], $additionalIds);
-        $this->assertNotContains($this->mapel1->id, $additionalIds);
+        $this->assertEqualsCanonicalizing([$this->mapel3->id], $additionalIds);
+        $this->assertNotContains($this->mapel2->id, $additionalIds);
     }
 
-    public function test_validation_rejects_duplicate_subject_between_primary_and_additional()
+    public function test_duplicate_mapel_in_array_is_automatically_deduplicated()
     {
         $teacher = User::create([
             'name' => 'Guru Duplikat Mapel',
@@ -134,7 +132,7 @@ class AdminGuruMultiMapelTest extends TestCase
             'role' => 'guru',
         ]);
 
-        GuruProfile::create([
+        $profile = GuruProfile::create([
             'user_id' => $teacher->id,
             'nip' => '3344556677',
             'kode_guru' => 'DUP',
@@ -144,19 +142,22 @@ class AdminGuruMultiMapelTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->actingAs($this->admin)->from(route('admin.guru.edit', $teacher->id))->put(route('admin.guru.update', $teacher->id), [
+        $response = $this->actingAs($this->admin)->put(route('admin.guru.update', $teacher->id), [
             'name' => 'Guru Duplikat Mapel',
             'nomor_induk' => '3344556677',
             'kode_guru' => 'DUP',
             'email' => 'guru.dup@sekolah.id',
             'jenis_kelamin' => 'L',
             'jabatan_di_sekolah' => 'Guru',
-            'mata_pelajaran' => $this->mapel1->id,
-            'mata_pelajaran_tambahan' => [$this->mapel1->id, $this->mapel2->id], // mapel1 duplikat dengan utama
+            'mata_pelajaran' => [$this->mapel1->id, $this->mapel1->id, $this->mapel2->id], // mapel1 dobel di input
             'status_kepegawaian' => 'PNS',
         ]);
 
-        $response->assertSessionHasErrors(['mata_pelajaran_tambahan.0']);
+        $response->assertRedirect(route('admin.guru.index'));
+
+        $profile->refresh();
+        $allSubjectIds = $profile->mataPelajarans()->pluck('mata_pelajarans.id')->toArray();
+        $this->assertEqualsCanonicalizing([$this->mapel1->id, $this->mapel2->id], $allSubjectIds);
     }
 
     public function test_admin_guru_filter_matches_teachers_with_additional_subjects()

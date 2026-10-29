@@ -51,3 +51,4 @@ return new class extends Migration
         Schema::dropIfExists('guru_mata_pelajaran');
     }
 };
+
