@@ -38,9 +38,13 @@ class JadwalPelajaranController extends Controller
         }
 
         $kelas = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
-        $gurus = User::where('role', 'guru')
+        $gurus = User::where('users.role', 'guru')
+            ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
+            ->select('users.*')
             ->with('guruProfile') // Eager load profile to get mata_pelajaran_id
-            ->orderBy('name')
+            ->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
+            ->orderBy('guru_profiles.kode_guru', 'asc')
+            ->orderBy('users.name', 'asc')
             ->get();
 
         return view('admin.jadwal-mapel.jadwal', compact('kelas', 'mapels', 'gurus', 'jamPelajarans', 'semester'));

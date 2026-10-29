@@ -34,15 +34,18 @@ class AdminController extends Controller
 
         // get user with profile guru and mata pelajaran to avoid N+1
         $query = User::with(['guruProfile.kelas', 'guruProfile.mataPelajaran'])
-            ->whereIn('role', ['guru', 'kepala_sekolah']);
+            ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
+            ->select('users.*')
+            ->whereIn('users.role', ['guru', 'kepala_sekolah']);
 
         // Search functionality
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
+                $q->where('users.name', 'like', "%{$search}%")
+                  ->orWhere('users.email', 'like', "%{$search}%")
                   ->orWhereHas('guruProfile', function($query) use ($search) {
-                      $query->where('nip', 'like', "%{$search}%");
+                      $query->where('nip', 'like', "%{$search}%")
+                            ->orWhere('kode_guru', 'like', "%{$search}%");
                   });
             });
         }
@@ -61,7 +64,11 @@ class AdminController extends Controller
             });
         }
 
-        $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
+        $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
+            ->orderBy('guru_profiles.kode_guru', 'asc')
+            ->orderBy('users.name', 'asc')
+            ->paginate(15)
+            ->withQueryString();
 
         // Get list mata pelajaran untuk filter
         $mataPelajaranList = \App\Models\MataPelajaran::where('is_active', true)->orderBy('nama_mapel', 'asc')->get();
@@ -74,17 +81,20 @@ class AdminController extends Controller
      */
     public function searchGuru(Request $request)
     {
-        $query = User::whereIn('role', ['guru', 'kepala_sekolah'])
+        $query = User::whereIn('users.role', ['guru', 'kepala_sekolah'])
+            ->leftJoin('guru_profiles', 'users.id', '=', 'guru_profiles.user_id')
+            ->select('users.*')
             ->with(['guruProfile.mataPelajaran']);
 
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
+                $q->where('users.name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.email', 'LIKE', "%{$search}%")
                   ->orWhereHas('guruProfile', function($sub) use ($search) {
                       $sub->where('nip', 'LIKE', "%{$search}%")
+                          ->orWhere('kode_guru', 'LIKE', "%{$search}%")
                           ->orWhereHas('mataPelajaran', function($mp) use ($search) {
                               $mp->where('nama_mapel', 'LIKE', "%{$search}%");
                           });
@@ -106,7 +116,11 @@ class AdminController extends Controller
             });
         }
 
-        $teachers = $query->orderBy('name', 'asc')->paginate(15)->withQueryString();
+        $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
+            ->orderBy('guru_profiles.kode_guru', 'asc')
+            ->orderBy('users.name', 'asc')
+            ->paginate(15)
+            ->withQueryString();
 
         if ($request->ajax()) {
             return response()->json([

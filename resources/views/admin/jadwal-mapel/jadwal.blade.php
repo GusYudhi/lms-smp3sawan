@@ -295,9 +295,7 @@
                             <select class="form-select select2" id="guru_id" name="guru_id" required>
                                 <option value="">Pilih Guru</option>
                                 @foreach($gurus as $g)
-                                    <option value="{{ $g->id }}" data-mapel-id="{{ $g->guruProfile->mata_pelajaran_id ?? '' }}">
-                                        {{ $g->name }}
-                                    </option>
+                                    <option value="{{ $g->id }}" data-mapel-id="{{ $g->guruProfile->mata_pelajaran_id ?? '' }}">{{ $g->name }}{{ $g->guruProfile?->kode_guru ? ' (' . $g->guruProfile->kode_guru . ')' : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -470,7 +468,7 @@ $(document).ready(function() {
         if ($(this).val()) { // Skip placeholder
             allGuruOptions.push({
                 id: $(this).val(),
-                text: $(this).text(),
+                text: $(this).text().trim(),
                 mapelId: $(this).data('mapel-id')
             });
         }
