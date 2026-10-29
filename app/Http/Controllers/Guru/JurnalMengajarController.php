@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Guru;
 
+use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
-use App\Models\JurnalMengajar;
+use App\Models\Attendance;
 use App\Models\JadwalPelajaran;
-use App\Models\Kelas;
 use App\Models\JamPelajaran;
+use App\Models\JurnalAttendance;
+use App\Models\JurnalMengajar;
+use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Semester;
-use App\Models\Attendance;
 use App\Models\StudentProfile;
-use App\Models\JurnalAttendance;
-use App\Helpers\ImageCompressor;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class JurnalMengajarController extends Controller
 {
@@ -106,7 +106,7 @@ class JurnalMengajarController extends Controller
         $jurnalSudahDiisiCollection = $groupedJadwals->where('has_jurnal', true)->map(function ($item) {
             return [
                 'jadwal' => $item,
-                'jurnal' => $item['jurnal']
+                'jurnal' => $item['jurnal'],
             ];
         })->values();
 
@@ -136,7 +136,7 @@ class JurnalMengajarController extends Controller
         $returnTo = $request->get('return_to', 'create');
 
         // Validasi parameter
-        if (!$tanggal || !$kelasId || !$mataPelajaranId || !$jamKeMulai || !$jamKeSelesai) {
+        if (! $tanggal || ! $kelasId || ! $mataPelajaranId || ! $jamKeMulai || ! $jamKeSelesai) {
             return redirect()->route('guru.jurnal-mengajar.create')
                 ->withErrors(['error' => 'Parameter tidak lengkap']);
         }
@@ -150,7 +150,7 @@ class JurnalMengajarController extends Controller
         $siswaKelas = StudentProfile::with('user')
             ->where('kelas_id', $kelasId)
             ->get()
-            ->sortBy(function($siswa) {
+            ->sortBy(function ($siswa) {
                 return $siswa->user->name ?? '';
             });
 
@@ -210,7 +210,7 @@ class JurnalMengajarController extends Controller
             ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
             ->where(function ($query) use ($request) {
                 $query->where('jam_ke_mulai', '<=', $request->jam_ke_selesai)
-                      ->where('jam_ke_selesai', '>=', $request->jam_ke_mulai);
+                    ->where('jam_ke_selesai', '>=', $request->jam_ke_mulai);
             })
             ->first();
 
@@ -222,7 +222,7 @@ class JurnalMengajarController extends Controller
         // Validasi jam pelajaran exists
         $semesterAktif = Semester::where('is_active', true)->first();
 
-        if (!$semesterAktif) {
+        if (! $semesterAktif) {
             return back()->withErrors(['semester' => 'Semester aktif tidak ditemukan.'])->withInput();
         }
 
@@ -235,7 +235,7 @@ class JurnalMengajarController extends Controller
             ->where('jam_ke', $request->jam_ke_selesai)
             ->first();
 
-        if (!$jamPelajaranMulai || !$jamPelajaranSelesai) {
+        if (! $jamPelajaranMulai || ! $jamPelajaranSelesai) {
             return back()->withErrors(['jam' => 'Data jam pelajaran tidak ditemukan.'])->withInput();
         }        // Handle foto bukti upload
         $fotoPath = null;
@@ -249,14 +249,14 @@ class JurnalMengajarController extends Controller
                 );
 
                 // Generate unique filename
-                $filename = 'jurnal_' . Auth::id() . '_' . time() . '.webp';
-                $path = 'jurnal_mengajar/' . $filename;
+                $filename = 'jurnal_'.Auth::id().'_'.time().'.webp';
+                $path = 'jurnal_mengajar/'.$filename;
 
                 // Save to storage
                 Storage::disk('public')->put($path, $compressedImage);
                 $fotoPath = $path;
             } catch (\Exception $e) {
-                return back()->withErrors(['foto_bukti' => 'Gagal mengupload foto: ' . $e->getMessage()]);
+                return back()->withErrors(['foto_bukti' => 'Gagal mengupload foto: '.$e->getMessage()]);
             }
         }
 
@@ -501,35 +501,35 @@ class JurnalMengajarController extends Controller
             $extension = strtolower($file->getClientOriginalExtension());
 
             // Verify it's a HEIC file
-            if (!in_array($extension, ['heic', 'heif'])) {
+            if (! in_array($extension, ['heic', 'heif'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'File must be HEIC or HEIF format'
+                    'message' => 'File must be HEIC or HEIF format',
                 ], 400);
             }
 
             // Convert HEIC to JPG and store temporarily
             $convertedPath = ImageCompressor::convertHeicToJpgTemp($file);
 
-            if (!$convertedPath) {
+            if (! $convertedPath) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to convert HEIC file'
+                    'message' => 'Failed to convert HEIC file',
                 ], 500);
             }
 
             // Read the converted JPG file and return as base64
-            $fullPath = storage_path('app/' . $convertedPath);
+            $fullPath = storage_path('app/'.$convertedPath);
 
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Converted file not found'
+                    'message' => 'Converted file not found',
                 ], 500);
             }
 
             $imageData = file_get_contents($fullPath);
-            $base64 = 'data:image/jpeg;base64,' . base64_encode($imageData);
+            $base64 = 'data:image/jpeg;base64,'.base64_encode($imageData);
 
             // Clean up temporary converted file
             Storage::delete($convertedPath);
@@ -537,15 +537,15 @@ class JurnalMengajarController extends Controller
             return response()->json([
                 'success' => true,
                 'image' => $base64,
-                'message' => 'HEIC converted successfully'
+                'message' => 'HEIC converted successfully',
             ]);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('HEIC Conversion Error: ' . $e->getMessage());
+            Log::error('HEIC Conversion Error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error converting HEIC: ' . $e->getMessage()
+                'message' => 'Error converting HEIC: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -569,4 +569,3 @@ class JurnalMengajarController extends Controller
         return view('guru.jurnal-mengajar.print', compact('jurnals', 'bulan', 'tahun', 'guru'));
     }
 }
-
