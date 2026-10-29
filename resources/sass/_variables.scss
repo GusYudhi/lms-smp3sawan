@@ -1,12 +1,41 @@
 @import "tokens";
 
-// Body
+// Body & Surface
 $body-bg: $color-surface;
+$body-color: $color-body-text;
 
-// Typography
-$font-family-sans-serif: "Nunito", sans-serif;
-$font-size-base: 0.9rem;
-$line-height-base: 1.6;
+// Typography (Material Design 3 - Roboto)
+$font-family-sans-serif: $font-family-m3;
+$font-size-base: 0.925rem;
+$line-height-base: 1.5;
 
-// Primary Override
+// Color Role Overrides for Bootstrap
 $primary: $color-primary;
+$success: $color-success;
+$info: $color-info;
+$warning: $color-warning;
+$danger: $color-danger;
+$secondary: $color-secondary;
+
+// M3 Component Shapes (Pill Buttons, Rounded Cards & Inputs)
+$btn-border-radius: $radius-pill;
+$btn-border-radius-sm: $radius-pill;
+$btn-border-radius-lg: $radius-pill;
+$btn-font-weight: 500;
+$btn-padding-y: 0.55rem;
+$btn-padding-x: 1.25rem;
+
+$card-border-radius: $radius-lg;
+$card-border-width: 0;
+$card-box-shadow: $m3-elevation-1;
+
+$input-border-radius: $radius-sm;
+$input-border-color: $color-outline;
+$input-focus-border-color: $color-primary;
+
+$badge-border-radius: $radius-sm;
+$badge-padding-y: 0.4em;
+$badge-padding-x: 0.65em;
+
+$modal-content-border-radius: $radius-xl;
+$modal-content-box-shadow-xs: $m3-elevation-3;

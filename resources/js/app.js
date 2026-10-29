@@ -54,4 +54,32 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    // Material Design 3 Ripple Effect
+    document.addEventListener("click", function (e) {
+        const target = e.target.closest(".btn, .card-clickable, .ripple-effect");
+        if (!target) return;
+
+        const rect = target.getBoundingClientRect();
+        const ripple = document.createElement("span");
+        ripple.classList.add("m3-ripple");
+
+        const diameter = Math.max(rect.width, rect.height);
+        const radius = diameter / 2;
+
+        ripple.style.width = ripple.style.height = `${diameter}px`;
+        ripple.style.left = `${e.clientX - rect.left - radius}px`;
+        ripple.style.top = `${e.clientY - rect.top - radius}px`;
+
+        const existingRipple = target.querySelector(".m3-ripple");
+        if (existingRipple) {
+            existingRipple.remove();
+        }
+
+        target.appendChild(ripple);
+
+        setTimeout(() => {
+            ripple.remove();
+        }, 500);
+    });
 });

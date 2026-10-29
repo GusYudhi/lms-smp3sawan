@@ -13,17 +13,24 @@
     overflow-y: auto;
 
     .nav-link {
-        color: rgba(255, 255, 255, 0.9);
-        padding: 0.75rem 1rem;
-        border-radius: 0.375rem;
-        margin-bottom: 0.25rem;
-        transition: all 0.3s ease;
+        color: rgba(255, 255, 255, 0.85);
+        padding: 0.75rem 1.25rem;
+        border-radius: $radius-pill;
+        margin-bottom: 0.35rem;
+        font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-        &:hover,
+        &:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+        }
+
         &.active {
             color: #fff;
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
+            background-color: rgba(255, 255, 255, 0.24);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
     }
 }
@@ -119,12 +126,13 @@
 .form-control:focus,
 .form-select:focus {
     border-color: $color-primary;
-    box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+    box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.2);
 }
 
 .btn-primary {
     background-color: $color-primary;
     border-color: $color-primary;
+    border-radius: $radius-pill;
 
     &:hover {
         background-color: $color-primary-hover;
@@ -133,25 +141,26 @@
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(13, 71, 161, 0.05);
+    background-color: rgba(13, 71, 161, 0.04);
 }
 
 .alert {
     border: none;
-    border-radius: 0.375rem;
+    border-radius: $radius-md;
+    box-shadow: $m3-elevation-1;
 }
 
 .text-high-contrast {
-    color: #2c3e50 !important;
+    color: #1e293b !important;
     font-weight: 500;
 }
 
 .text-medium-contrast {
-    color: #495057 !important;
+    color: #475569 !important;
 }
 
 .text-subtle {
-    color: #6c757d !important;
+    color: #64748b !important;
 }
 
 // --- Scoped Layout: Auth (`/login`, passwords, register) ---
@@ -161,7 +170,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Nunito', sans-serif;
+    font-family: $font-family-m3;
     position: relative;
 
     &::before {
