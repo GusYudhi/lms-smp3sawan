@@ -121,6 +121,7 @@ class TemplateKodeGuruSheet implements FromCollection, WithHeadings, WithTitle, 
             ->where('is_active', true)
             ->whereNotNull('kode_guru')
             ->select('id', 'user_id', 'kode_guru', 'nama')
+            ->orderByRaw("CASE WHEN kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
             ->orderByRaw('CAST(kode_guru AS UNSIGNED) ASC')
             ->orderBy('kode_guru', 'asc')
             ->get()

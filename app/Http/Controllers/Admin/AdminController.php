@@ -65,6 +65,8 @@ class AdminController extends Controller
         }
 
         $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
+            ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
+            ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")
             ->orderBy('guru_profiles.kode_guru', 'asc')
             ->orderBy('users.name', 'asc')
             ->paginate(15)
@@ -117,6 +119,8 @@ class AdminController extends Controller
         }
 
         $teachers = $query->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
+            ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
+            ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")
             ->orderBy('guru_profiles.kode_guru', 'asc')
             ->orderBy('users.name', 'asc')
             ->paginate(15)
