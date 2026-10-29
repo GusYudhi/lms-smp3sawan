@@ -7,26 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
-<style>
-    .draggable-item {
-        cursor: grab;
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
-    }
-    .draggable-item:active {
-        cursor: grabbing;
-    }
-    .draggable-item.dragging {
-        opacity: 0.5;
-        transform: scale(0.95);
-    }
-    .drop-zone {
-        transition: background-color 0.2s ease;
-    }
-    .drop-zone.drag-over {
-        background-color: #e9ecef !important;
-        border: 2px dashed #0d6efd !important;
-    }
-</style>
+
 
 <div class="container-fluid">
     <!-- Page Heading -->

@@ -147,13 +147,5 @@
     </div>
 </div>
 
-<style>
-.timeline-marker {
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 5px;
-}
-</style>
+
 @endsection

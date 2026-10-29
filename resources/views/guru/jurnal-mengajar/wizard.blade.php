@@ -267,62 +267,7 @@
 </div>
 
 @push('styles')
-<style>
-    .step-indicator {
-        position: relative;
-    }
 
-    .step-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background-color: #e9ecef;
-        color: #6c757d;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        font-weight: bold;
-        margin: 0 auto 10px;
-        transition: all 0.3s;
-    }
-
-    .step-indicator.active .step-circle {
-        background-color: #0d6efd;
-        color: white;
-    }
-
-    .step-indicator.completed .step-circle {
-        background-color: #198754;
-        color: white;
-    }
-
-    .step-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #6c757d;
-    }
-
-    .step-indicator.active .step-label {
-        color: #0d6efd;
-        font-weight: 600;
-    }
-
-    .step-connector {
-        height: 2px;
-        background-color: #e9ecef;
-        margin: 25px 20px 0;
-    }
-
-    .wizard-step {
-        animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
 @endpush
 
 @push('scripts')

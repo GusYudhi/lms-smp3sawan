@@ -240,47 +240,4 @@ $(document).ready(function() {
 });
 </script>
 
-<style>
-/* Smooth transitions */
-.card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-/* Table styling */
-.table-bordered td, .table-bordered th {
-    border-color: #e9ecef;
-}
-
-thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #f8f9fa;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .table {
-        font-size: 0.85rem;
-    }
-
-    .card-body h6 {
-        font-size: 0.8rem !important;
-    }
-
-    .small {
-        font-size: 0.75rem !important;
-    }
-}
-
-/* Animation for loading */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.card {
-    animation: fadeIn 0.3s ease-in-out;
-}
-</style>
 @endpush

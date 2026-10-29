@@ -535,8 +535,6 @@
 @endpush
 
 @push('styles')
-<style>
-    /* Removed - using inline styles instead for better mobile compatibility */
-</style>
+
 @endpush
 @endsection
