@@ -1,1 +1,356 @@
-// _base.scss stub
+// Base Shell, Layout Scoping & Production Utilities
+
+// --- Admin / App / Semester Shell ---
+.sidebar {
+    min-height: 100vh;
+    background: $color-primary !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    overflow-y: auto;
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.9);
+        padding: 0.75rem 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+
+        &:hover,
+        &.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+    }
+}
+
+.main-content {
+    background-color: $color-surface;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.sidebar-brand {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+}
+
+.semester-info-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem;
+    border-left: 4px solid #ffc107;
+}
+
+.content-area {
+    padding: 2rem;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+
+    &.show {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+// Sidebar responsive drawer breakpoints
+@media (max-width: 767.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        width: 280px;
+
+        &.show {
+            transform: translateX(0);
+        }
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        margin-left: 25%;
+    }
+    .sidebar {
+        width: 25%;
+    }
+}
+
+@media (min-width: 992px) {
+    .main-content {
+        margin-left: 16.66667%;
+    }
+    .sidebar {
+        width: 16.66667%;
+    }
+}
+
+// --- Preserved Production Utilities (Form, Button, Table, Alert, Contrast) ---
+.form-control:focus,
+.form-select:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+}
+
+.btn-primary {
+    background-color: $color-primary;
+    border-color: $color-primary;
+
+    &:hover {
+        background-color: $color-primary-hover;
+        border-color: $color-primary-hover;
+    }
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 71, 161, 0.05);
+}
+
+.alert {
+    border: none;
+    border-radius: 0.375rem;
+}
+
+.text-high-contrast {
+    color: #2c3e50 !important;
+    font-weight: 500;
+}
+
+.text-medium-contrast {
+    color: #495057 !important;
+}
+
+.text-subtle {
+    color: #6c757d !important;
+}
+
+// --- Scoped Layout: Auth (`/login`, passwords, register) ---
+.layout-auth {
+    background: $color-primary;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="4"/></g></svg>');
+        z-index: 1;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: $radius-auth-card;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        max-width: 420px;
+        width: 100%;
+        margin: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-header {
+        background: $color-primary;
+        color: white;
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        h3 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    .auth-body {
+        padding: 2.5rem 2rem 2rem;
+    }
+
+    .auth-footer {
+        text-align: center;
+        padding: 1rem 2rem 2.5rem;
+    }
+
+    .forgot-password {
+        color: $color-primary;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: $color-primary-hover;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+    }
+
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        padding: 15px 18px;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+
+        &:focus {
+            border-color: #0d47a1;
+            box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.15);
+            transform: translateY(-1px);
+        }
+
+        &::placeholder {
+            color: #adb5bd;
+            font-weight: 400;
+        }
+
+        &.is-invalid {
+            border-color: #dc3545;
+            &:focus {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            }
+        }
+    }
+
+    .btn-primary {
+        background: #0d47a1;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        width: 100%;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+
+        &:hover {
+            background: #0a3d8a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 71, 161, 0.4);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    .form-check {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d47a1;
+        border-color: #0d47a1;
+    }
+
+    .form-check-input:focus {
+        border-color: #0d47a1;
+        box-shadow: 0 0 0 0.25rem rgba(13, 71, 161, 0.25);
+    }
+
+    .invalid-feedback {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+}
+
+// --- Scoped Layout: Guest (Public Pages) ---
+.layout-guest {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    .guest-header {
+        background: rgba(13, 71, 161, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        padding: 1rem !important;
+
+        &:hover,
+        &.active {
+            color: #fff !important;
+        }
+    }
+
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-content {
+        flex: 1;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    footer {
+        margin-top: auto;
+    }
+}

@@ -11,48 +11,11 @@
 
     <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .guest-header {
-            background: rgba(13, 71, 161, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        .nav-link {
-            color: rgba(255,255,255,0.8) !important;
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            padding: 1rem !important;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: #fff !important;
-        }
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .main-content {
-            flex: 1;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        footer {
-            margin-top: auto;
-        }
-    </style>
+    <!-- Bootstrap CSS via Vite -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 
-<body>
+<body class="layout-guest">
     <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-dark guest-header sticky-top">
         <div class="container">
