@@ -231,29 +231,6 @@ class ImageCompressionUploadTest extends TestCase
         Storage::disk('public')->assertExists('profile_photos/' . $fotoProfil);
     }
 
-    public function test_kegiatan_kokurikuler_photo_is_compressed_to_webp()
-    {
-        $admin = $this->createAdmin();
-        $file = UploadedFile::fake()->image('pramuka.jpg', 1600, 1000);
-
-        $response = $this->actingAs($admin)->post(route('admin.kegiatan-kokurikuler.store'), [
-            'nama' => 'Kemah Pramuka Akbar',
-            'deskripsi' => 'Kegiatan kepramukaan siswa di alam terbuka.',
-            'tipe' => 'foto',
-            'tanggal' => now()->toDateString(),
-            'foto' => $file,
-        ]);
-
-        $response->assertRedirect(route('admin.kegiatan-kokurikuler.index'));
-
-        $kegiatan = \App\Models\KegiatanKokurikuler::where('nama', 'Kemah Pramuka Akbar')->first();
-        $this->assertNotNull($kegiatan);
-        $this->assertStringEndsWith('.webp', $kegiatan->foto);
-        $this->assertStringStartsWith('kegiatan-kokurikuler/', $kegiatan->foto);
-
-        Storage::disk('public')->assertExists($kegiatan->foto);
-    }
-
     public function test_siswa_absence_photo_document_is_compressed_to_webp()
     {
         $studentUser = User::factory()->create([

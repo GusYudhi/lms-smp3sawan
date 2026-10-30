@@ -174,8 +174,7 @@ Route::middleware(['auth'])->group(function () {
         // Route::get('/absensi/guru/{id}', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'detailGuru'])->name('admin.absensi.guru.detail');
         // Route::get('/absensi/guru/{id}/monthly', [App\Http\Controllers\Admin\AbsensiRekapController::class, 'monthlyGuru'])->name('admin.absensi.guru.monthly');
 
-        // Kegiatan Kokurikuler
-        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('admin.kegiatan-kokurikuler');
+        // Penilaian Kokurikuler
         Route::get('/penilaian-kokurikuler/rekap', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'rekap'])->name('admin.penilaian-kokurikuler.rekap');
         Route::get('/penilaian-kokurikuler/export', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'export'])->name('admin.penilaian-kokurikuler.export');
 
@@ -246,8 +245,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'update'])->name('kepala-sekolah.agenda.update');
         Route::delete('/agenda/{id}', [App\Http\Controllers\KepalaSekolah\AgendaKepsekController::class, 'destroy'])->name('kepala-sekolah.agenda.destroy');
 
-        // Kegiatan Kokurikuler
-        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\KepalaSekolah\KegiatanKokurikulerController::class)->names('kepala-sekolah.kegiatan-kokurikuler');
+        // Penilaian Kokurikuler
         Route::get('/penilaian-kokurikuler/rekap', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'rekap'])->name('kepala-sekolah.penilaian-kokurikuler.rekap');
         Route::get('/penilaian-kokurikuler/export', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'export'])->name('kepala-sekolah.penilaian-kokurikuler.export');
 
@@ -342,9 +340,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'update'])->name('guru.agenda.update');
         Route::delete('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'destroy'])->name('guru.agenda.destroy');
 
-        // Kegiatan Kokurikuler
-        Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('guru.kegiatan-kokurikuler');
-
         // Penilaian Kokurikuler (Wali Kelas)
         Route::get('/penilaian-kokurikuler', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'index'])->name('guru.penilaian-kokurikuler.index');
         Route::post('/penilaian-kokurikuler', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'store'])->name('guru.penilaian-kokurikuler.store');
@@ -383,7 +378,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('/')->middleware('role:all')->group(function () {
-        Route::get('/kegiatan-kokurikuler', [App\Http\Controllers\KegiatanKokurikulerController::class, 'index'])->name('kegiatan-kokurikuler.index');
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/data', [App\Http\Controllers\ProfileController::class, 'getUserData'])->name('profile.data');
         Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');

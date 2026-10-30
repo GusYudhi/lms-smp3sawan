@@ -53,13 +53,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('admin.kegiatan-kokurikuler.index') }}">
-                        <i class="fas fa-running me-2"></i> Kokurikuler
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('admin.penilaian-kokurikuler.rekap') }}">
-                        <i class="fas fa-star me-2"></i> Rekap Nilai Kokurikuler
+                        <i class="fas fa-star me-2"></i> Penilaian Kokurikuler
                     </a>
                 </li>
                 <li class="nav-item">
@@ -166,13 +161,8 @@
 
                 <!-- Manajemen Konten -->
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('kepala-sekolah.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.kegiatan-kokurikuler.index') }}">
-                        <i class="fas fa-running me-2"></i> Kokurikuler
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('kepala-sekolah.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.penilaian-kokurikuler.rekap') }}">
-                        <i class="fas fa-star me-2"></i> Rekap Nilai Kokurikuler
+                        <i class="fas fa-star me-2"></i> Penilaian Kokurikuler
                     </a>
                 </li>
                 <li class="nav-item">
@@ -265,16 +255,6 @@
                     </a>
                 </li>
                 @endif
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('guru.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('guru.kegiatan-kokurikuler.index') }}">
-                        <i class="fas fa-running me-2"></i> Kegiatan Kokurikuler
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kegiatan-kokurikuler.index') }}">
-                        <i class="fas fa-running me-2"></i> Info Kokurikuler
-                    </a>
-                </li>
                 @if(auth()->user()->canManageBerita() || auth()->user()->canManagePrestasi())
                     <hr class="text-white-50 my-2">
                     <li class="nav-item">
@@ -319,11 +299,6 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('siswa.absensi-mapel.*') ? 'active' : '' }}" href="{{ route('siswa.absensi-mapel.index') }}">
                         <i class="fas fa-clipboard-list me-2"></i> Absensi Mapel
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kegiatan-kokurikuler.index') }}">
-                        <i class="fas fa-running me-2"></i> Info Kokurikuler
                     </a>
                 </li>
             @endif
