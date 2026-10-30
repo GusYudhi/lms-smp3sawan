@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         // Menjalankan seeder dengan urutan yang benar
         $this->call([
             AdminSeeder::class,
+            KepalaSekolahSeeder::class,     // Akun Kepala Sekolah
             MataPelajaranSeeder::class,     // Master data mapel (independen)
             TahunPelajaranSeeder::class,    // Dibutuhkan oleh Kelas & Semester
             KelasSeeder::class,             // Dibutuhkan oleh Guru dan Siswa
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
             GuruSeeder::class,              // Butuh Kelas & Mapel
             SiswaSeeder::class,             // Setelah kelas tersedia
             JadwalPelajaranSeeder::class,   // Terakhir, butuh Kelas, Mapel, Guru
+            SchoolProfileSeeder::class,     // Master profil sekolah & relasi kepala sekolah
         ]);
     }
 }

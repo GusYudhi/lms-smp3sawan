@@ -52,14 +52,26 @@ class Kelas extends Model
     }
 
     /**
-     * Find or create a class by full name (e.g., "7A", "8B")
+     * Find or create a class by full name (e.g., "7A", "8B", "77A", "Kelas 7A")
      */
     public static function findOrCreateByFullName($fullName, $tahunAngkatan = null)
     {
-        // Extract tingkat (first character, e.g., "7", "8", "9")
-        $tingkat = substr($fullName, 0, 1);
-        // Extract nama_kelas (remaining characters, e.g., "A", "B", "C")
-        $namaKelas = substr($fullName, 1);
+        $clean = trim(preg_replace('/^kelas\s*/i', '', trim((string)$fullName)));
+
+        // Handle possible duplication like "77A", "7-A", "7 A"
+        if (preg_match('/^([789])+\s*[-_]?\s*([A-Za-z0-9]+)$/i', $clean, $matches)) {
+            $tingkat = substr($clean, 0, 1);
+            $namaKelas = strtoupper($matches[2]);
+        } else {
+            $tingkat = substr($clean, 0, 1);
+            $namaKelas = strtoupper(substr($clean, 1));
+        }
+
+        // Always check if existing class already matches tingkat & nama_kelas
+        $existing = self::where('tingkat', $tingkat)->where('nama_kelas', $namaKelas)->first();
+        if ($existing) {
+            return $existing;
+        }
 
         $data = [
             'tingkat' => $tingkat,
@@ -70,7 +82,7 @@ class Kelas extends Model
             $data['tahun_angkatan'] = $tahunAngkatan;
         }
 
-        return self::firstOrCreate($data);
+        return self::create($data);
     }
 
     /**

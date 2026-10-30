@@ -26,17 +26,9 @@ class UserManagementService
                 'role' => 'siswa',
             ]);
 
-            // Handle kelas: find or create based on tingkat + nama_kelas
-            $kelasId = null;
-            if (isset($profileData['tingkat']) && isset($profileData['kelas'])) {
-                $fullKelasName = $profileData['tingkat'] . $profileData['kelas'];
-                $kelas = Kelas::findOrCreateByFullName($fullKelasName);
-                $kelasId = $kelas->id;
-            } elseif (isset($profileData['kelas'])) {
-                // If only kelas provided (already in full format like "7A")
-                $kelas = Kelas::findOrCreateByFullName($profileData['kelas']);
-                $kelasId = $kelas->id;
-            }
+            // Handle kelas: find or create based on tingkat + nama_kelas with sanitization
+            $kelas = $this->resolveKelas($profileData);
+            $kelasId = $kelas?->id;
 
             // Create student profile
             $user->studentProfile()->create([
@@ -142,17 +134,9 @@ class UserManagementService
                 }
             }
 
-            // Handle kelas: find or create based on tingkat + nama_kelas
-            $kelasId = null;
-            if (isset($profileData['tingkat']) && isset($profileData['kelas'])) {
-                $fullKelasName = $profileData['tingkat'] . $profileData['kelas'];
-                $kelas = Kelas::findOrCreateByFullName($fullKelasName);
-                $kelasId = $kelas->id;
-            } elseif (isset($profileData['kelas'])) {
-                // If only kelas provided (already in full format like "7A")
-                $kelas = Kelas::findOrCreateByFullName($profileData['kelas']);
-                $kelasId = $kelas->id;
-            }
+            // Handle kelas: find or create based on tingkat + nama_kelas with sanitization
+            $kelas = $this->resolveKelas($profileData);
+            $kelasId = $kelas?->id;
 
             // Update or create student profile
             $user->studentProfile()->updateOrCreate(
@@ -332,5 +316,29 @@ class UserManagementService
         }
 
         return $query->paginate(15);
+    }
+
+    /**
+     * Resolve or find/create Kelas instance from profile data with sanitization.
+     */
+    protected function resolveKelas(array $profileData): ?Kelas
+    {
+        if (isset($profileData['tingkat']) && isset($profileData['kelas'])) {
+            $tingkat = trim((string)$profileData['tingkat']);
+            $rawKelas = trim((string)$profileData['kelas']);
+
+            // Jika user menulis "7A" saat tingkat sudah "7", bersihkan prefiks "7" atau "Kelas 7"
+            $cleanKelas = preg_replace('/^(?:kelas\s*)?' . preg_quote($tingkat, '/') . '\s*[-_]?\s*/i', '', $rawKelas);
+            $namaKelas = !empty($cleanKelas) ? $cleanKelas : $rawKelas;
+
+            $fullKelasName = $tingkat . $namaKelas;
+            return Kelas::findOrCreateByFullName($fullKelasName, $profileData['tahun_angkatan'] ?? null);
+        }
+
+        if (isset($profileData['kelas'])) {
+            return Kelas::findOrCreateByFullName($profileData['kelas'], $profileData['tahun_angkatan'] ?? null);
+        }
+
+        return null;
     }
 }
