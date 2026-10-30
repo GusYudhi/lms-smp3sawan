@@ -58,6 +58,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('admin.penilaian-kokurikuler.rekap') }}">
+                        <i class="fas fa-star me-2"></i> Rekap Nilai Kokurikuler
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.prestasi.*') ? 'active' : '' }}" href="{{ route('admin.prestasi.index') }}">
                         <i class="fas fa-trophy me-2"></i> Prestasi
                     </a>
@@ -166,6 +171,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('kepala-sekolah.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.penilaian-kokurikuler.rekap') }}">
+                        <i class="fas fa-star me-2"></i> Rekap Nilai Kokurikuler
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('kepala-sekolah.prestasi.*') ? 'active' : '' }}" href="{{ route('kepala-sekolah.prestasi.index') }}">
                         <i class="fas fa-trophy me-2"></i> Prestasi
                     </a>
@@ -248,6 +258,13 @@
                         <i class="fas fa-book-open me-2"></i> Materi Pelajaran
                     </a>
                 </li>
+                @if(auth()->user()->isWaliKelas())
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('guru.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('guru.penilaian-kokurikuler.index') }}">
+                        <i class="fas fa-star me-2"></i> Penilaian Kokurikuler
+                    </a>
+                </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('guru.kegiatan-kokurikuler.*') ? 'active' : '' }}" href="{{ route('guru.kegiatan-kokurikuler.index') }}">
                         <i class="fas fa-running me-2"></i> Kegiatan Kokurikuler

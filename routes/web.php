@@ -157,8 +157,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('fixed-schedule', App\Http\Controllers\Admin\FixedScheduleController::class)->names([
             'index' => 'admin.fixed-schedule.index',
             'store' => 'admin.fixed-schedule.store',
+            'update' => 'admin.fixed-schedule.update',
             'destroy' => 'admin.fixed-schedule.destroy',
-        ])->except(['create', 'edit', 'show', 'update']);
+        ])->except(['create', 'edit', 'show']);
 
         // Rekap Absensi routes
         Route::get('/absensi', function () {
@@ -175,6 +176,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Kegiatan Kokurikuler
         Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('admin.kegiatan-kokurikuler');
+        Route::get('/penilaian-kokurikuler/rekap', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'rekap'])->name('admin.penilaian-kokurikuler.rekap');
+        Route::get('/penilaian-kokurikuler/export', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'export'])->name('admin.penilaian-kokurikuler.export');
 
         // Prestasi
         Route::resource('prestasi', App\Http\Controllers\Admin\PrestasiController::class)->names('admin.prestasi');
@@ -245,6 +248,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Kegiatan Kokurikuler
         Route::resource('kegiatan-kokurikuler', App\Http\Controllers\KepalaSekolah\KegiatanKokurikulerController::class)->names('kepala-sekolah.kegiatan-kokurikuler');
+        Route::get('/penilaian-kokurikuler/rekap', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'rekap'])->name('kepala-sekolah.penilaian-kokurikuler.rekap');
+        Route::get('/penilaian-kokurikuler/export', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'export'])->name('kepala-sekolah.penilaian-kokurikuler.export');
 
         // Prestasi
         Route::resource('prestasi', App\Http\Controllers\KepalaSekolah\PrestasiController::class)->names('kepala-sekolah.prestasi');
@@ -339,6 +344,12 @@ Route::middleware(['auth'])->group(function () {
 
         // Kegiatan Kokurikuler
         Route::resource('kegiatan-kokurikuler', App\Http\Controllers\Admin\KegiatanKokurikulerController::class)->names('guru.kegiatan-kokurikuler');
+
+        // Penilaian Kokurikuler (Wali Kelas)
+        Route::get('/penilaian-kokurikuler', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'index'])->name('guru.penilaian-kokurikuler.index');
+        Route::post('/penilaian-kokurikuler', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'store'])->name('guru.penilaian-kokurikuler.store');
+        Route::get('/penilaian-kokurikuler/rekap', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'rekap'])->name('guru.penilaian-kokurikuler.rekap');
+        Route::get('/penilaian-kokurikuler/export', [App\Http\Controllers\Guru\PenilaianKokurikulerController::class, 'export'])->name('guru.penilaian-kokurikuler.export');
 
         // Hak Akses Publikasi (Berita & Prestasi)
         Route::middleware('can.manage:berita')->group(function () {

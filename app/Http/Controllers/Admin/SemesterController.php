@@ -86,6 +86,7 @@ class SemesterController extends Controller
                                 'hari' => $schedule->hari,
                                 'jam_ke' => $schedule->jam_ke,
                                 'keterangan' => $schedule->keterangan,
+                                'tipe' => $schedule->tipe ?? 'umum',
                                 'semester_id' => $semester->id,
                             ]);
                         }
@@ -219,6 +220,7 @@ class SemesterController extends Controller
                         'hari' => $schedule->hari,
                         'jam_ke' => $schedule->jam_ke,
                         'keterangan' => $schedule->keterangan,
+                        'tipe' => $schedule->tipe ?? 'umum',
                         'semester_id' => $semester->id,
                     ]);
                 }
@@ -341,6 +343,7 @@ class SemesterController extends Controller
                     'hari' => $schedule->hari,
                     'jam_ke' => $schedule->jam_ke,
                     'keterangan' => $schedule->keterangan,
+                    'tipe' => $schedule->tipe ?? 'umum',
                     'semester_id' => $targetSemester->id,
                 ]);
             }

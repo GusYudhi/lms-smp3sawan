@@ -93,6 +93,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is a Wali Kelas (Homeroom Teacher)
+     */
+    public function isWaliKelas(): bool
+    {
+        return $this->isGuru() && !empty(optional($this->guruProfile)->kelas_id);
+    }
+
+    /**
+     * Get the Kelas managed by this Wali Kelas
+     */
+    public function waliKelasOf(): ?Kelas
+    {
+        if (!$this->isWaliKelas()) {
+            return null;
+        }
+
+        return optional($this->guruProfile)->kelas;
+    }
+
+    /**
      * Get role display name
      */
     public function getRoleDisplayName()
