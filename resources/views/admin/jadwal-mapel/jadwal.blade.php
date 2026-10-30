@@ -663,13 +663,15 @@ $(document).ready(function() {
 
         $.get(url, params)
             .done(function(data) {
+                window.scheduleItemsMap = {};
+
                 Object.keys(data).forEach(hari => {
                     const slots = data[hari];
 
                     // Render all dynamic slots
-                    Object.keys(slots).forEach(i => {
+                    for (const i of Object.keys(slots)) {
                         const cell = $(`#cell-${hari}-${i}`);
-                        if (!cell.length) return;
+                        if (!cell.length) continue;
 
                         const item = slots[i];
 
@@ -697,23 +699,24 @@ $(document).ready(function() {
                                     <div class="d-flex align-items-center justify-content-center h-100 w-100 text-center">
                                         <div>
                                             <i class="fas fa-lock mb-1 text-secondary"></i><br>
-                                            <small class="fw-bold text-secondary">${item.keterangan}</small>
+                                            <small class="fw-bold text-secondary">${escapeHtml(item.keterangan)}</small>
                                         </div>
                                     </div>
                                 `;
                             } else if (item.type === 'lesson') {
-                                onClick = `onclick='openEditModal(${JSON.stringify(item)}, "${hari}")'`;
+                                window.scheduleItemsMap[item.id] = item;
+                                onClick = `onclick="openEditModalById(${item.id}, '${hari}')"`;
                                 
                                 // Draggable Item
                                 content = `
                                     <div class="card border-start border-4 border-primary shadow-sm h-100 w-100 border-0 draggable-item" 
                                          draggable="true" 
-                                         ondragstart='handleDragStart(event, ${JSON.stringify(item)})'
+                                         ondragstart="handleDragStartById(event, ${item.id})"
                                          data-id="${item.id}">
                                         <div class="card-body p-2">
-                                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">${item.mata_pelajaran.nama_mapel}</h6>
+                                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">${escapeHtml(item.mata_pelajaran.nama_mapel)}</h6>
                                             <div class="small text-secondary">
-                                                <i class="far fa-user me-1"></i> ${item.guru.name}
+                                                <i class="far fa-user me-1"></i> ${escapeHtml(item.guru.name)}
                                             </div>
                                         </div>
                                     </div>
@@ -788,6 +791,30 @@ $(document).ready(function() {
         $('#btn-save').text('Simpan');
 
         scheduleModal.show();
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    window.openEditModalById = function(id, hari) {
+        const item = window.scheduleItemsMap ? window.scheduleItemsMap[id] : null;
+        if (item) {
+            window.openEditModal(item, hari);
+        }
+    };
+
+    window.handleDragStartById = function(e, id) {
+        const item = window.scheduleItemsMap ? window.scheduleItemsMap[id] : null;
+        if (item) {
+            handleDragStart(e, item);
+        }
     };
 
     // Open Modal for Editing

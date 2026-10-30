@@ -219,7 +219,7 @@ $(document).ready(function() {
                     const slots = schedule[hari] || {};
 
                     // Render all dynamic slots
-                    Object.keys(slots).forEach(i => {
+                    for (const i of Object.keys(slots)) {
                         const cell = $(`#cell-${hari}-${i}`);
                         const item = slots[i];
 
