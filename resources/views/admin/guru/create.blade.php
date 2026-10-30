@@ -214,18 +214,39 @@
                                     @php
                                         $selectedMapelIds = old('mata_pelajaran', []);
                                         if (!is_array($selectedMapelIds)) {
-                                            $selectedMapelIds = $selectedMapelIds ? [$selectedMapelIds] : [];
+                                            $selectedMapelIds = $selectedMapelIds ? [(int) $selectedMapelIds] : [];
+                                        } else {
+                                            $selectedMapelIds = array_map('intval', $selectedMapelIds);
                                         }
+                                        $selectedMapelIds = array_values(array_unique(array_filter($selectedMapelIds)));
+
+                                        $mapelById = $mataPelajarans->keyBy('id');
+                                        $selectedMapels = collect();
+                                        foreach ($selectedMapelIds as $sId) {
+                                            if ($mapelById->has($sId)) {
+                                                $selectedMapels->push($mapelById->get($sId));
+                                            }
+                                        }
+                                        $unselectedMapels = $mataPelajarans->reject(function($item) use ($selectedMapelIds) {
+                                            return in_array($item->id, $selectedMapelIds);
+                                        });
                                     @endphp
                                     <select class="form-select select2-multiple @error('mata_pelajaran') is-invalid @enderror"
                                             id="mata_pelajaran" name="mata_pelajaran[]" multiple="multiple">
-                                        @foreach($mataPelajarans as $mapel)
-                                            <option value="{{ $mapel->id }}" {{ in_array($mapel->id, $selectedMapelIds) ? 'selected' : '' }}>
+                                        @foreach($selectedMapels as $mapel)
+                                            <option value="{{ $mapel->id }}" selected>
+                                                {{ $mapel->nama_mapel }}
+                                            </option>
+                                        @endforeach
+                                        @foreach($unselectedMapels as $mapel)
+                                            <option value="{{ $mapel->id }}">
                                                 {{ $mapel->nama_mapel }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="form-text">Bisa memilih lebih dari 1 mata pelajaran (pilihan pertama sebagai mapel utama)</div>
+                                    <div class="form-text d-flex align-items-center justify-content-between mt-1">
+                                        <span>Bisa memilih lebih dari 1 mata pelajaran (pilihan pertama sebagai <strong>Mapel Utama</strong>). Geser untuk menukar urutan.</span>
+                                    </div>
                                     @error('mata_pelajaran')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -357,14 +378,190 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Initialize Select2 Multi-Select
-    $('#mata_pelajaran').select2({
+    // Initialize Select2 Multi-Select with order preservation and drag-and-drop sortable
+    const $mapelSelect = $('#mata_pelajaran');
+    $mapelSelect.select2({
         theme: 'bootstrap-5',
         width: '100%',
         placeholder: 'Ketik atau pilih mata pelajaran...',
         allowClear: true,
         closeOnSelect: false
     });
+
+    const $select2Container = $mapelSelect.next('.select2-container');
+    const $renderedUl = $select2Container.find('.select2-selection__rendered');
+
+    function updateSubjectBadges() {
+        $renderedUl.find('.mapel-utama-badge').remove();
+        $renderedUl.find('.select2-selection__choice').removeClass('is-primary-subject');
+
+        const $firstChoice = $renderedUl.find('.select2-selection__choice').first();
+        if ($firstChoice.length) {
+            $firstChoice.addClass('is-primary-subject');
+            $firstChoice.append(' <span class="badge bg-primary text-white ms-1 py-0 px-1 mapel-utama-badge">Utama</span>');
+        }
+    }
+
+    // Pilihan baru selalu ditaruh di akhir DOM (tidak diacak alfabetis)
+    $mapelSelect.on('select2:select', function(e) {
+        const id = e.params.data.id;
+        const option = $(this).children('option[value="' + id + '"]');
+        option.detach();
+        $(this).append(option);
+        setTimeout(updateSubjectBadges, 20);
+    });
+
+    $mapelSelect.on('select2:unselect', function(e) {
+        setTimeout(updateSubjectBadges, 20);
+    });
+
+    // Native Drag and Drop Reordering pada choice chips Select2
+    let draggedChoice = null;
+    const $selectionBox = $select2Container.find('.select2-selection--multiple');
+
+    $renderedUl.on('dragstart', '.select2-selection__choice', function(e) {
+        if ($(e.target).closest('.select2-selection__choice__remove').length) {
+            e.preventDefault();
+            return;
+        }
+        draggedChoice = this;
+        e.originalEvent.dataTransfer.effectAllowed = 'move';
+        $(this).addClass('dragging');
+        $selectionBox.addClass('has-dragging');
+    });
+
+    $renderedUl.on('dragover', '.select2-selection__choice', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.originalEvent.dataTransfer.dropEffect = 'move';
+
+        if (!draggedChoice || draggedChoice === this) return;
+
+        const rect = this.getBoundingClientRect();
+        const relX = e.originalEvent.clientX - rect.left;
+        const isLeft = relX < (rect.width / 2);
+
+        $renderedUl.find('.select2-selection__choice').not(this).removeClass('drag-over-left drag-over-right');
+        if (isLeft) {
+            $(this).addClass('drag-over-left').removeClass('drag-over-right');
+        } else {
+            $(this).addClass('drag-over-right').removeClass('drag-over-left');
+        }
+    });
+
+    $renderedUl.on('dragleave', '.select2-selection__choice', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.originalEvent.clientX;
+        const y = e.originalEvent.clientY;
+        if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+            $(this).removeClass('drag-over-left drag-over-right');
+        }
+    });
+
+    $renderedUl.on('dragend', function() {
+        $renderedUl.find('.select2-selection__choice').removeClass('dragging drag-over-left drag-over-right');
+        $selectionBox.removeClass('has-dragging');
+        draggedChoice = null;
+    });
+
+    $renderedUl.on('drop', '.select2-selection__choice', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isLeft = $(this).hasClass('drag-over-left');
+        $renderedUl.find('.select2-selection__choice').removeClass('drag-over-left drag-over-right');
+        $selectionBox.removeClass('has-dragging');
+
+        if (draggedChoice && draggedChoice !== this) {
+            if (isLeft) {
+                $(draggedChoice).insertBefore($(this));
+            } else {
+                $(draggedChoice).insertAfter($(this));
+            }
+            syncDomOptionsOrder();
+        }
+        draggedChoice = null;
+    });
+
+    // Support dragover & drop di area container luar chip (misal di margin paling kiri atau area kosong)
+    $renderedUl.on('dragover', function(e) {
+        e.preventDefault();
+        e.originalEvent.dataTransfer.dropEffect = 'move';
+
+        if (!draggedChoice) return;
+
+        if (!$(e.target).closest('.select2-selection__choice').length) {
+            const firstChoice = $renderedUl.find('.select2-selection__choice').not(draggedChoice).first();
+            if (firstChoice.length && e.originalEvent.clientX < firstChoice[0].getBoundingClientRect().left) {
+                $renderedUl.find('.select2-selection__choice').removeClass('drag-over-left drag-over-right');
+                firstChoice.addClass('drag-over-left');
+            }
+        }
+    });
+
+    $renderedUl.on('drop', function(e) {
+        if (!draggedChoice) return;
+
+        if (!$(e.target).closest('.select2-selection__choice').length) {
+            e.preventDefault();
+            const firstChoice = $renderedUl.find('.select2-selection__choice').not(draggedChoice).first();
+            if (firstChoice.length && e.originalEvent.clientX < firstChoice[0].getBoundingClientRect().left) {
+                $(draggedChoice).insertBefore(firstChoice);
+                syncDomOptionsOrder();
+            } else {
+                const searchFieldLi = $renderedUl.find('.select2-search');
+                if (searchFieldLi.length) {
+                    $(draggedChoice).insertBefore(searchFieldLi);
+                } else {
+                    $renderedUl.append(draggedChoice);
+                }
+                syncDomOptionsOrder();
+            }
+            $renderedUl.find('.select2-selection__choice').removeClass('drag-over-left drag-over-right');
+            $selectionBox.removeClass('has-dragging');
+            draggedChoice = null;
+        }
+    });
+
+    function syncDomOptionsOrder() {
+        const orderedTitles = [];
+        $renderedUl.find('.select2-selection__choice').each(function() {
+            const title = $(this).attr('title');
+            if (title) {
+                orderedTitles.push(title.trim());
+            }
+        });
+
+        orderedTitles.forEach(function(title) {
+            const $opt = $mapelSelect.children('option').filter(function() {
+                return $(this).text().trim() === title;
+            });
+            if ($opt.length) {
+                $opt.detach();
+                $mapelSelect.append($opt);
+            }
+        });
+
+        updateSubjectBadges();
+    }
+
+    function applyDraggableToChoices() {
+        $renderedUl.find('.select2-selection__choice').each(function() {
+            if (!this.getAttribute('draggable')) {
+                this.setAttribute('draggable', 'true');
+            }
+        });
+    }
+
+    if ($renderedUl.length) {
+        const choiceObserver = new MutationObserver(function() {
+            applyDraggableToChoices();
+            updateSubjectBadges();
+        });
+        choiceObserver.observe($renderedUl[0], { childList: true });
+        applyDraggableToChoices();
+        updateSubjectBadges();
+    }
 
     const statusKepegawaian = document.getElementById('status_kepegawaian');
     const golonganField = document.getElementById('golongan');
@@ -395,6 +592,7 @@ $(document).ready(function() {
     const form = document.getElementById('teacherForm');
     if (form) {
         form.addEventListener('submit', function(e) {
+            syncDomOptionsOrder();
             const password = document.getElementById('password')?.value;
             const confirmPassword = document.getElementById('password_confirmation')?.value;
 

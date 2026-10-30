@@ -223,4 +223,95 @@ class AdminGuruMultiMapelTest extends TestCase
         $content = $response->getContent();
         $this->assertStringContainsString('data-mapel-ids="[' . $this->mapel1->id . ',' . $this->mapel2->id . ']"', $content);
     }
+
+    public function test_edit_teacher_view_renders_primary_subject_first_regardless_of_alphabetical_order()
+    {
+        // Buat mapel ZZZ (alfabet belakang) dan AAA (alfabet depan)
+        $mapelZ = MataPelajaran::create([
+            'kode_mapel' => 'ZZZ',
+            'nama_mapel' => 'Z-Mapel Utama Belakang',
+            'is_active' => true,
+        ]);
+        $mapelA = MataPelajaran::create([
+            'kode_mapel' => 'AAA',
+            'nama_mapel' => 'A-Mapel Tambahan Depan',
+            'is_active' => true,
+        ]);
+
+        $teacher = User::create([
+            'name' => 'Guru Cek Urutan Mapel',
+            'email' => 'guru.urutan@sekolah.id',
+            'password' => bcrypt('password123'),
+            'role' => 'guru',
+        ]);
+
+        $profile = GuruProfile::create([
+            'user_id' => $teacher->id,
+            'nip' => '9900112233',
+            'kode_guru' => 'URT',
+            'nama' => 'Guru Cek Urutan Mapel',
+            'jenis_kelamin' => 'L',
+            'mata_pelajaran_id' => $mapelZ->id, // UTAMA adalah ZZZ (abjad belakang)
+            'is_active' => true,
+        ]);
+        // Pivot menyimpan keduanya
+        $profile->mataPelajarans()->sync([$mapelA->id, $mapelZ->id]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.guru.edit', $teacher->id));
+        $response->assertStatus(200);
+
+        $html = $response->getContent();
+
+        // Cari posisi option selected
+        $posOptionZ = strpos($html, '<option value="' . $mapelZ->id . '" selected>');
+        $posOptionA = strpos($html, '<option value="' . $mapelA->id . '" selected>');
+
+        $this->assertNotFalse($posOptionZ, 'Option mapel utama ZZZ harus ada dan selected');
+        $this->assertNotFalse($posOptionA, 'Option mapel tambahan AAA harus ada dan selected');
+
+        // Pastikan mapel utama (Z) muncul LEBIH DULU dibanding mapel tambahan (A) di HTML select!
+        $this->assertLessThan(
+            $posOptionA,
+            $posOptionZ,
+            'Mapel Utama (Z) HARUS dirender sebelum Mapel Tambahan (A) meskipun secara alfabet A lebih dulu!'
+        );
+    }
+
+    public function test_create_teacher_view_preserves_old_input_order_with_primary_subject_first()
+    {
+        $mapelZ = MataPelajaran::create([
+            'kode_mapel' => 'ZCR',
+            'nama_mapel' => 'Z-Create Mapel Utama',
+            'is_active' => true,
+        ]);
+        $mapelA = MataPelajaran::create([
+            'kode_mapel' => 'ACR',
+            'nama_mapel' => 'A-Create Mapel Tambahan',
+            'is_active' => true,
+        ]);
+
+        // Simulasikan session flash old('mata_pelajaran') dengan urutan Z lalu A
+        $response = $this->actingAs($this->admin)
+            ->withSession([
+                '_old_input' => [
+                    'mata_pelajaran' => [$mapelZ->id, $mapelA->id],
+                ]
+            ])
+            ->get(route('admin.guru.create'));
+
+        $response->assertStatus(200);
+
+        $html = $response->getContent();
+        $posOptionZ = strpos($html, '<option value="' . $mapelZ->id . '" selected>');
+        $posOptionA = strpos($html, '<option value="' . $mapelA->id . '" selected>');
+
+        $this->assertNotFalse($posOptionZ, 'Option ZZZ harus ada dan selected dari old input');
+        $this->assertNotFalse($posOptionA, 'Option AAA harus ada dan selected dari old input');
+
+        $this->assertLessThan(
+            $posOptionA,
+            $posOptionZ,
+            'Pada create form dengan old input, Mapel Pertama (Z) HARUS dirender sebelum (A)!'
+        );
+    }
 }

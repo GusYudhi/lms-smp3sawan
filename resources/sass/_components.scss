@@ -557,23 +557,62 @@
         padding: 3px 6px !important;
     }
 
-    .select2-selection--multiple .select2-selection__rendered {
-        padding: 0 !important;
-        margin: 0 !important;
+    .select2-selection--multiple {
+        &.has-dragging .select2-selection__choice * {
+            pointer-events: none !important;
+        }
+
+        .select2-selection__rendered {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .select2-selection__choice {
+            font-size: 0.8125rem !important;
+            font-weight: 500 !important;
+            padding: 2px 8px !important;
+            margin: 2px 4px 2px 0 !important;
+            background-color: #e0e7ff !important;
+            border: 1px solid #c7d2fe !important;
+            color: #3730a3 !important;
+            border-radius: 4px !important;
+            line-height: 1.4 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+            &.is-primary-subject {
+                background-color: #dbeafe !important;
+                border-color: #93c5fd !important;
+                color: #1e40af !important;
+                font-weight: 600 !important;
+            }
+
+            &.dragging {
+                opacity: 0.35 !important;
+                cursor: grabbing !important;
+            }
+
+            &.drag-over-left {
+                box-shadow: -4px 0 0 0 #0d6efd !important;
+                transform: translateX(3px);
+            }
+
+            &.drag-over-right {
+                box-shadow: 4px 0 0 0 #0d6efd !important;
+                transform: translateX(-3px);
+            }
+        }
     }
 
-    .select2-selection--multiple .select2-selection__choice {
-        font-size: 0.8125rem !important;
-        font-weight: 500 !important;
-        padding: 2px 8px !important;
-        margin: 2px 4px 2px 0 !important;
-        background-color: #e0e7ff !important;
-        border: 1px solid #c7d2fe !important;
-        color: #3730a3 !important;
-        border-radius: 4px !important;
-        line-height: 1.4 !important;
-        display: inline-flex !important;
-        align-items: center !important;
+    .mapel-utama-badge {
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em;
+        vertical-align: middle;
+        pointer-events: none;
     }
 
     .select2-selection--multiple .select2-selection__choice__remove {
