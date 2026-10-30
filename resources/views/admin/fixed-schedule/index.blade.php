@@ -54,14 +54,29 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Jam Ke-</label>
-                            <select class="form-select" name="jam_ke" required>
-                                <option value="">Pilih Jam</option>
-                                @foreach($jamPelajarans as $jam)
-                                    <option value="{{ $jam->jam_ke }}">Jam ke-{{ $jam->jam_ke }} ({{ \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})</option>
-                                @endforeach
-                            </select>
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold">Mulai Jam Ke- <span class="text-danger">*</span></label>
+                                <select class="form-select" name="jam_ke" id="create_jam_ke" required onchange="syncEndJamOptions('create')">
+                                    <option value="">Pilih Jam</option>
+                                    @foreach($jamPelajarans as $jam)
+                                        <option value="{{ $jam->jam_ke }}">
+                                            Jam ke-{{ $jam->jam_ke }} ({{ \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold">Sampai Jam Ke- <small class="text-muted fw-normal">(Opsional)</small></label>
+                                <select class="form-select" name="jam_selesai" id="create_jam_selesai">
+                                    <option value="">-- Hanya 1 Jam (Default) --</option>
+                                    @foreach($jamPelajarans as $jam)
+                                        <option value="{{ $jam->jam_ke }}" class="opt-end-create">
+                                            s/d Jam ke-{{ $jam->jam_ke }} (sampai {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Kategori Kegiatan</label>
@@ -70,7 +85,7 @@
                                 <option value="kokurikuler">Kokurikuler / Pembiasaan (Upacara Bendera / Tema Harian — Dinilai Wali Kelas)</option>
                             </select>
                             <small class="text-muted d-block mt-1">
-                                Pilih <strong>Kokurikuler / Pembiasaan</strong> untuk kegiatan Jam ke-0 (seperti Upacara Bendera &amp; Tema Kokurikuler) yang dinilai oleh Wali Kelas.
+                                Pilih <strong>Kokurikuler / Pembiasaan</strong> untuk kegiatan pembiasaan dan tema kokurikuler yang dinilai oleh Wali Kelas.
                             </small>
                         </div>
                         <div class="mb-3">
@@ -103,11 +118,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($fixedSchedules as $fs)
+                                @php
+                                    $displaySchedules = $groupedFixedSchedules ?? \App\Models\FixedSchedule::groupConsecutive($fixedSchedules);
+                                @endphp
+                                @forelse($displaySchedules as $fs)
                                     <tr>
                                         <td class="fw-semibold">{{ $fs->hari }}</td>
                                         <td>
-                                            <span class="badge bg-secondary">Jam ke-{{ $fs->jam_ke }}</span>
+                                            <span class="badge {{ !empty($fs->is_multijam) ? 'bg-primary' : 'bg-secondary' }}">
+                                                {{ $fs->jam_label }}
+                                            </span>
+                                            @if(!empty($fs->is_multijam))
+                                                <small class="text-muted d-block mt-1">({{ $fs->total_jam }} Jam Pelajaran)</small>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($fs->tipe === 'kokurikuler')
@@ -121,13 +144,14 @@
                                         <td>{{ $fs->keterangan }}</td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-warning me-1"
-                                                onclick="openEditFixedModal({{ $fs->id }}, @js($fs->hari), {{ $fs->jam_ke }}, @js($fs->tipe ?? 'umum'), @js($fs->keterangan))"
+                                                onclick="openEditFixedModal({{ $fs->id }}, @js($fs->hari), {{ $fs->jam_ke }}, {{ $fs->jam_selesai ?? $fs->jam_ke }}, @js($fs->tipe ?? 'umum'), @js($fs->keterangan), @js(implode(',', $fs->ids ?? [$fs->id])))"
                                                 title="Edit Jadwal Tetap">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('admin.fixed-schedule.destroy', $fs->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus jadwal tetap ini?">
+                                            <form action="{{ route('admin.fixed-schedule.destroy', $fs->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus jadwal tetap ini{{ !empty($fs->is_multijam) ? ' (seluruh ' . $fs->total_jam . ' jam)' : '' }}?">
                                                 @csrf
                                                 @method('DELETE')
+                                                <input type="hidden" name="group_ids" value="{{ implode(',', $fs->ids ?? [$fs->id]) }}">
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -154,6 +178,7 @@
         <form id="editFixedScheduleForm" method="POST">
             @csrf
             @method('PUT')
+            <input type="hidden" name="group_ids" id="edit_group_ids">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Jadwal Tetap / Tema Kokurikuler</h5>
@@ -168,13 +193,28 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Jam Ke-</label>
-                        <select class="form-select" name="jam_ke" id="edit_jam_ke" required>
-                            @foreach($jamPelajarans as $jam)
-                                <option value="{{ $jam->jam_ke }}">Jam ke-{{ $jam->jam_ke }} ({{ \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})</option>
-                            @endforeach
-                        </select>
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Mulai Jam Ke- <span class="text-danger">*</span></label>
+                            <select class="form-select" name="jam_ke" id="edit_jam_ke" required onchange="syncEndJamOptions('edit')">
+                                @foreach($jamPelajarans as $jam)
+                                    <option value="{{ $jam->jam_ke }}">
+                                        Jam ke-{{ $jam->jam_ke }} ({{ \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Sampai Jam Ke- <small class="text-muted fw-normal">(Opsional)</small></label>
+                            <select class="form-select" name="jam_selesai" id="edit_jam_selesai">
+                                <option value="">-- Hanya 1 Jam --</option>
+                                @foreach($jamPelajarans as $jam)
+                                    <option value="{{ $jam->jam_ke }}" class="opt-end-edit">
+                                        s/d Jam ke-{{ $jam->jam_ke }} (sampai {{ \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Kategori Kegiatan</label>
@@ -199,17 +239,53 @@
 
 @push('scripts')
 <script>
-    function openEditFixedModal(id, hari, jamKe, tipe, keterangan) {
+    function syncEndJamOptions(prefix) {
+        const startSelect = document.getElementById(prefix + '_jam_ke');
+        const endSelect = document.getElementById(prefix + '_jam_selesai');
+        const startVal = parseInt(startSelect.value);
+
+        const options = endSelect.querySelectorAll('.opt-end-' + prefix);
+        options.forEach(opt => {
+            const optVal = parseInt(opt.value);
+            if (isNaN(startVal) || optVal <= startVal) {
+                opt.style.display = 'none';
+                opt.disabled = true;
+            } else {
+                opt.style.display = '';
+                opt.disabled = false;
+            }
+        });
+
+        if (parseInt(endSelect.value) <= startVal) {
+            endSelect.value = '';
+        }
+    }
+
+    function openEditFixedModal(id, hari, jamKe, jamSelesai, tipe, keterangan, groupIds) {
         const form = document.getElementById('editFixedScheduleForm');
         form.action = `{{ url('admin/fixed-schedule') }}/${id}`;
         document.getElementById('edit_hari').value = hari;
         document.getElementById('edit_jam_ke').value = jamKe;
         document.getElementById('edit_tipe').value = tipe || 'umum';
         document.getElementById('edit_keterangan').value = keterangan;
+        document.getElementById('edit_group_ids').value = groupIds || id;
+
+        const endSelect = document.getElementById('edit_jam_selesai');
+        syncEndJamOptions('edit');
+
+        if (jamSelesai && parseInt(jamSelesai) > parseInt(jamKe)) {
+            endSelect.value = jamSelesai;
+        } else {
+            endSelect.value = '';
+        }
 
         const modal = new bootstrap.Modal(document.getElementById('editFixedScheduleModal'));
         modal.show();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        syncEndJamOptions('create');
+    });
 </script>
 @endpush
 @endsection

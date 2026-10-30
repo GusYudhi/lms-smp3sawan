@@ -7,6 +7,8 @@ use App\Models\Kelas;
 use App\Models\PenilaianKokurikuler;
 use App\Models\Semester;
 use App\Models\StudentProfile;
+use App\Exports\PenilaianKokurikulerRekapSheet;
+use App\Exports\PenilaianKokurikulerHarianSheet;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class PenilaianKokurikulerExport implements WithMultipleSheets
@@ -41,7 +43,7 @@ class PenilaianKokurikulerExport implements WithMultipleSheets
             $schedQuery->where('hari', $this->hari);
         }
 
-        $kokurikulerSchedules = $schedQuery->get();
+        $kokurikulerSchedules = FixedSchedule::groupKokurikulerByDay($schedQuery->get());
 
         $penilaianQuery = PenilaianKokurikuler::where('semester_id', $this->semester->id)
             ->where('kelas_id', $this->kelas->id);

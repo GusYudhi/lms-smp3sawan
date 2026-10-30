@@ -81,7 +81,7 @@
             <div class="card-body py-3">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                     <span class="fw-bold text-secondary small text-uppercase">
-                        <i class="fas fa-calendar-week me-1"></i> Jadwal & Tema Kokurikuler / Pembiasaan Jam Ke-0 Minggu Ini:
+                        <i class="fas fa-calendar-week me-1"></i> Jadwal & Tema Kokurikuler / Pembiasaan Minggu Ini:
                     </span>
                 </div>
                 <div class="row g-2">
@@ -92,7 +92,7 @@
                                     <span class="fw-bold {{ $sched->hari === $selectedDayName ? 'text-primary' : 'text-dark' }}">
                                         {{ $sched->hari }}
                                     </span>
-                                    <span class="badge bg-secondary">Jam ke-{{ $sched->jam_ke }}</span>
+                                    <span class="badge bg-secondary">{{ $sched->jam_label ?? ('Jam ke-' . $sched->jam_ke) }}</span>
                                 </div>
                                 <div class="small text-muted text-truncate mt-1" title="{{ $sched->keterangan }}">
                                     {{ $sched->keterangan }}
@@ -185,6 +185,24 @@
                             $totalStudents = $students->count();
                             $isAbsensiFilled = $savedAttendanceCount > 0;
 
+                            $initialHadirCount = 0;
+                            foreach ($students as $student) {
+                                $absensiHarian = $absensiPagi->get($student->user_id);
+                                $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                                $existing = $existingAssessments->get($student->user_id);
+
+                                if ($existing && $existing->status_absensi) {
+                                    $st = $existing->status_absensi;
+                                } elseif (in_array($statusPagi, ['sakit', 'izin', 'alpa'])) {
+                                    $st = $statusPagi;
+                                } else {
+                                    $st = 'hadir';
+                                }
+                                if (in_array($st, ['hadir', 'terlambat'], true)) {
+                                    $initialHadirCount++;
+                                }
+                            }
+
                             $hasFotoBukti = !empty($existingSession?->foto_bukti);
                             $isDokumentasiFilled = $hasFotoBukti;
 
@@ -199,46 +217,34 @@
                         <div class="wizard-step-nav">
                             <div class="wizard-step-badge active" id="indicator-step-1" onclick="goToStep(1)">
                                 <span class="step-title"><i class="fas fa-user-check"></i> 1. Absensi Siswa</span>
-                                @if($isAbsensiFilled)
-                                    <span class="step-status-pill status-done">
-                                        <i class="fas fa-check-circle"></i> Sudah ({{ $savedAttendanceCount }}/{{ $totalStudents }})
-                                    </span>
-                                @else
-                                    <span class="step-status-pill status-pending">
-                                        <i class="fas fa-clock"></i> Belum Diisi
-                                    </span>
-                                @endif
+                                <span class="step-status-pill status-done" id="step-status-1">
+                                    <i class="fas fa-check-circle"></i> Hadir ({{ $initialHadirCount }}/{{ $totalStudents }})
+                                </span>
                             </div>
 
                             <div class="wizard-step-badge" id="indicator-step-2" onclick="goToStep(2)">
                                 <span class="step-title"><i class="fas fa-camera"></i> 2. Dokumentasi Kegiatan</span>
-                                @if($isDokumentasiFilled)
-                                    <span class="step-status-pill status-done">
+                                <span class="step-status-pill {{ $isDokumentasiFilled ? 'status-done' : 'status-pending' }}" id="step-status-2">
+                                    @if($isDokumentasiFilled)
                                         <i class="fas fa-check-circle"></i> Foto Bukti Ada
-                                    </span>
-                                @else
-                                    <span class="step-status-pill status-pending">
+                                    @else
                                         <i class="fas fa-clock"></i> Belum Ada Foto
-                                    </span>
-                                @endif
+                                    @endif
+                                </span>
                             </div>
 
                             @if($canAssessRubric)
                             <div class="wizard-step-badge" id="indicator-step-3" onclick="goToStep(3)">
                                 <span class="step-title"><i class="fas fa-star"></i> 3. Penilaian Rubrik</span>
-                                @if($isRubrikFilled)
-                                    <span class="step-status-pill status-done">
+                                <span class="step-status-pill {{ $isRubrikFilled ? 'status-done' : ($isRubrikPartial ? 'status-partial' : 'status-pending') }}" id="step-status-3">
+                                    @if($isRubrikFilled)
                                         <i class="fas fa-check-circle"></i> Lengkap ({{ $gradedCount }}/{{ $totalHadir }})
-                                    </span>
-                                @elseif($isRubrikPartial)
-                                    <span class="step-status-pill status-partial">
+                                    @elseif($isRubrikPartial)
                                         <i class="fas fa-adjust"></i> {{ $gradedCount }}/{{ $totalHadir }} Dinilai
-                                    </span>
-                                @else
-                                    <span class="step-status-pill status-pending">
+                                    @else
                                         <i class="fas fa-clock"></i> Belum Dinilai
-                                    </span>
-                                @endif
+                                    @endif
+                                </span>
                             </div>
                             @endif
                         </div>
@@ -619,10 +625,82 @@
     let capturedImageData = null;
     let hasExistingSavedPhoto = @json(!empty($existingSession?->foto_bukti));
     const canAssessRubricGlobal = @json($canAssessRubric);
+    let isSavedInDb = @json($isAbsensiFilled);
 
     function hasValidPhoto() {
         const base64Val = document.getElementById('foto_bukti')?.value || '';
         return base64Val.length > 0 || hasExistingSavedPhoto;
+    }
+
+    function updateWizardStatusBadges() {
+        // --- 1. Step 1: Absensi ---
+        const attendanceSelects = document.querySelectorAll('.absensi-select');
+        const totalStudents = attendanceSelects.length;
+        let filledAttendance = 0;
+        let presentCount = 0;
+
+        attendanceSelects.forEach(sel => {
+            if (sel.value && sel.value.trim() !== '') {
+                filledAttendance++;
+                if (sel.value === 'hadir' || sel.value === 'terlambat') {
+                    presentCount++;
+                }
+            }
+        });
+
+        const pillStep1 = document.getElementById('step-status-1');
+        if (pillStep1) {
+            if (totalStudents > 0) {
+                pillStep1.className = 'step-status-pill status-done';
+                pillStep1.innerHTML = `<i class="fas fa-check-circle"></i> Hadir (${presentCount}/${totalStudents})`;
+            } else {
+                pillStep1.className = 'step-status-pill status-pending';
+                pillStep1.innerHTML = `<i class="fas fa-clock"></i> Belum Ada Siswa`;
+            }
+        }
+
+        // --- 2. Step 2: Dokumentasi ---
+        const pillStep2 = document.getElementById('step-status-2');
+        if (pillStep2) {
+            const hasPhoto = hasValidPhoto();
+            if (hasPhoto) {
+                pillStep2.className = 'step-status-pill status-done';
+                pillStep2.innerHTML = `<i class="fas fa-check-circle"></i> Foto Bukti Siap`;
+            } else {
+                pillStep2.className = 'step-status-pill status-pending';
+                pillStep2.innerHTML = `<i class="fas fa-clock"></i> Belum Ada Foto`;
+            }
+        }
+
+        // --- 3. Step 3: Penilaian Rubrik ---
+        const pillStep3 = document.getElementById('step-status-3');
+        if (pillStep3 && canAssessRubricGlobal) {
+            let gradedPresentCount = 0;
+            attendanceSelects.forEach(sel => {
+                const status = sel.value;
+                if (status === 'hadir' || status === 'terlambat') {
+                    const studentId = sel.getAttribute('data-student-id');
+                    const checkedRadio = document.querySelector(`.student-radio-${studentId}:checked`);
+                    if (checkedRadio && checkedRadio.value) {
+                        gradedPresentCount++;
+                    }
+                }
+            });
+
+            if (presentCount === 0) {
+                pillStep3.className = 'step-status-pill status-done';
+                pillStep3.innerHTML = `<i class="fas fa-check-circle"></i> Tidak Ada Siswa Hadir`;
+            } else if (gradedPresentCount === presentCount) {
+                pillStep3.className = 'step-status-pill status-done';
+                pillStep3.innerHTML = `<i class="fas fa-check-circle"></i> Lengkap (${gradedPresentCount}/${presentCount})`;
+            } else if (gradedPresentCount > 0) {
+                pillStep3.className = 'step-status-pill status-partial';
+                pillStep3.innerHTML = `<i class="fas fa-adjust"></i> ${gradedPresentCount}/${presentCount} Dinilai`;
+            } else {
+                pillStep3.className = 'step-status-pill status-pending';
+                pillStep3.innerHTML = `<i class="fas fa-clock"></i> Belum Dinilai`;
+            }
+        }
     }
 
     function goToStep(stepNumber) {
@@ -747,6 +825,8 @@
                 absentNotice.style.display = isPresent ? 'none' : 'block';
             }
         });
+
+        updateWizardStatusBadges();
     }
 
     function setAllPredikat(code) {
@@ -757,6 +837,7 @@
                 r.checked = true;
             }
         });
+        updateWizardStatusBadges();
     }
 
     // Camera & Photo Compression functions
@@ -864,6 +945,7 @@
             document.getElementById('preview_container').style.display = 'block';
 
             bootstrap.Modal.getInstance(document.getElementById('modalKamera')).hide();
+            updateWizardStatusBadges();
         }
     }
 
@@ -922,6 +1004,7 @@
                 document.getElementById('foto_bukti').value = compressedData;
                 document.getElementById('preview_foto').src = compressedData;
                 document.getElementById('preview_container').style.display = 'block';
+                updateWizardStatusBadges();
             };
             img.onerror = function() {
                 Swal.fire('Gagal', 'Gagal memuat foto. Pastikan format file didukung.', 'error');
@@ -973,6 +1056,7 @@
                     document.getElementById('preview_foto').src = compressedData;
                     document.getElementById('preview_container').style.display = 'block';
                     Swal.close();
+                    updateWizardStatusBadges();
                 };
                 img.src = data.image;
             } else {
@@ -991,10 +1075,19 @@
         document.getElementById('preview_container').style.display = 'none';
         const uploadInput = document.getElementById('upload_foto');
         if (uploadInput) uploadInput.value = '';
+        updateWizardStatusBadges();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         syncAttendanceToRubric();
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('rubrik-radio') || e.target.classList.contains('absensi-select')) {
+                updateWizardStatusBadges();
+            }
+        });
+
+        updateWizardStatusBadges();
 
         const form = document.getElementById('formKokurikulerWizard');
         if (form) {

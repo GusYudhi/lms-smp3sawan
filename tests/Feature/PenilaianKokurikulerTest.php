@@ -384,4 +384,105 @@ class PenilaianKokurikulerTest extends TestCase
         $this->assertEquals(['Daftar Kegiatan Kokurikuler:'], $harianHeadings[4]);
         $this->assertContains('Rabu, 28/10/2026', end($harianHeadings));
     }
+
+    public function test_admin_can_manage_multi_jam_fixed_schedule()
+    {
+        // 1. Store multi-jam schedule (Jumat Jam ke-0 s/d Jam ke-2)
+        $storeResponse = $this->actingAs($this->admin)->post(route('admin.fixed-schedule.store'), [
+            'hari' => 'Jumat',
+            'jam_ke' => 0,
+            'jam_selesai' => 2,
+            'tipe' => 'kokurikuler',
+            'keterangan' => 'Ko Kurikuler Senam KAIH',
+            'semester_id' => $this->semester->id,
+        ]);
+        $storeResponse->assertRedirect();
+        $storeResponse->assertSessionHas('success');
+
+        // Check 3 slots created in DB
+        $slots = FixedSchedule::where('semester_id', $this->semester->id)
+            ->where('hari', 'Jumat')
+            ->orderBy('jam_ke')
+            ->get();
+        $this->assertCount(3, $slots);
+        $this->assertEquals([0, 1, 2], $slots->pluck('jam_ke')->all());
+
+        // Check index view renders unified multi-jam badge
+        $indexResponse = $this->actingAs($this->admin)->get(route('admin.fixed-schedule.index', [
+            'semester_id' => $this->semester->id,
+        ]));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Jam ke-0 s/d 2');
+        $indexResponse->assertSee('(3 Jam Pelajaran)');
+
+        // 2. Update multi-jam schedule to Jam ke-0 s/d Jam ke-1 (reduce duration)
+        $firstSlot = $slots->first();
+        $groupIds = implode(',', $slots->pluck('id')->all());
+
+        $updateResponse = $this->actingAs($this->admin)->put(route('admin.fixed-schedule.update', $firstSlot->id), [
+            'hari' => 'Jumat',
+            'jam_ke' => 0,
+            'jam_selesai' => 1,
+            'tipe' => 'kokurikuler',
+            'keterangan' => 'Ko Kurikuler Senam KAIH Update',
+            'group_ids' => $groupIds,
+        ]);
+        $updateResponse->assertRedirect();
+        $updateResponse->assertSessionHas('success');
+
+        $updatedSlots = FixedSchedule::where('semester_id', $this->semester->id)
+            ->where('hari', 'Jumat')
+            ->orderBy('jam_ke')
+            ->get();
+        $this->assertCount(2, $updatedSlots);
+        $this->assertEquals([0, 1], $updatedSlots->pluck('jam_ke')->all());
+        $this->assertEquals('Ko Kurikuler Senam KAIH Update', $updatedSlots->first()->keterangan);
+
+        // 3. Destroy entire multi-jam group at once
+        $newGroupId = implode(',', $updatedSlots->pluck('id')->all());
+        $deleteResponse = $this->actingAs($this->admin)->delete(route('admin.fixed-schedule.destroy', $updatedSlots->first()->id), [
+            'group_ids' => $newGroupId,
+        ]);
+        $deleteResponse->assertRedirect();
+        $deleteResponse->assertSessionHas('success');
+
+        $remainingSlots = FixedSchedule::where('semester_id', $this->semester->id)
+            ->where('hari', 'Jumat')
+            ->count();
+        $this->assertEquals(0, $remainingSlots);
+    }
+
+    public function test_multi_jam_kokurikuler_only_shows_one_weekly_card_and_one_rekap_column()
+    {
+        // Create multi-hour Friday kokurikuler in DB (Jam 0, 1, 2)
+        foreach ([0, 1, 2] as $jam) {
+            FixedSchedule::create([
+                'hari' => 'Jumat',
+                'jam_ke' => $jam,
+                'tipe' => FixedSchedule::TIPE_KOKURIKULER,
+                'keterangan' => 'Ko Kurikuler Senam KAIH',
+                'semester_id' => $this->semester->id,
+            ]);
+        }
+
+        // Test Kokurikuler Index View (Card header)
+        $viewResponse = $this->actingAs($this->waliKelas)->get(route('guru.penilaian-kokurikuler.index', [
+            'tanggal' => '2026-10-30', // Friday
+        ]));
+        $viewResponse->assertOk();
+        $viewResponse->assertSee('Jam ke-0 s/d 2');
+
+        // Test Rekap View: Friday only appears once in the days list
+        $rekapResponse = $this->actingAs($this->waliKelas)->get(route('guru.penilaian-kokurikuler.rekap'));
+        $rekapResponse->assertOk();
+
+        // Test Excel Export: Friday only has 1 column
+        $export = new \App\Exports\PenilaianKokurikulerExport($this->kelas, $this->semester);
+        $sheets = $export->sheets();
+        $rekapHeadings = $sheets[0]->headings();
+        $tableHeaderRow = end($rekapHeadings);
+
+        $jumatOccurrences = array_keys($tableHeaderRow, 'Jumat');
+        $this->assertCount(1, $jumatOccurrences, 'Jumat should only appear once in table header row.');
+    }
 }

@@ -102,12 +102,14 @@ class PenilaianKokurikulerController extends Controller
 
         $selectedDayName = self::INDONESIAN_DAYS[$parsedDate->format('l')] ?? 'Senin';
 
-        // Get all Kokurikuler schedules in this semester
-        $allKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
+        // Get all Kokurikuler schedules in this semester grouped by day
+        $rawKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
             ->kokurikuler()
             ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
             ->orderBy('jam_ke')
             ->get();
+
+        $allKokurikulerSchedules = FixedSchedule::groupKokurikulerByDay($rawKokurikulerSchedules);
 
         // Find Kokurikuler schedule matching the selected day
         $kokurikulerSchedule = $allKokurikulerSchedules->firstWhere('hari', $selectedDayName);
@@ -409,11 +411,13 @@ class PenilaianKokurikulerController extends Controller
                 ->orderBy('nis')
                 ->get();
 
-            $allKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
+            $rawKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
                 ->kokurikuler()
                 ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
                 ->orderBy('jam_ke')
                 ->get();
+
+            $allKokurikulerSchedules = FixedSchedule::groupKokurikulerByDay($rawKokurikulerSchedules);
 
             $kokurikulerSchedules = ($selectedHari !== 'all')
                 ? $allKokurikulerSchedules->where('hari', $selectedHari)->values()

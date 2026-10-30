@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\FixedSchedule;
 use App\Models\JamPelajaran;
 use App\Models\Semester;
+use Illuminate\Support\Facades\DB;
 
 class FixedScheduleController extends Controller
 {
@@ -27,7 +28,9 @@ class FixedScheduleController extends Controller
             $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
         }
 
-        return view('admin.fixed-schedule.index', compact('fixedSchedules', 'jamPelajarans', 'semester'));
+        $groupedFixedSchedules = FixedSchedule::groupConsecutive($fixedSchedules);
+
+        return view('admin.fixed-schedule.index', compact('fixedSchedules', 'groupedFixedSchedules', 'jamPelajarans', 'semester'));
     }
 
     public function store(Request $request)
@@ -35,32 +38,54 @@ class FixedScheduleController extends Controller
         $request->validate([
             'hari' => 'required|string',
             'jam_ke' => 'required|integer|min:0',
+            'jam_selesai' => 'nullable|integer|min:0',
             'keterangan' => 'required|string|max:255',
             'tipe' => 'nullable|string|in:umum,kokurikuler',
             'semester_id' => 'nullable|exists:semester,id',
         ]);
 
-        // Check if exists for this semester
-        $query = FixedSchedule::where('hari', $request->hari)
-            ->where('jam_ke', $request->jam_ke);
+        $startJam = (int) $request->jam_ke;
+        $endJam = $request->filled('jam_selesai') ? (int) $request->jam_selesai : $startJam;
 
-        if ($request->semester_id) {
-            $query->where('semester_id', $request->semester_id);
+        if ($endJam < $startJam) {
+            return back()->withInput()->withErrors(['msg' => 'Sampai Jam Ke- tidak boleh lebih kecil dari Jam Ke- mulai.']);
         }
 
-        if ($query->exists()) {
-            return back()->withErrors(['msg' => 'Jadwal tetap untuk hari dan jam tersebut sudah ada.']);
+        // Check if any slot in range already exists for this semester
+        $conflictingSlots = [];
+        for ($j = $startJam; $j <= $endJam; $j++) {
+            $query = FixedSchedule::where('hari', $request->hari)
+                ->where('jam_ke', $j);
+
+            if ($request->semester_id) {
+                $query->where('semester_id', $request->semester_id);
+            }
+
+            if ($query->exists()) {
+                $conflictingSlots[] = "Jam ke-$j";
+            }
         }
 
-        FixedSchedule::create([
-            'hari' => $request->hari,
-            'jam_ke' => $request->jam_ke,
-            'keterangan' => $request->keterangan,
-            'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
-            'semester_id' => $request->semester_id,
-        ]);
+        if (!empty($conflictingSlots)) {
+            return back()->withInput()->withErrors([
+                'msg' => 'Jadwal tetap untuk hari ' . $request->hari . ' pada ' . implode(', ', $conflictingSlots) . ' sudah terisi.',
+            ]);
+        }
 
-        return redirect()->back()->with('success', 'Jadwal Tetap berhasil ditambahkan');
+        DB::transaction(function () use ($request, $startJam, $endJam) {
+            for ($j = $startJam; $j <= $endJam; $j++) {
+                FixedSchedule::create([
+                    'hari' => $request->hari,
+                    'jam_ke' => $j,
+                    'keterangan' => $request->keterangan,
+                    'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
+                    'semester_id' => $request->semester_id,
+                ]);
+            }
+        });
+
+        $durasiMsg = ($startJam === $endJam) ? "Jam ke-{$startJam}" : "Jam ke-{$startJam} s/d {$endJam}";
+        return redirect()->back()->with('success', "Jadwal Tetap ({$request->hari}, {$durasiMsg}) berhasil ditambahkan");
     }
 
     public function update(Request $request, $id)
@@ -70,36 +95,107 @@ class FixedScheduleController extends Controller
         $request->validate([
             'hari' => 'required|string',
             'jam_ke' => 'required|integer|min:0',
+            'jam_selesai' => 'nullable|integer|min:0',
             'keterangan' => 'required|string|max:255',
             'tipe' => 'nullable|string|in:umum,kokurikuler',
+            'group_ids' => 'nullable|string',
         ]);
 
-        // Check duplicate on other records in the same semester
-        $query = FixedSchedule::where('hari', $request->hari)
-            ->where('jam_ke', $request->jam_ke)
-            ->where('id', '!=', $fixedSchedule->id);
+        $startJam = (int) $request->jam_ke;
+        $endJam = $request->filled('jam_selesai') ? (int) $request->jam_selesai : $startJam;
 
-        if ($fixedSchedule->semester_id) {
-            $query->where('semester_id', $fixedSchedule->semester_id);
+        if ($endJam < $startJam) {
+            return back()->withInput()->withErrors(['msg' => 'Sampai Jam Ke- tidak boleh lebih kecil dari Jam Ke- mulai.']);
         }
 
-        if ($query->exists()) {
-            return back()->withErrors(['msg' => 'Jadwal tetap untuk hari dan jam tersebut sudah digunakan.']);
+        $groupIds = $request->filled('group_ids')
+            ? array_filter(array_map('intval', explode(',', $request->input('group_ids'))))
+            : [$fixedSchedule->id];
+
+        // Check conflicts on slots in range outside current group
+        $conflictingSlots = [];
+        for ($j = $startJam; $j <= $endJam; $j++) {
+            $query = FixedSchedule::where('hari', $request->hari)
+                ->where('jam_ke', $j)
+                ->whereNotIn('id', $groupIds);
+
+            if ($fixedSchedule->semester_id) {
+                $query->where('semester_id', $fixedSchedule->semester_id);
+            }
+
+            if ($query->exists()) {
+                $conflictingSlots[] = "Jam ke-$j";
+            }
         }
 
-        $fixedSchedule->update([
-            'hari' => $request->hari,
-            'jam_ke' => $request->jam_ke,
-            'keterangan' => $request->keterangan,
-            'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
-        ]);
+        if (!empty($conflictingSlots)) {
+            return back()->withInput()->withErrors([
+                'msg' => 'Jadwal tetap untuk hari ' . $request->hari . ' pada ' . implode(', ', $conflictingSlots) . ' sudah digunakan.',
+            ]);
+        }
 
-        return redirect()->back()->with('success', 'Jadwal Tetap berhasil diperbarui');
+        DB::transaction(function () use ($groupIds, $request, $startJam, $endJam, $fixedSchedule) {
+            $neededJams = range($startJam, $endJam);
+
+            // Always update and preserve the primary record
+            $fixedSchedule->update([
+                'hari' => $request->hari,
+                'jam_ke' => $startJam,
+                'keterangan' => $request->keterangan,
+                'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
+            ]);
+
+            // Other existing IDs in this group
+            $otherIds = array_diff($groupIds, [$fixedSchedule->id]);
+            $existingOthers = FixedSchedule::whereIn('id', $otherIds)->get();
+
+            // Remaining hours to populate:
+            $remainingJams = array_slice($neededJams, 1);
+            $usedOtherIds = [];
+
+            foreach ($remainingJams as $j) {
+                if ($existingOthers->isNotEmpty() && $other = $existingOthers->shift()) {
+                    $other->update([
+                        'hari' => $request->hari,
+                        'jam_ke' => $j,
+                        'keterangan' => $request->keterangan,
+                        'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
+                    ]);
+                    $usedOtherIds[] = $other->id;
+                } else {
+                    FixedSchedule::create([
+                        'hari' => $request->hari,
+                        'jam_ke' => $j,
+                        'keterangan' => $request->keterangan,
+                        'tipe' => $request->input('tipe', FixedSchedule::TIPE_UMUM),
+                        'semester_id' => $fixedSchedule->semester_id,
+                    ]);
+                }
+            }
+
+            // Delete any unneeded excess slots from the old group
+            $toDelete = array_diff($otherIds, $usedOtherIds);
+            if (!empty($toDelete)) {
+                FixedSchedule::whereIn('id', $toDelete)->delete();
+            }
+        });
+
+        $durasiMsg = ($startJam === $endJam) ? "Jam ke-{$startJam}" : "Jam ke-{$startJam} s/d {$endJam}";
+        return redirect()->back()->with('success', "Jadwal Tetap ({$request->hari}, {$durasiMsg}) berhasil diperbarui");
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        FixedSchedule::findOrFail($id)->delete();
+        $fixedSchedule = FixedSchedule::findOrFail($id);
+        $groupIds = $request->input('group_ids');
+
+        if ($groupIds) {
+            $ids = is_array($groupIds) ? $groupIds : array_filter(array_map('intval', explode(',', $groupIds)));
+            FixedSchedule::whereIn('id', $ids)->delete();
+        } else {
+            $fixedSchedule->delete();
+        }
+
         return redirect()->back()->with('success', 'Jadwal Tetap berhasil dihapus');
     }
 }
