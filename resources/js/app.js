@@ -44,8 +44,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(function (link) {
         link.addEventListener("click", function (e) {
+            const href = this.getAttribute("href");
+            // Abaikan "#" kosong (mis. toggle dropdown) agar tidak error selector
+            if (!href || href === "#") return;
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute("href"));
+            let target = null;
+            try {
+                target = document.querySelector(href);
+            } catch (err) {
+                return;
+            }
             if (target) {
                 target.scrollIntoView({
                     behavior: "smooth",
