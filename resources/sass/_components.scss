@@ -692,3 +692,197 @@
         color: #1e293b !important;
     }
 }
+
+// --- SweetAlert2 — Material Design 3 Theme ---
+.swal2-container {
+    font-family: $font-family-m3;
+    z-index: 1070;
+
+    &.swal2-backdrop-show {
+        background: rgba(15, 23, 42, 0.45) !important;
+        backdrop-filter: blur(2px);
+    }
+}
+
+// Dialog Modal
+.swal2-popup:not(.swal2-toast) {
+    border-radius: $radius-xl !important; // M3 Standard Dialog Corner (28px)
+    background: #ffffff !important;
+    box-shadow: $m3-elevation-4 !important;
+    padding: 2rem 1.75rem 1.75rem !important;
+    border: none !important;
+
+    .swal2-title {
+        font-family: $font-family-m3;
+        font-size: 1.35rem !important;
+        font-weight: 600 !important;
+        color: $color-body-text !important;
+        margin-bottom: 0.5rem !important;
+        letter-spacing: -0.01em;
+    }
+
+    .swal2-html-container {
+        font-family: $font-family-m3;
+        font-size: 0.95rem !important;
+        color: $color-muted-text !important;
+        line-height: 1.55 !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .swal2-actions {
+        margin: 1.5rem 0 0 0 !important;
+        gap: 0.75rem !important;
+    }
+
+    .swal2-styled {
+        border-radius: $radius-pill !important;
+        font-family: $font-family-m3 !important;
+        font-weight: 500 !important;
+        font-size: 0.875rem !important;
+        padding: 0.55rem 1.4rem !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        letter-spacing: 0.01em !important;
+        box-shadow: $m3-elevation-1 !important;
+
+        &:hover {
+            box-shadow: $m3-elevation-2 !important;
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba($color-primary, 0.25) !important;
+        }
+
+        &.swal2-cancel {
+            background-color: $color-surface-container !important;
+            color: $color-body-text !important;
+            border: 1px solid $color-outline !important;
+
+            &:hover {
+                background-color: $color-surface-container-high !important;
+                color: $color-body-text !important;
+            }
+        }
+    }
+
+    // Icon Enhancements
+    .swal2-icon {
+        margin: 1rem auto 1.25rem !important;
+        border-width: 3px !important;
+
+        &.swal2-success {
+            border-color: $color-success !important;
+            color: $color-success !important;
+
+            .swal2-success-ring {
+                border-color: rgba($color-success, 0.2) !important;
+            }
+
+            [class^='swal2-success-line'] {
+                background-color: $color-success !important;
+            }
+        }
+
+        &.swal2-error {
+            border-color: $color-danger !important;
+            color: $color-danger !important;
+
+            [class^='swal2-x-mark-line'] {
+                background-color: $color-danger !important;
+            }
+        }
+
+        &.swal2-warning {
+            border-color: $color-warning !important;
+            color: $color-warning !important;
+        }
+
+        &.swal2-info {
+            border-color: $color-info !important;
+            color: $color-info !important;
+        }
+    }
+}
+
+// Toast Notification
+.swal2-popup.swal2-toast {
+    border-radius: $radius-md !important; // 12px
+    background: #ffffff !important;
+    box-shadow: $m3-elevation-3 !important;
+    border: 1px solid $color-border !important;
+    padding: 0.75rem 1.15rem !important;
+
+    .swal2-title {
+        font-family: $font-family-m3;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        color: $color-body-text !important;
+        margin: 0 !important;
+    }
+
+    .swal2-html-container {
+        font-family: $font-family-m3;
+        font-size: 0.85rem !important;
+        color: $color-muted-text !important;
+        margin: 0.25rem 0 0 0 !important;
+    }
+
+    .swal2-icon {
+        margin: 0 0.75rem 0 0 !important;
+        width: 1.6em !important;
+        height: 1.6em !important;
+        min-width: 1.6em !important;
+        border-width: 2px !important;
+
+        &.swal2-success {
+            border-color: $color-success !important;
+            color: $color-success !important;
+            [class^='swal2-success-line'] {
+                background-color: $color-success !important;
+            }
+        }
+
+        &.swal2-error {
+            border-color: $color-danger !important;
+            color: $color-danger !important;
+            [class^='swal2-x-mark-line'] {
+                background-color: $color-danger !important;
+            }
+        }
+
+        &.swal2-warning {
+            border-color: $color-warning !important;
+            color: $color-warning !important;
+        }
+
+        &.swal2-info {
+            border-color: $color-info !important;
+            color: $color-info !important;
+        }
+    }
+
+    .swal2-timer-progress-bar {
+        height: 3px !important;
+        background: $color-primary !important;
+    }
+
+    &.swal2-icon-success .swal2-timer-progress-bar {
+        background: $color-success !important;
+    }
+
+    &.swal2-icon-error .swal2-timer-progress-bar {
+        background: $color-danger !important;
+    }
+
+    &.swal2-icon-warning .swal2-timer-progress-bar {
+        background: $color-warning !important;
+    }
+
+    &.swal2-icon-info .swal2-timer-progress-bar {
+        background: $color-info !important;
+    }
+}
