@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\JadwalExport;
+use App\Exports\JadwalTemplateExport;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Imports\JadwalImport;
+use App\Models\FixedSchedule;
 use App\Models\JadwalPelajaran;
+use App\Models\JamPelajaran;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
-use App\Models\User;
-use App\Models\FixedSchedule;
-use App\Models\JamPelajaran;
 use App\Models\Semester;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\JadwalTemplateExport;
-use App\Exports\JadwalExport;
-use App\Imports\JadwalImport;
 
 class JadwalPelajaranController extends Controller
 {
@@ -29,7 +29,7 @@ class JadwalPelajaranController extends Controller
         } else {
             // Default to active semester if available
             $semester = Semester::where('is_active', true)->with('tahunPelajaran')->first();
-            
+
             if ($semester) {
                 $jamPelajarans = JamPelajaran::where('semester_id', $semester->id)->orderBy('jam_ke')->get();
             } else {
@@ -45,7 +45,7 @@ class JadwalPelajaranController extends Controller
             ->with(['guruProfile.mataPelajaran', 'guruProfile.mataPelajarans']) // Eager load profile to get all mata pelajaran
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru IS NULL OR guru_profiles.kode_guru = '' THEN 1 ELSE 0 END ASC")
             ->orderByRaw("CASE WHEN guru_profiles.kode_guru REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC")
-            ->orderByRaw("CAST(guru_profiles.kode_guru AS UNSIGNED) ASC")
+            ->orderByRaw('CAST(guru_profiles.kode_guru AS UNSIGNED) ASC')
             ->orderBy('guru_profiles.kode_guru', 'asc')
             ->orderBy('users.name', 'asc')
             ->get();
@@ -88,7 +88,7 @@ class JadwalPelajaranController extends Controller
                 if ($fixed) {
                     $data[$hari][$i] = [
                         'type' => 'fixed',
-                        'keterangan' => $fixed->keterangan
+                        'keterangan' => $fixed->keterangan,
                     ];
                 } else {
                     $lesson = $jadwals->where('hari', $hari)->where('jam_ke', $i)->first();
@@ -98,7 +98,7 @@ class JadwalPelajaranController extends Controller
                             'id' => $lesson->id,
                             'mata_pelajaran' => $lesson->mataPelajaran,
                             'guru' => $lesson->guru,
-                            'jam_ke' => $lesson->jam_ke
+                            'jam_ke' => $lesson->jam_ke,
                         ];
                     } else {
                         $data[$hari][$i] = null; // Empty slot
@@ -137,14 +137,14 @@ class JadwalPelajaranController extends Controller
 
             // Check if JamPelajaran exists
             $jamExists = JamPelajaran::where('jam_ke', $currentJam)->exists();
-            if (!$jamExists) {
-                 return response()->json(['message' => "Jam ke-$currentJam tidak valid atau tidak tersedia."], 422);
+            if (! $jamExists) {
+                return response()->json(['message' => "Jam ke-$currentJam tidak valid atau tidak tersedia."], 422);
             }
 
             // Check Fixed Schedule
             $isFixed = FixedSchedule::where('hari', $hari)
                 ->where('jam_ke', $currentJam)
-                ->when($semesterId, function($q) use ($semesterId) {
+                ->when($semesterId, function ($q) use ($semesterId) {
                     return $q->where('semester_id', $semesterId);
                 })
                 ->exists();
@@ -156,7 +156,7 @@ class JadwalPelajaranController extends Controller
             $teacherBusy = JadwalPelajaran::where('guru_id', $guruId)
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
-                ->when($semesterId, function($q) use ($semesterId) {
+                ->when($semesterId, function ($q) use ($semesterId) {
                     return $q->where('semester_id', $semesterId);
                 })
                 ->exists();
@@ -168,7 +168,7 @@ class JadwalPelajaranController extends Controller
             $slotTaken = JadwalPelajaran::where('kelas_id', $kelasId)
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
-                ->when($semesterId, function($q) use ($semesterId) {
+                ->when($semesterId, function ($q) use ($semesterId) {
                     return $q->where('semester_id', $semesterId);
                 })
                 ->exists();
@@ -190,7 +190,7 @@ class JadwalPelajaranController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Jadwal berhasil ditambahkan (' . $jumlahJam . ' jam pelajaran).']);
+        return response()->json(['message' => 'Jadwal berhasil ditambahkan ('.$jumlahJam.' jam pelajaran).']);
     }
 
     public function update(Request $request, $semester_id, $jadwal_mapel = null)
@@ -204,8 +204,8 @@ class JadwalPelajaranController extends Controller
         ]);
 
         // Resolve schedule ID safely whether invoked through route binding or direct controller call
-        $resolvedSchedule = $jadwal_mapel 
-            ?? $request->route('jadwal_mapel') 
+        $resolvedSchedule = $jadwal_mapel
+            ?? $request->route('jadwal_mapel')
             ?? $request->route('id');
 
         if ($resolvedSchedule === null) {
@@ -220,7 +220,7 @@ class JadwalPelajaranController extends Controller
         // Check if slot is fixed
         $isFixed = FixedSchedule::where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
-            ->when($semesterId, function($q) use ($semesterId) {
+            ->when($semesterId, function ($q) use ($semesterId) {
                 return $q->where('semester_id', $semesterId);
             })
             ->exists();
@@ -234,13 +234,13 @@ class JadwalPelajaranController extends Controller
             ->where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
             ->where('id', '!=', $id)
-            ->when($semesterId, function($q) use ($semesterId) {
+            ->when($semesterId, function ($q) use ($semesterId) {
                 return $q->where('semester_id', $semesterId);
             })
             ->exists();
 
         if ($conflict) {
-            return response()->json(['message' => 'Guru ini sudah mengajar di kelas lain pada jam ke-' . $request->jam_ke], 422);
+            return response()->json(['message' => 'Guru ini sudah mengajar di kelas lain pada jam ke-'.$request->jam_ke], 422);
         }
 
         // Check Class Slot Taken
@@ -248,17 +248,17 @@ class JadwalPelajaranController extends Controller
             ->where('hari', $request->hari)
             ->where('jam_ke', $request->jam_ke)
             ->where('id', '!=', $id)
-            ->when($semesterId, function($q) use ($semesterId) {
+            ->when($semesterId, function ($q) use ($semesterId) {
                 return $q->where('semester_id', $semesterId);
             })
             ->exists();
 
         if ($slotTaken) {
-            return response()->json(['message' => 'Slot jam ke-' . $request->jam_ke . ' sudah terisi di kelas ini.'], 422);
+            return response()->json(['message' => 'Slot jam ke-'.$request->jam_ke.' sudah terisi di kelas ini.'], 422);
         }
 
-        $jadwal = ($resolvedSchedule instanceof JadwalPelajaran) 
-            ? $resolvedSchedule 
+        $jadwal = ($resolvedSchedule instanceof JadwalPelajaran)
+            ? $resolvedSchedule
             : JadwalPelajaran::findOrFail($id);
 
         $jadwal->update([
@@ -278,6 +278,7 @@ class JadwalPelajaranController extends Controller
         $resolvedSchedule = $id ?? request()->route('jadwal_mapel') ?? request()->route('id') ?? $idSemester;
         $scheduleId = is_object($resolvedSchedule) ? $resolvedSchedule->id : $resolvedSchedule;
         JadwalPelajaran::findOrFail($scheduleId)->delete();
+
         return response()->json(['message' => 'Jadwal berhasil dihapus']);
     }
 
@@ -288,16 +289,16 @@ class JadwalPelajaranController extends Controller
             'hari' => 'required',
             'jam_ke' => 'required',
             'semester_id' => 'required',
-            'kelas_id' => 'required'
+            'kelas_id' => 'required',
         ]);
 
         $guruId = $request->guru_id;
         $hari = $request->hari;
-        $startJam = (int)$request->jam_ke;
+        $startJam = (int) $request->jam_ke;
         $semesterId = $request->semester_id;
         $kelasId = $request->kelas_id;
-        $jumlahJam = (int)$request->get('jumlah_jam', 1);
         $ignoreId = $request->ignore_id; // For edit mode
+        $jumlahJam = $ignoreId ? 1 : (int) $request->get('jumlah_jam', 1);
 
         for ($i = 0; $i < $jumlahJam; $i++) {
             $currentJam = $startJam + $i;
@@ -311,7 +312,7 @@ class JadwalPelajaranController extends Controller
             if ($fixed) {
                 return response()->json([
                     'conflict' => true,
-                    'message' => "Jam ke-$currentJam adalah jadwal tetap: {$fixed->keterangan}"
+                    'message' => "Jam ke-$currentJam adalah jadwal tetap: {$fixed->keterangan}",
                 ]);
             }
 
@@ -321,7 +322,7 @@ class JadwalPelajaranController extends Controller
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
                 ->where('semester_id', $semesterId)
-                ->when($ignoreId, function($q) use ($ignoreId) {
+                ->when($ignoreId, function ($q) use ($ignoreId) {
                     return $q->where('id', '!=', $ignoreId);
                 })
                 ->first();
@@ -329,7 +330,7 @@ class JadwalPelajaranController extends Controller
             if ($classConflict) {
                 return response()->json([
                     'conflict' => true,
-                    'message' => "Slot jam ke-$currentJam sudah terisi: {$classConflict->mataPelajaran->nama_mapel}"
+                    'message' => "Slot jam ke-$currentJam sudah terisi: {$classConflict->mataPelajaran->nama_mapel}",
                 ]);
             }
 
@@ -339,16 +340,17 @@ class JadwalPelajaranController extends Controller
                 ->where('hari', $hari)
                 ->where('jam_ke', $currentJam)
                 ->where('semester_id', $semesterId)
-                ->when($ignoreId, function($q) use ($ignoreId) {
+                ->when($ignoreId, function ($q) use ($ignoreId) {
                     return $q->where('id', '!=', $ignoreId);
                 })
                 ->first();
 
             if ($teacherConflict) {
                 $namaKelas = $teacherConflict->kelas ? $teacherConflict->kelas->full_name : 'lain';
+
                 return response()->json([
                     'conflict' => true,
-                    'message' => "Guru ini sedang mengajar di kelas {$namaKelas} pada jam ke-$currentJam"
+                    'message' => "Guru ini sedang mengajar di kelas {$namaKelas} pada jam ke-$currentJam",
                 ]);
             }
         }
@@ -363,7 +365,7 @@ class JadwalPelajaranController extends Controller
             'hari' => 'required',
             'jam_ke' => 'required|integer',
             'semester_id' => 'required',
-            'kelas_id' => 'required'
+            'kelas_id' => 'required',
         ]);
 
         $sourceId = $request->id;
@@ -403,24 +405,25 @@ class JadwalPelajaranController extends Controller
                 // Move Target to Source position
                 $target->update([
                     'hari' => $tempHari,
-                    'jam_ke' => $tempJam
+                    'jam_ke' => $tempJam,
                 ]);
 
                 // Move Source to Target position
                 $source->update([
                     'hari' => $targetHari,
-                    'jam_ke' => $targetJam
+                    'jam_ke' => $targetJam,
                 ]);
 
                 // Optional: Check Teacher Conflicts for BOTH after move?
                 // This is complex. Ideally yes. For now, we trust the Admin.
-                
+
                 DB::commit();
+
                 return response()->json(['message' => 'Jadwal berhasil ditukar.']);
 
             } else {
                 // Performing Move (Empty Slot)
-                
+
                 // Validate Teacher Conflict for Source at New Position
                 $teacherBusy = JadwalPelajaran::where('guru_id', $source->guru_id)
                     ->where('hari', $targetHari)
@@ -435,16 +438,18 @@ class JadwalPelajaranController extends Controller
 
                 $source->update([
                     'hari' => $targetHari,
-                    'jam_ke' => $targetJam
+                    'jam_ke' => $targetJam,
                 ]);
 
                 DB::commit();
+
                 return response()->json(['message' => 'Jadwal berhasil dipindahkan.']);
             }
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Terjadi kesalahan: '.$e->getMessage()], 500);
         }
     }
 
@@ -458,7 +463,7 @@ class JadwalPelajaranController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:5120',
             'semester_id' => 'required|exists:semester,id',
-            'dry_run' => 'nullable|boolean'
+            'dry_run' => 'nullable|boolean',
         ]);
 
         $isDryRun = $request->boolean('dry_run');
@@ -477,7 +482,7 @@ class JadwalPelajaranController extends Controller
                     'success_count' => $import->successCount,
                     'failure_count' => $import->failureCount,
                     'errors' => $import->errors,
-                    'changes' => $import->changes
+                    'changes' => $import->changes,
                 ]);
             }
 
@@ -485,31 +490,34 @@ class JadwalPelajaranController extends Controller
             DB::commit();
 
             $message = "Import selesai! Berhasil: {$import->successCount}, Gagal: {$import->failureCount}.";
-            
-            if (!empty($import->errors)) {
+
+            if (! empty($import->errors)) {
                 $errorList = implode("\n", array_slice($import->errors, 0, 5));
-                if (count($import->errors) > 5) $errorList .= "\n...dan lainnya.";
-                
+                if (count($import->errors) > 5) {
+                    $errorList .= "\n...dan lainnya.";
+                }
+
                 return response()->json([
                     'message' => $message,
-                    'errors' => $errorList
-                ], 422); 
+                    'errors' => $errorList,
+                ], 422);
             }
 
             return response()->json(['message' => $message]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Gagal import: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Gagal import: '.$e->getMessage()], 500);
         }
     }
 
     public function export(Request $request)
     {
         $request->validate([
-            'semester_id' => 'required|exists:semester,id'
+            'semester_id' => 'required|exists:semester,id',
         ]);
-        
+
         return Excel::download(new JadwalExport($request->semester_id), 'jadwal_pelajaran_full.xlsx');
     }
 
@@ -517,7 +525,7 @@ class JadwalPelajaranController extends Controller
     {
         $request->validate([
             'semester_id' => 'required|exists:semester,id',
-            'kelas_id' => 'required|exists:kelas,id'
+            'kelas_id' => 'required|exists:kelas,id',
         ]);
 
         try {
@@ -529,7 +537,7 @@ class JadwalPelajaranController extends Controller
             // Based on previous code: `getByKelas` checks `FixedSchedule` table separately.
             // So `JadwalPelajaran` table ONLY contains lessons.
             // Therefore, we can delete ALL entries in `jadwal_pelajarans` for this class/semester.
-            
+
             JadwalPelajaran::where('semester_id', $request->semester_id)
                 ->where('kelas_id', $request->kelas_id)
                 ->delete();
@@ -537,7 +545,7 @@ class JadwalPelajaranController extends Controller
             return response()->json(['message' => 'Jadwal kelas ini berhasil direset.']);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal mereset jadwal: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal mereset jadwal: '.$e->getMessage()], 500);
         }
     }
 }

@@ -288,4 +288,48 @@ class AdminJadwalUpdateTest extends TestCase
             'message' => 'Guru ini sedang mengajar di kelas '.$this->kelasB->full_name.' pada jam ke-3',
         ]);
     }
+
+    public function test_check_conflict_forces_single_slot_when_editing_with_ignore_id(): void
+    {
+        // Slot Jam 5 Kelas A
+        $jadwalJam5 = JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelasA->id,
+            'mata_pelajaran_id' => $this->mapel1->id,
+            'guru_id' => $this->teacher->id,
+            'hari' => 'Rabu',
+            'jam_ke' => 5,
+        ]);
+
+        // Slot Jam 6 Kelas A (Mapel lain)
+        $mapelLain = \App\Models\MataPelajaran::create([
+            'nama_mapel' => 'Bahasa Inggris',
+            'kode_mapel' => 'BIG',
+        ]);
+        JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelasA->id,
+            'mata_pelajaran_id' => $mapelLain->id,
+            'guru_id' => $this->teacher->id,
+            'hari' => 'Rabu',
+            'jam_ke' => 6,
+        ]);
+
+        // Saat edit Jam 5, meski jumlah_jam terkirim 2 dari form yang bocor, sistem harus memaksa durasi 1
+        $response = $this->actingAs($this->admin)
+            ->postJson(route('admin.jadwal.check-conflict'), [
+                'guru_id' => $this->teacher->id,
+                'hari' => 'Rabu',
+                'jam_ke' => 5,
+                'semester_id' => $this->semester->id,
+                'kelas_id' => $this->kelasA->id,
+                'jumlah_jam' => 2,
+                'ignore_id' => $jadwalJam5->id,
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'conflict' => false,
+        ]);
+    }
 }

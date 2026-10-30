@@ -574,7 +574,7 @@ $(document).ready(function() {
         const scheduleId = $('#schedule_id').val();
         const semesterId = $('input[name="semester_id"]').val();
         const kelasId = $('#kelas_id').val();
-        const jumlahJam = $('#jumlah_jam').val();
+        const jumlahJam = scheduleId ? 1 : ($('#jumlah_jam').val() || 1);
 
         if (guruId && hari && jamKe && kelasId) {
             $.post("{{ route('admin.jadwal.check-conflict') }}", {
@@ -825,6 +825,10 @@ $(document).ready(function() {
         $('#hari').val(hari);
         $('#jam_ke').val(data.jam_ke);
 
+        // Edit is always for a single slot: force jumlah_jam to 1 and hide duration field
+        $('#jumlah_jam').val(1);
+        $('#div-jumlah-jam').addClass('d-none');
+
         // Update Select2 values
         $('#mata_pelajaran_id').val(data.mata_pelajaran.id).trigger('change');
         if (data.guru) {
@@ -837,9 +841,6 @@ $(document).ready(function() {
         }
         $('#conflict-alert').addClass('d-none');
         $('#btn-save').prop('disabled', false);
-
-        // Hide Duration Field (Edit only single slot)
-        $('#div-jumlah-jam').addClass('d-none');
 
         $('#modal-hari').text(hari);
         $('#modal-jam').text(data.jam_ke);
@@ -901,6 +902,16 @@ $(document).ready(function() {
     });
 
 
+
+    // Reset Schedule Modal on Close
+    $('#scheduleModal').on('hidden.bs.modal', function () {
+        $('#scheduleForm')[0].reset();
+        $('#schedule_id').val('');
+        $('#jumlah_jam').val(1);
+        $('#div-jumlah-jam').removeClass('d-none');
+        $('#conflict-alert').addClass('d-none').hide();
+        $('#btn-save').prop('disabled', false);
+    });
 
     // Reset Import Modal on Close
     $('#importModal').on('hidden.bs.modal', function () {
