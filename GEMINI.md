@@ -48,13 +48,27 @@ A robust system for managing class schedules.
         3.  Fixed Schedules (Upacara/Istirahat).
     *   **Export & Reset:** Dedicated buttons to backup or clear class schedules.
 
-### 📍 Attendance (Absensi)
-*   **Guru:** Selfie + GPS Geofencing. Real-time updates via Ajax polling on Principal's dashboard.
-*   **Siswa:** Daily and per-subject attendance.
+### 📍 Attendance & Reporting (Absensi & Rekap)
+*   **Guru Attendance:**
+    *   Selfie capture (front/back camera) + GPS geofencing against coordinates in `config/school.php` (`SCHOOL_LATITUDE`, `SCHOOL_LONGITUDE`, `SCHOOL_ATTENDANCE_RADIUS`, `SCHOOL_LATE_THRESHOLD`).
+    *   Automated status assignment (`hadir` vs `terlambat` based on threshold time, `izin`, `alpha`).
+    *   Real-time monitoring via Ajax polling on Principal's dashboard.
+*   **Siswa Attendance:** Daily class attendance and per-subject attendance.
+*   **Rekap & Filter:**
+    *   Multi-criteria filtering by Period (Daily, Monthly, Semester) and Status (`hadir`, `sakit`, `izin`, `alpha`, `terlambat`) in Admin & Kepala Sekolah rekap tables (`AbsensiRekapController`).
+*   **Excel Export (`maatwebsite/excel`):**
+    *   **Siswa:** Multi-sheet workbook (`StudentsAttendanceExport` -> `StudentsAttendanceSheet` per class), sorted by NIS with daily attendance matrix and total counts.
+    *   **Guru:** Single-sheet workbook (`TeachersAttendanceExport`) detailing teacher NIP, name, subjects, and daily attendance matrix.
 
-### 📸 Media Handling
-*   **HEIC Support:** Native iPhone images are auto-converted to JPG/WebP on upload.
-*   **Compression:** Server-side resizing using `Intervention\Image`.
+### 📸 Media Handling & Image Compression
+*   **Client-Side Compression:**
+    *   Uses HTML5 Canvas API before upload in Jurnal Mengajar (`wizard.blade.php`), Absensi Selfie (`absensi-guru.blade.php`), and Profile Photo preview (`profile-section.blade.php`).
+    *   Resizes images to max 1200px width at 60% quality WebP format (fallback JPEG), minimizing upload payload and server processing.
+*   **HEIC / iPhone Support:**
+    *   Native iOS HEIC/HEIF files handled via `maestroerror/php-heic-to-jpg`.
+    *   Dedicated conversion route `/guru/jurnal-mengajar/convert-heic` enables asynchronous server-side HEIC-to-JPG conversion returning base64 for client canvas compression.
+*   **Server-Side Processing & Fallback:**
+    *   Managed by `app/Helpers/ImageCompressor.php` with WebP encoding and `Intervention\Image` resizing when client-side compression is bypassed or during direct profile updates.
 
 ---
 
