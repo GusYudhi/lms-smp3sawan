@@ -697,14 +697,22 @@
 .swal2-container {
     font-family: $font-family-m3;
     z-index: 1070;
-
-    &.swal2-backdrop-show {
-        background: rgba(15, 23, 42, 0.45) !important;
-        backdrop-filter: blur(2px);
-    }
 }
 
-// Dialog Modal
+// Scrim / Backdrop (Modal Dialog Only — Never for Toasts)
+body:not(.swal2-toast-shown) div:where(.swal2-container).swal2-backdrop-show {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(2px);
+}
+
+body.swal2-toast-shown div:where(.swal2-container) {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    pointer-events: none !important;
+}
+
+// Dialog Modal (Centered)
 .swal2-popup:not(.swal2-toast) {
     border-radius: $radius-xl !important; // M3 Standard Dialog Corner (28px)
     background: #ffffff !important;
@@ -768,53 +776,17 @@
             }
         }
     }
-
-    // Icon Enhancements
-    .swal2-icon {
-        margin: 1rem auto 1.25rem !important;
-        border-width: 3px !important;
-
-        &.swal2-success {
-            border-color: $color-success !important;
-            color: $color-success !important;
-
-            .swal2-success-ring {
-                border-color: rgba($color-success, 0.2) !important;
-            }
-
-            [class^='swal2-success-line'] {
-                background-color: $color-success !important;
-            }
-        }
-
-        &.swal2-error {
-            border-color: $color-danger !important;
-            color: $color-danger !important;
-
-            [class^='swal2-x-mark-line'] {
-                background-color: $color-danger !important;
-            }
-        }
-
-        &.swal2-warning {
-            border-color: $color-warning !important;
-            color: $color-warning !important;
-        }
-
-        &.swal2-info {
-            border-color: $color-info !important;
-            color: $color-info !important;
-        }
-    }
 }
 
-// Toast Notification
+// Toast Notification (Floating Top-End Snackbar)
 .swal2-popup.swal2-toast {
     border-radius: $radius-md !important; // 12px
     background: #ffffff !important;
     box-shadow: $m3-elevation-3 !important;
     border: 1px solid $color-border !important;
-    padding: 0.75rem 1.15rem !important;
+    overflow: hidden !important;
+    position: relative !important;
+    pointer-events: auto !important;
 
     .swal2-title {
         font-family: $font-family-m3;
@@ -822,6 +794,7 @@
         font-weight: 600 !important;
         color: $color-body-text !important;
         margin: 0 !important;
+        line-height: 1.4 !important;
     }
 
     .swal2-html-container {
@@ -829,40 +802,6 @@
         font-size: 0.85rem !important;
         color: $color-muted-text !important;
         margin: 0.25rem 0 0 0 !important;
-    }
-
-    .swal2-icon {
-        margin: 0 0.75rem 0 0 !important;
-        width: 1.6em !important;
-        height: 1.6em !important;
-        min-width: 1.6em !important;
-        border-width: 2px !important;
-
-        &.swal2-success {
-            border-color: $color-success !important;
-            color: $color-success !important;
-            [class^='swal2-success-line'] {
-                background-color: $color-success !important;
-            }
-        }
-
-        &.swal2-error {
-            border-color: $color-danger !important;
-            color: $color-danger !important;
-            [class^='swal2-x-mark-line'] {
-                background-color: $color-danger !important;
-            }
-        }
-
-        &.swal2-warning {
-            border-color: $color-warning !important;
-            color: $color-warning !important;
-        }
-
-        &.swal2-info {
-            border-color: $color-info !important;
-            color: $color-info !important;
-        }
     }
 
     .swal2-timer-progress-bar {
