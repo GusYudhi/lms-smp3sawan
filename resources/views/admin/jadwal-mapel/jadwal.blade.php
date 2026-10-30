@@ -193,7 +193,7 @@
             }
         @endphp
 
-        <table class="table table-bordered mb-0" style="min-width: 1000px; table-layout: fixed;">
+        <table class="table table-bordered mb-0 jadwal-table" style="min-width: 1000px; table-layout: fixed;">
             <colgroup>
                 <col style="width: 100px;">
                 @foreach($daysToShow as $hari)
@@ -220,7 +220,7 @@
                             <small class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $waktu }}</small>
                         </td>
                         @foreach($daysToShow as $hari)
-                            <td id="cell-{{ $hari }}-{{ $i }}" class="p-1" style="height: 1px;">
+                            <td id="cell-{{ $hari }}-{{ $i }}" class="p-1 drop-zone schedule-slot" style="min-height: 90px; height: 90px; vertical-align: top;">
                                 <!-- Content injected by JS -->
                             </td>
                         @endforeach
@@ -639,15 +639,17 @@ $(document).ready(function() {
     });
 
     // Load Schedules via AJAX
-    window.loadSchedulesGlobal = function(kelasId, hari) {
-        loadSchedules(kelasId, hari);
+    window.loadSchedulesGlobal = function(kelasId, hari, targetHighlightSlot) {
+        loadSchedules(kelasId, hari, targetHighlightSlot);
     };
 
-    function loadSchedules(kelasId, hari) {
+    function loadSchedules(kelasId, hari, targetHighlightSlot) {
         $('#loading-indicator').removeClass('d-none');
 
-        // Clear existing items
-        $('[id^="cell-"]').empty();
+        // Capture scroll positions to preserve exact view upon AJAX refresh
+        const savedScrollY = window.scrollY || document.documentElement.scrollTop;
+        const $grid = $('#schedule-grid');
+        const savedScrollX = $grid.scrollLeft();
 
         let url = `{{ route('admin.jadwal.get-by-kelas', ['semester_id' => $semester->id, 'kelasId' => 'ID_KELAS']) }}`;
         url = url.replace('ID_KELAS', kelasId);
@@ -662,6 +664,8 @@ $(document).ready(function() {
                     // Render 7 slots
                     for (let i = 1; i <= 7; i++) {
                         const cell = $(`#cell-${hari}-${i}`);
+                        if (!cell.length) return;
+
                         const item = slots[i];
 
                         // Add Drop Zone attributes
@@ -719,18 +723,25 @@ $(document).ready(function() {
                             `;
                         }
 
-                        // Only add onclick to the WRAPPER if it's NOT a draggable lesson (to prevent click when dragging starts)
-                        // Actually, click works fine with drag if handled correctly.
-                        // But to be safe, let's put onclick on the content div for empty slots, and on the card for lessons.
-                        // Simplified:
-                        
-                        if (item && item.type === 'lesson') {
-                             cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
-                        } else {
-                             cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
-                        }
+                        cell.html(`<div style="${style}" ${onClick}>${content}</div>`);
                     }
                 });
+
+                // Restore scroll positions instantly so the page does not jump
+                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+                $grid.scrollLeft(savedScrollX);
+
+                // Highlight target slot if provided
+                if (targetHighlightSlot) {
+                    const $targetCell = $(`#cell-${targetHighlightSlot}`);
+                    if ($targetCell.length) {
+                        const $targetCard = $targetCell.find('.draggable-item, > div');
+                        $targetCard.addClass('slot-highlight-pulse');
+                        setTimeout(() => {
+                            $targetCard.removeClass('slot-highlight-pulse');
+                        }, 1500);
+                    }
+                }
             })
             .fail(function() {
                 if (typeof Swal !== 'undefined') {
@@ -812,6 +823,10 @@ $(document).ready(function() {
         e.preventDefault();
 
         const id = $('#schedule_id').val();
+        const hariVal = $('#hari').val();
+        const jamVal = $('#jam_ke').val();
+        const targetHighlight = (hariVal && jamVal) ? `${hariVal}-${jamVal}` : null;
+
         const url = id ? `{{ route('admin.jadwal.update', ['semester_id' => $semester->id, 'jadwal_mapel' => 'ID']) }}`.replace('ID', id) : `{{ route('admin.jadwal.store', ['semester_id' => $semester->id]) }}`;
         const method = id ? 'PUT' : 'POST';
 
@@ -821,8 +836,13 @@ $(document).ready(function() {
             data: $(this).serialize(),
             success: function(response) {
                 scheduleModal.hide();
-                loadSchedules(currentKelasId);
-                if (typeof Swal !== 'undefined') {
+                loadSchedules(currentKelasId, selectedHari, targetHighlight);
+                if (window.Toast) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: response.message
+                    });
+                } else if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
@@ -1026,8 +1046,15 @@ $(document).ready(function() {
                         kelas_id: kelasId
                     },
                     success: function(response) {
-                        Swal.fire('Berhasil!', response.message, 'success');
-                        loadSchedules(kelasId);
+                        if (window.Toast) {
+                            Toast.fire({
+                                icon: 'success',
+                                title: response.message || 'Jadwal berhasil di-reset'
+                            });
+                        } else {
+                            Swal.fire('Berhasil!', response.message, 'success');
+                        }
+                        loadSchedules(kelasId, selectedHari);
                     },
                     error: function(xhr) {
                         Swal.fire('Gagal!', 'Gagal mereset jadwal.', 'error');
@@ -1061,12 +1088,19 @@ $(document).ready(function() {
                     },
                     success: function(response) {
                         scheduleModal.hide();
-                        loadSchedules(currentKelasId);
-                        Swal.fire(
-                            'Terhapus!',
-                            'Jadwal telah berhasil dihapus.',
-                            'success'
-                        );
+                        loadSchedules(currentKelasId, selectedHari);
+                        if (window.Toast) {
+                            Toast.fire({
+                                icon: 'success',
+                                title: response.message || 'Jadwal telah berhasil dihapus.'
+                            });
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire(
+                                'Terhapus!',
+                                response.message || 'Jadwal telah berhasil dihapus.',
+                                'success'
+                            );
+                        }
                     },
                     error: function(xhr) {
                         Swal.fire(
@@ -1138,6 +1172,7 @@ function moveSchedule(id, targetHari, targetJam) {
     
     const semesterId = $('input[name="semester_id"]').val();
     const kelasId = $('#filter_kelas').val(); // Assuming current filter is the class
+    const targetHighlight = `${targetHari}-${targetJam}`;
 
     $.post("{{ route('admin.jadwal.move') }}", {
         _token: "{{ csrf_token() }}",
@@ -1148,28 +1183,39 @@ function moveSchedule(id, targetHari, targetJam) {
         kelas_id: kelasId
     })
     .done(function(response) {
-        // Expose loadSchedules to window
+        // Expose loadSchedules to window with target highlight
         if (window.loadSchedulesGlobal) {
-            window.loadSchedulesGlobal(kelasId);
+            window.loadSchedulesGlobal(kelasId, null, targetHighlight);
         } else {
             location.reload(); 
         }
         
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: response.message,
-            timer: 2000,
-            showConfirmButton: false
-        });
+        if (window.Toast) {
+            Toast.fire({
+                icon: 'success',
+                title: response.message || 'Jadwal berhasil dipindahkan'
+            });
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: response.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
     })
     .fail(function(xhr) {
         const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal memindahkan jadwal';
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: msg
-        });
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: msg
+            });
+        } else {
+            alert(msg);
+        }
         // Reload to reset UI state
         if (window.loadSchedulesGlobal) window.loadSchedulesGlobal(kelasId);
     })

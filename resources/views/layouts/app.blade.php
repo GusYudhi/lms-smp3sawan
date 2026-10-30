@@ -187,17 +187,37 @@
         }
     </script>
 
-    <!-- SweetAlert2 Session Handling -->
+    <!-- SweetAlert2 Toast & Session Handling -->
     <script>
+        const Toast = (typeof Swal !== 'undefined') ? Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        }) : null;
+        window.Toast = Toast;
+
         document.addEventListener('DOMContentLoaded', function() {
             @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: "{{ session('success') }}",
-                    timer: 3000,
-                    showConfirmButton: false
-                });
+                if (Toast) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}"
+                    });
+                } else if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: "{{ session('success') }}",
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
             @endif
 
             @if(session('error'))

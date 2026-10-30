@@ -206,12 +206,43 @@
 }
 
 .drop-zone {
+    min-height: 90px;
+    height: 90px;
+    vertical-align: top;
     transition: background-color 0.2s ease;
 
     &.drag-over {
         background-color: #e9ecef !important;
         border: 2px dashed #0d6efd !important;
     }
+}
+
+td.schedule-slot {
+    min-height: 90px;
+    height: 90px;
+    vertical-align: top;
+}
+
+@keyframes slotPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(3, 105, 161, 0.7);
+        transform: scale(0.97);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(3, 105, 161, 0.2);
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(3, 105, 161, 0);
+        transform: scale(1);
+    }
+}
+
+.slot-highlight-pulse {
+    animation: slotPulse 1.2s ease-out;
+    border-radius: 6px;
+    position: relative;
+    z-index: 2;
 }
 
 // --- Full Schedule Table (Siswa Jadwal Mapel) ---
