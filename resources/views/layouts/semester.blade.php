@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,10 +24,9 @@
     <!-- Bootstrap CSS -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-
-
     @stack('styles')
 </head>
+
 <body>
     <!-- Mobile backdrop -->
     <div id="sidebar-backdrop" class="sidebar-backdrop d-md-none" onclick="closeSidebar()"></div>
@@ -36,8 +36,9 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="sidebar-brand text-center">
-                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 Sawan" class="me-2">
-                    <span class="text-white fw-bold">SMPN 3 SAWAN</span>
+                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo SMP 3 Sawan"
+                        class="me-2">
+                    <span class="fw-bold text-white">SMPN 3 SAWAN</span>
                 </div>
 
                 <!-- Semester Info -->
@@ -53,40 +54,45 @@
                     <ul class="nav flex-column">
                         <!-- Back Button -->
                         <li class="nav-item mb-3">
-                            <a class="nav-link bg-white bg-opacity-10" href="{{ route('admin.tahun-pelajaran.dashboard', $semester->tahunPelajaran->id) }}">
+                            <a class="nav-link bg-white bg-opacity-10"
+                                href="{{ route('admin.tahun-pelajaran.dashboard', $semester->tahunPelajaran->id) }}">
                                 <i class="fas fa-arrow-left me-2"></i> Kembali ke Tahun Pelajaran
                             </a>
                         </li>
 
                         <!-- Dashboard Semester -->
                         <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'admin.semester.dashboard' ? 'active' : '' }}" href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}">
+                            <a class="nav-link {{ Route::currentRouteName() == 'admin.semester.dashboard' ? 'active' : '' }}"
+                                href="{{ route('admin.semester.dashboard', ['semester_id' => $semester->id]) }}">
                                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard Semester
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <div class="dropdown-divider bg-white opacity-25 my-2"></div>
-                            <small class="text-white opacity-50 px-3 d-block mb-2">MANAJEMEN AKADEMIK</small>
+                            <div class="dropdown-divider my-2 bg-white opacity-25"></div>
+                            <small class="d-block mb-2 px-3 text-white opacity-50">MANAJEMEN AKADEMIK</small>
                         </li>
 
                         <!-- Jadwal Pelajaran -->
                         <li class="nav-item">
-                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jadwal') ? 'active' : '' }}" href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}">
+                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jadwal') ? 'active' : '' }}"
+                                href="{{ route('admin.jadwal.index', ['semester_id' => $semester->id]) }}">
                                 <i class="fas fa-calendar-day me-2"></i> Jadwal Pelajaran
                             </a>
                         </li>
 
                         <!-- Jam Pelajaran -->
                         <li class="nav-item">
-                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jam-pelajaran') ? 'active' : '' }}" href="{{ route('admin.jam-pelajaran.index', ['semester_id' => $semester->id]) }}">
+                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.jam-pelajaran') ? 'active' : '' }}"
+                                href="{{ route('admin.jam-pelajaran.index', ['semester_id' => $semester->id]) }}">
                                 <i class="fas fa-clock me-2"></i> Jam Pelajaran
                             </a>
                         </li>
 
                         <!-- Jadwal Tetap -->
                         <li class="nav-item">
-                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.fixed-schedule') ? 'active' : '' }}" href="{{ route('admin.fixed-schedule.index', ['semester_id' => $semester->id]) }}">
+                            <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'admin.fixed-schedule') ? 'active' : '' }}"
+                                href="{{ route('admin.fixed-schedule.index', ['semester_id' => $semester->id]) }}">
                                 <i class="fas fa-calendar-check me-2"></i> Jadwal Tetap
                             </a>
                         </li>
@@ -94,7 +100,7 @@
 
                     <hr class="text-white-50 mt-4">
                     <div class="px-3">
-                        <div class="text-white small mb-2">
+                        <div class="small mb-2 text-white">
                             <i class="fas fa-user me-2"></i>{{ auth()->user()->name }}
                         </div>
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -110,12 +116,14 @@
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <!-- Top Navigation -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <button class="navbar-toggler d-md-none btn btn-outline-primary" type="button" onclick="openSidebar()">
+                <div
+                    class="d-flex justify-content-between flex-md-nowrap align-items-center border-bottom mb-3 flex-wrap pb-2 pt-3">
+                    <button class="navbar-toggler d-md-none btn btn-outline-primary" type="button"
+                        onclick="openSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h1 class="h2 navbar-brand">@yield('title', 'Dashboard Semester')</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-toolbar mb-md-0 mb-2">
                         <div class="btn-group me-2">
                             <span class="text-muted">Selamat datang, {{ auth()->user()->name }}</span>
                         </div>
@@ -222,7 +230,7 @@
         window.Toast = Toast;
 
         document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
+            @if (session('success'))
                 if (Toast) {
                     Toast.fire({
                         icon: 'success',
@@ -239,7 +247,7 @@
                 }
             @endif
 
-            @if(session('error'))
+            @if (session('error'))
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal!',
@@ -247,7 +255,7 @@
                 });
             @endif
 
-            @if(session('warning'))
+            @if (session('warning'))
                 Swal.fire({
                     icon: 'warning',
                     title: 'Perhatian!',
@@ -260,7 +268,7 @@
                 e.preventDefault();
                 const form = this;
                 const message = $(this).data('message') || 'Data yang dihapus tidak dapat dikembalikan!';
-                
+
                 Swal.fire({
                     title: 'Yakin ingin menghapus?',
                     text: message,
@@ -281,4 +289,5 @@
 
     @stack('scripts')
 </body>
+
 </html>
