@@ -10,17 +10,46 @@
             <h1 class="h3 mb-1 text-gray-800">
                 <i class="fas fa-star text-warning me-2"></i>Penilaian Kokurikuler Kelas {{ $kelas->full_name }}
             </h1>
-            @if($activeSemester)
-                <p class="text-muted mb-0">
-                    <small>{{ $activeSemester->tahunPelajaran->nama ?? '' }} - {{ $activeSemester->nama }} (Jam Ke-0)</small>
-                </p>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                @if($activeSemester)
+                    <p class="text-muted mb-0">
+                        <small>{{ $activeSemester->tahunPelajaran->nama ?? '' }} - {{ $activeSemester->nama }} (Jam Ke-0)</small>
+                    </p>
+                @endif
+                @if(!$canAssessRubric)
+                    <span class="badge bg-info text-dark">
+                        <i class="fas fa-user-friends me-1"></i> Guru Pendamping
+                    </span>
+                @else
+                    <span class="badge bg-primary">
+                        <i class="fas fa-user-tie me-1"></i> Wali Kelas
+                    </span>
+                @endif
+            </div>
+
+            @if(isset($accessibleClasses) && $accessibleClasses->count() > 1)
+                <div class="mt-2 d-flex align-items-center gap-2">
+                    <span class="small fw-semibold text-secondary">Pilih Kelas Dampingan:</span>
+                    <form action="{{ route('guru.penilaian-kokurikuler.index') }}" method="GET" class="d-inline">
+                        <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
+                        <select name="kelas_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; min-width: 140px;">
+                            @foreach($accessibleClasses as $ac)
+                                <option value="{{ $ac->id }}" {{ $kelas->id === $ac->id ? 'selected' : '' }}>
+                                    Kelas {{ $ac->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
             @endif
         </div>
+        @if(auth()->user()->isWaliKelas())
         <div class="d-flex gap-2">
             <a href="{{ route('guru.penilaian-kokurikuler.rekap') }}" class="btn btn-outline-primary">
                 <i class="fas fa-chart-bar me-1"></i> Rekap & Export Excel
             </a>
         </div>
+        @endif
     </div>
 
     @if(session('success'))
@@ -93,6 +122,7 @@
                     </div>
                     <div class="card-body">
                         <form action="{{ route('guru.penilaian-kokurikuler.index') }}" method="GET" id="dateFilterForm">
+                            <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
                             <div class="mb-2">
                                 <label class="form-label small text-muted mb-1">Tanggal Pelaksanaan</label>
                                 <input type="date" name="tanggal" class="form-control" value="{{ $selectedDate }}"
@@ -119,7 +149,7 @@
                                 $histDateStr = \Carbon\Carbon::parse($hist->tanggal)->format('Y-m-d');
                                 $isActiveDate = ($histDateStr === $selectedDate);
                             @endphp
-                            <a href="{{ route('guru.penilaian-kokurikuler.index', ['tanggal' => $histDateStr]) }}"
+                            <a href="{{ route('guru.penilaian-kokurikuler.index', ['tanggal' => $histDateStr, 'kelas_id' => $kelas->id]) }}"
                                class="list-group-item list-group-item-action history-item {{ $isActiveDate ? 'active' : '' }}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <strong class="small">{{ $hist->hari }}, {{ \Carbon\Carbon::parse($hist->tanggal)->format('d/m/Y') }}</strong>
@@ -141,39 +171,76 @@
                 <!-- Header Pertemuan & Indikator Step -->
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-body">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-                            <div>
-                                <h5 class="mb-0 fw-bold text-dark">
-                                    Pertemuan Hari {{ $selectedDayName }}, {{ \Carbon\Carbon::parse($selectedDate)->format('d F Y') }}
-                                </h5>
-                                <small class="text-muted">
-                                    Tema: <strong>{{ $existingSession?->tema ?? ($existingAssessments->first()?->tema ?? ($kokurikulerSchedule->keterangan ?? 'Kokurikuler ' . $selectedDayName)) }}</strong>
-                                </small>
-                            </div>
-                            <div>
-                                @if($existingAssessments->isNotEmpty())
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle me-1"></i>Sudah Tersimpan ({{ $existingAssessments->count() }}/{{ $students->count() }} Siswa)
-                                    </span>
-                                @else
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-clock me-1"></i>Belum Diisi
-                                    </span>
-                                @endif
-                            </div>
+                        <div class="mb-3">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                Pertemuan Hari {{ $selectedDayName }}, {{ \Carbon\Carbon::parse($selectedDate)->format('d F Y') }}
+                            </h5>
+                            <small class="text-muted">
+                                Tema: <strong>{{ $existingSession?->tema ?? ($existingAssessments->first()?->tema ?? ($kokurikulerSchedule->keterangan ?? 'Kokurikuler ' . $selectedDayName)) }}</strong>
+                            </small>
                         </div>
+
+                        @php
+                            $savedAttendanceCount = $existingAssessments->whereNotNull('status_absensi')->count();
+                            $totalStudents = $students->count();
+                            $isAbsensiFilled = $savedAttendanceCount > 0;
+
+                            $hasFotoBukti = !empty($existingSession?->foto_bukti);
+                            $isDokumentasiFilled = $hasFotoBukti;
+
+                            $presentAssessments = $existingAssessments->filter(fn($a) => in_array($a->status_absensi, ['hadir', 'terlambat'], true));
+                            $totalHadir = $presentAssessments->count();
+                            $gradedCount = $presentAssessments->whereNotNull('predikat')->where('predikat', '!=', '')->count();
+                            $isRubrikFilled = ($totalHadir > 0 && $gradedCount === $totalHadir);
+                            $isRubrikPartial = ($totalHadir > 0 && $gradedCount > 0 && $gradedCount < $totalHadir);
+                        @endphp
 
                         <!-- Step Indicator -->
                         <div class="wizard-step-nav">
                             <div class="wizard-step-badge active" id="indicator-step-1" onclick="goToStep(1)">
-                                <i class="fas fa-user-check me-1"></i> 1. Absensi Siswa
+                                <span class="step-title"><i class="fas fa-user-check"></i> 1. Absensi Siswa</span>
+                                @if($isAbsensiFilled)
+                                    <span class="step-status-pill status-done">
+                                        <i class="fas fa-check-circle"></i> Sudah ({{ $savedAttendanceCount }}/{{ $totalStudents }})
+                                    </span>
+                                @else
+                                    <span class="step-status-pill status-pending">
+                                        <i class="fas fa-clock"></i> Belum Diisi
+                                    </span>
+                                @endif
                             </div>
+
                             <div class="wizard-step-badge" id="indicator-step-2" onclick="goToStep(2)">
-                                <i class="fas fa-camera me-1"></i> 2. Dokumentasi Kegiatan
+                                <span class="step-title"><i class="fas fa-camera"></i> 2. Dokumentasi Kegiatan</span>
+                                @if($isDokumentasiFilled)
+                                    <span class="step-status-pill status-done">
+                                        <i class="fas fa-check-circle"></i> Foto Bukti Ada
+                                    </span>
+                                @else
+                                    <span class="step-status-pill status-pending">
+                                        <i class="fas fa-clock"></i> Belum Ada Foto
+                                    </span>
+                                @endif
                             </div>
+
+                            @if($canAssessRubric)
                             <div class="wizard-step-badge" id="indicator-step-3" onclick="goToStep(3)">
-                                <i class="fas fa-star me-1"></i> 3. Penilaian Rubrik
+                                <span class="step-title"><i class="fas fa-star"></i> 3. Penilaian Rubrik</span>
+                                @if($isRubrikFilled)
+                                    <span class="step-status-pill status-done">
+                                        <i class="fas fa-check-circle"></i> Lengkap ({{ $gradedCount }}/{{ $totalHadir }})
+                                    </span>
+                                @elseif($isRubrikPartial)
+                                    <span class="step-status-pill status-partial">
+                                        <i class="fas fa-adjust"></i> {{ $gradedCount }}/{{ $totalHadir }} Dinilai
+                                    </span>
+                                @else
+                                    <span class="step-status-pill status-pending">
+                                        <i class="fas fa-clock"></i> Belum Dinilai
+                                    </span>
+                                @endif
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -187,6 +254,7 @@
 
                 <form action="{{ route('guru.penilaian-kokurikuler.store') }}" method="POST" id="formKokurikulerWizard">
                     @csrf
+                    <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
                     <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
                     <input type="hidden" name="foto_bukti" id="foto_bukti" value="">
 
@@ -368,14 +436,21 @@
                                     <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
                                         <i class="fas fa-arrow-left me-2"></i>Kembali ke Absensi
                                     </button>
-                                    <button type="button" class="btn btn-primary px-4" onclick="validateStep2AndNext()">
-                                        Lanjut ke Penilaian Siswa <i class="fas fa-arrow-right ms-2"></i>
-                                    </button>
+                                    @if($canAssessRubric)
+                                        <button type="button" class="btn btn-primary px-4" onclick="validateStep2AndNext()">
+                                            Lanjut ke Penilaian Siswa <i class="fas fa-arrow-right ms-2"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-success px-4" onclick="submitStep2ForPendamping()">
+                                            <i class="fas fa-save me-2"></i>Simpan Absensi & Dokumentasi
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    @if($canAssessRubric)
                     <!-- ========================================================= -->
                     <!-- STEP 3: PENILAIAN RUBRIK SISWA                            -->
                     <!-- ========================================================= -->
@@ -500,6 +575,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </form>
             </div>
         </div>
@@ -542,6 +618,7 @@
     let currentStream = null;
     let capturedImageData = null;
     let hasExistingSavedPhoto = @json(!empty($existingSession?->foto_bukti));
+    const canAssessRubricGlobal = @json($canAssessRubric);
 
     function hasValidPhoto() {
         const base64Val = document.getElementById('foto_bukti')?.value || '';
@@ -549,6 +626,10 @@
     }
 
     function goToStep(stepNumber) {
+        if (stepNumber === 3 && !canAssessRubricGlobal) {
+            return;
+        }
+
         if (stepNumber === 3 && !hasValidPhoto()) {
             Swal.fire({
                 icon: 'warning',
@@ -579,6 +660,29 @@
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function submitStep2ForPendamping() {
+        const temaInput = document.getElementById('input_tema');
+        if (temaInput && !temaInput.value.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tema Belum Diisi',
+                text: 'Silakan isi nama Tema Kokurikuler terlebih dahulu.'
+            });
+            return;
+        }
+
+        if (!hasValidPhoto()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Foto Bukti Wajib Diisi',
+                text: 'Silakan ambil foto menggunakan kamera atau upload foto bukti kegiatan terlebih dahulu.'
+            });
+            return;
+        }
+
+        document.getElementById('formKokurikulerWizard').submit();
     }
 
     function validateStep2AndNext() {

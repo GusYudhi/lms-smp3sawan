@@ -53,16 +53,32 @@ class PenilaianKokurikulerController extends Controller
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        if (!$user->isWaliKelas()) {
-            abort(403, 'Halaman ini hanya dapat diakses oleh Wali Kelas.');
+        if (!$user->canAccessKokurikuler()) {
+            abort(403, 'Halaman ini hanya dapat diakses oleh Wali Kelas atau Guru Pendamping.');
         }
 
-        $kelas = $user->waliKelasOf();
+        $accessibleClasses = $user->kokurikulerKelasList();
+        if ($accessibleClasses->isEmpty()) {
+            abort(403, 'Anda belum ditugaskan sebagai Wali Kelas atau Guru Pendamping pada kelas manapun.');
+        }
+
+        $selectedKelasId = $request->input('kelas_id');
+        $kelas = $selectedKelasId
+            ? $accessibleClasses->firstWhere('id', (int) $selectedKelasId)
+            : null;
+
+        if (!$kelas) {
+            $kelas = $accessibleClasses->first();
+        }
+
+        $canAssessRubric = $user->isWaliKelas() && optional($user->waliKelasOf())->id === $kelas->id;
         $activeSemester = Semester::with('tahunPelajaran')->where('is_active', true)->first();
 
         if (!$activeSemester) {
             return view('guru.penilaian-kokurikuler.index', [
                 'kelas' => $kelas,
+                'accessibleClasses' => $accessibleClasses,
+                'canAssessRubric' => $canAssessRubric,
                 'activeSemester' => null,
                 'selectedDate' => Carbon::today()->format('Y-m-d'),
                 'selectedDayName' => self::INDONESIAN_DAYS[Carbon::today()->format('l')],
@@ -138,6 +154,8 @@ class PenilaianKokurikulerController extends Controller
 
         return view('guru.penilaian-kokurikuler.index', compact(
             'kelas',
+            'accessibleClasses',
+            'canAssessRubric',
             'activeSemester',
             'selectedDate',
             'selectedDayName',
@@ -159,11 +177,21 @@ class PenilaianKokurikulerController extends Controller
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        if (!$user->isWaliKelas()) {
-            abort(403, 'Hanya Wali Kelas yang dapat menyimpan penilaian kokurikuler.');
+        if (!$user->canAccessKokurikuler()) {
+            abort(403, 'Hanya Wali Kelas atau Guru Pendamping yang dapat menyimpan data kokurikuler.');
         }
 
-        $kelas = $user->waliKelasOf();
+        $accessibleClasses = $user->kokurikulerKelasList();
+        $kelasId = $request->input('kelas_id');
+        $kelas = $kelasId
+            ? $accessibleClasses->firstWhere('id', (int) $kelasId)
+            : $accessibleClasses->first();
+
+        if (!$kelas) {
+            abort(403, 'Kelas tidak valid atau Anda tidak memiliki akses ke kelas ini.');
+        }
+
+        $canAssessRubric = $user->isWaliKelas() && optional($user->waliKelasOf())->id === $kelas->id;
         $activeSemester = Semester::where('is_active', true)->firstOrFail();
 
         $parsedDate = Carbon::parse($request->input('tanggal', Carbon::today()->format('Y-m-d')));
@@ -176,17 +204,25 @@ class PenilaianKokurikulerController extends Controller
         // Foto bukti wajib jika belum ada sesi dengan foto sebelumnya
         $fotoRule = ($existingSession && $existingSession->foto_bukti) ? 'nullable|string' : 'required|string';
 
-        $request->validate([
+        $validationRules = [
+            'kelas_id' => 'required|exists:kelas,id',
             'tanggal' => 'required|date',
             'tema' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:2000',
             'foto_bukti' => $fotoRule,
             'absensi' => 'nullable|array',
             'absensi.*' => 'nullable|in:hadir,terlambat,sakit,izin,alpa',
-            'nilai' => 'required|array',
-            'nilai.*.predikat' => 'nullable|in:B,SB,BSH,SAB',
-            'nilai.*.catatan' => 'nullable|string|max:500',
-        ], [
+        ];
+
+        if ($canAssessRubric) {
+            $validationRules['nilai'] = 'required|array';
+            $validationRules['nilai.*.predikat'] = 'nullable|in:B,SB,BSH,SAB';
+            $validationRules['nilai.*.catatan'] = 'nullable|string|max:500';
+        } else {
+            $validationRules['nilai'] = 'nullable|array';
+        }
+
+        $request->validate($validationRules, [
             'foto_bukti.required' => 'Foto bukti kegiatan kokurikuler wajib diambil atau diunggah.',
         ]);
 
@@ -244,6 +280,7 @@ class PenilaianKokurikulerController extends Controller
             $fotoPath,
             $user,
             $validStudents,
+            $canAssessRubric,
             &$savedCount
         ) {
             $session = KokurikulerSession::updateOrCreate(
@@ -265,16 +302,31 @@ class PenilaianKokurikulerController extends Controller
             $absensiInput = $request->input('absensi', []);
             $nilaiInput = $request->input('nilai', []);
 
+            $existingStudentAssessments = PenilaianKokurikuler::where('kelas_id', $kelas->id)
+                ->whereDate('tanggal', $dateString)
+                ->get()
+                ->keyBy('student_user_id');
+
             foreach ($validStudents as $student) {
                 $studentUserId = (int) $student->user_id;
                 $statusAbsensi = $absensiInput[$studentUserId] ?? 'hadir';
                 $isPresent = in_array($statusAbsensi, ['hadir', 'terlambat'], true);
 
-                $itemNilai = $nilaiInput[$studentUserId] ?? [];
-                $predikat = $isPresent ? ($itemNilai['predikat'] ?? null) : null;
-                $catatan = !empty($itemNilai['catatan']) ? trim($itemNilai['catatan']) : null;
+                $existingAss = $existingStudentAssessments->get($studentUserId);
 
-                // Skip if neither attendance was explicitly submitted nor rubric was selected
+                if ($canAssessRubric) {
+                    $itemNilai = $nilaiInput[$studentUserId] ?? [];
+                    $predikat = $isPresent ? ($itemNilai['predikat'] ?? null) : null;
+                    $catatan = !empty($itemNilai['catatan']) ? trim($itemNilai['catatan']) : null;
+                    $penilaiUserId = $user->id;
+                } else {
+                    // Guru Pendamping: jaga predikat & catatan sebelumnya dari Wali Kelas jika hadir
+                    $predikat = $isPresent ? ($existingAss?->predikat ?? null) : null;
+                    $catatan = $existingAss?->catatan ?? null;
+                    $penilaiUserId = $existingAss?->penilai_user_id ?? $user->id;
+                }
+
+                // Skip if neither attendance was explicitly submitted nor existing/rubric data
                 if (!isset($absensiInput[$studentUserId]) && empty($predikat) && empty($catatan)) {
                     continue;
                 }
@@ -291,7 +343,7 @@ class PenilaianKokurikulerController extends Controller
                         'fixed_schedule_id' => $kokurikulerSchedule?->id,
                         'hari' => $dayName,
                         'tema' => $tema,
-                        'penilai_user_id' => $user->id,
+                        'penilai_user_id' => $penilaiUserId,
                         'status_absensi' => $statusAbsensi,
                         'predikat' => $predikat,
                         'catatan' => $catatan,
@@ -302,9 +354,11 @@ class PenilaianKokurikulerController extends Controller
             }
         });
 
+        $actionDesc = $canAssessRubric ? 'Absensi, dokumentasi, dan penilaian' : 'Absensi dan dokumentasi';
+
         return redirect()
-            ->route('guru.penilaian-kokurikuler.index', ['tanggal' => $dateString])
-            ->with('success', "Absensi, dokumentasi, dan penilaian kokurikuler ({$dayName}, {$parsedDate->format('d/m/Y')}) untuk {$savedCount} siswa berhasil disimpan.");
+            ->route('guru.penilaian-kokurikuler.index', ['tanggal' => $dateString, 'kelas_id' => $kelas->id])
+            ->with('success', "{$actionDesc} kokurikuler ({$dayName}, {$parsedDate->format('d/m/Y')}) untuk {$savedCount} siswa berhasil disimpan.");
     }
 
     /**

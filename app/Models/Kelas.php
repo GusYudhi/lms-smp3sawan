@@ -10,7 +10,7 @@ class Kelas extends Model
     use HasFactory;
 
     protected $table = 'kelas';
-    protected $fillable = ['nama_kelas', 'tingkat', 'tahun_angkatan', 'tahun_pelajaran_id'];
+    protected $fillable = ['nama_kelas', 'tingkat', 'tahun_angkatan', 'tahun_pelajaran_id', 'guru_pendamping_id'];
 
     protected $casts = [
         'tahun_angkatan' => 'integer',
@@ -35,6 +35,14 @@ class Kelas extends Model
     public function waliKelas()
     {
         return $this->hasOne(GuruProfile::class, 'kelas_id');
+    }
+
+    /**
+     * Relationship: Kelas belongs to Guru Pendamping (Guru)
+     */
+    public function guruPendamping()
+    {
+        return $this->belongsTo(GuruProfile::class, 'guru_pendamping_id');
     }
 
     public function students()

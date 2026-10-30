@@ -43,12 +43,13 @@
                     <thead class="table-light">
                         <tr>
                             <th width="5%">No</th>
-                            <th width="15%">Nama Kelas</th>
-                            <th width="10%">Tingkat</th>
-                            <th width="15%">Angkatan</th>
-                            <th width="25%">Wali Kelas</th>
-                            <th width="15%" class="text-center">Jumlah Siswa</th>
-                            <th width="15%" class="text-end">Aksi</th>
+                            <th width="12%">Nama Kelas</th>
+                            <th width="8%">Tingkat</th>
+                            <th width="10%">Angkatan</th>
+                            <th width="20%">Wali Kelas</th>
+                            <th width="20%">Guru Pendamping</th>
+                            <th width="12%" class="text-center">Jumlah Siswa</th>
+                            <th width="13%" class="text-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,12 +77,30 @@
                                         <span class="text-muted fst-italic">- Belum ada -</span>
                                     @endif
                                 </td>
+                                <td>
+                                    @if($item->guruPendamping)
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <img src="{{ $item->guruPendamping->getProfilePhotoUrl() }}"
+                                                     alt="Foto"
+                                                     class="rounded-circle"
+                                                     style="width: 32px; height: 32px; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <span class="d-block fw-medium">{{ $item->guruPendamping->nama }}</span>
+                                                <small class="text-muted" style="font-size: 0.75rem;">{{ $item->guruPendamping->nip ?? '-' }}</small>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted fst-italic">- Belum ada -</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     <span class="badge bg-secondary rounded-pill px-3">{{ $item->students_count }}</span>
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-outline-primary me-1"
-                                            onclick="editKelas({{ $item->id }}, '{{ $item->nama_kelas }}', '{{ $item->tingkat }}', '{{ $item->tahun_angkatan }}', '{{ $item->waliKelas ? $item->waliKelas->id : '' }}', '{{ $item->tahun_pelajaran_id }}')"
+                                            onclick="editKelas({{ $item->id }}, '{{ $item->nama_kelas }}', '{{ $item->tingkat }}', '{{ $item->tahun_angkatan }}', '{{ $item->waliKelas ? $item->waliKelas->id : '' }}', '{{ $item->guru_pendamping_id ?? '' }}', '{{ $item->tahun_pelajaran_id }}')"
                                             title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -95,7 +114,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Belum ada data kelas.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">Belum ada data kelas.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -147,7 +166,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="wali_kelas_id" class="form-label fw-medium">Wali Kelas (Opsional)</label>
-                        <select class="form-select" name="wali_kelas_id" id="wali_kelas_id">
+                        <select class="form-select" name="wali_kelas_id" id="wali_kelas_id" onchange="syncTeacherDropdowns('create')">
                             <option value="">-- Kosongkan / Belum Ada --</option>
                             @foreach($gurus as $guru)
                                 <option value="{{ $guru->id }}">
@@ -157,6 +176,27 @@
                             @endforeach
                         </select>
                         <small class="text-muted">Guru yang sudah menjadi wali kelas ditandai.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="guru_pendamping_id" class="form-label fw-medium">Guru Pendamping (Kokurikuler)</label>
+                        <select class="form-select" name="guru_pendamping_id" id="guru_pendamping_id">
+                            <option value="">-- Kosongkan / Belum Ada --</option>
+                            @foreach($gurus as $guru)
+                                @php
+                                    $isWali = !empty($guru->kelas_id);
+                                    $assistedClasses = $guru->kelasPendamping->pluck('full_name')->join(', ');
+                                @endphp
+                                <option value="{{ $guru->id }}" {{ $isWali ? 'disabled' : '' }} data-is-wali="{{ $isWali ? '1' : '0' }}">
+                                    {{ $guru->nama }}
+                                    @if($isWali)
+                                        (Wali Kelas {{ $guru->kelas->full_name ?? 'Lain' }})
+                                    @elseif(!empty($assistedClasses))
+                                        (Pendamping Kelas {{ $assistedClasses }})
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Guru pendamping membantu wali kelas dalam absensi dan dokumentasi kokurikuler (wajib non-wali kelas).</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -209,7 +249,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="edit_wali_kelas_id" class="form-label fw-medium">Wali Kelas</label>
-                        <select class="form-select" name="wali_kelas_id" id="edit_wali_kelas_id">
+                        <select class="form-select" name="wali_kelas_id" id="edit_wali_kelas_id" onchange="syncTeacherDropdowns('edit')">
                             <option value="">-- Kosongkan / Belum Ada --</option>
                             @foreach($gurus as $guru)
                                 <option value="{{ $guru->id }}">
@@ -221,6 +261,27 @@
                         <div class="alert alert-info mt-2 py-2 small">
                             <i class="fas fa-info-circle me-1"></i> Jika memilih guru yang sudah punya kelas lain, status wali kelas lama mereka akan diganti ke kelas ini.
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_guru_pendamping_id" class="form-label fw-medium">Guru Pendamping (Kokurikuler)</label>
+                        <select class="form-select" name="guru_pendamping_id" id="edit_guru_pendamping_id">
+                            <option value="">-- Kosongkan / Belum Ada --</option>
+                            @foreach($gurus as $guru)
+                                @php
+                                    $isWali = !empty($guru->kelas_id);
+                                    $assistedClasses = $guru->kelasPendamping->pluck('full_name')->join(', ');
+                                @endphp
+                                <option value="{{ $guru->id }}" {{ $isWali ? 'disabled' : '' }} data-is-wali="{{ $isWali ? '1' : '0' }}">
+                                    {{ $guru->nama }}
+                                    @if($isWali)
+                                        (Wali Kelas {{ $guru->kelas->full_name ?? 'Lain' }})
+                                    @elseif(!empty($assistedClasses))
+                                        (Pendamping Kelas {{ $assistedClasses }})
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Guru pendamping membantu wali kelas dalam absensi dan dokumentasi kokurikuler (wajib non-wali kelas).</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -242,17 +303,42 @@
 
 @push('scripts')
 <script>
-    function editKelas(id, nama, tingkat, angkatan, waliKelasId, tahunPelajaranId) {
+    function syncTeacherDropdowns(mode) {
+        const waliSelect = document.getElementById(mode === 'create' ? 'wali_kelas_id' : 'edit_wali_kelas_id');
+        const pendampingSelect = document.getElementById(mode === 'create' ? 'guru_pendamping_id' : 'edit_guru_pendamping_id');
+        const selectedWali = waliSelect ? waliSelect.value : '';
+
+        if (!pendampingSelect) return;
+
+        Array.from(pendampingSelect.options).forEach(opt => {
+            if (!opt.value) return;
+            const originalIsWali = opt.getAttribute('data-is-wali') === '1';
+
+            if (opt.value === selectedWali) {
+                opt.disabled = true;
+                if (pendampingSelect.value === opt.value) {
+                    pendampingSelect.value = '';
+                }
+            } else {
+                opt.disabled = originalIsWali;
+            }
+        });
+    }
+
+    function editKelas(id, nama, tingkat, angkatan, waliKelasId, guruPendampingId, tahunPelajaranId) {
         // Set values
         document.getElementById('edit_nama_kelas').value = nama;
         document.getElementById('edit_tingkat').value = tingkat;
         document.getElementById('edit_tahun_angkatan').value = angkatan;
         document.getElementById('edit_wali_kelas_id').value = waliKelasId || "";
+        document.getElementById('edit_guru_pendamping_id').value = guruPendampingId || "";
         document.getElementById('edit_tahun_pelajaran_id').value = tahunPelajaranId || "";
+
+        syncTeacherDropdowns('edit');
 
         // Set action url
         const form = document.getElementById('editKelasForm');
-        form.action = `/admin/kelas/${id}`; // Adjust if route prefix is different
+        form.action = `/admin/kelas/${id}`;
 
         // Show modal
         new bootstrap.Modal(document.getElementById('editKelasModal')).show();

@@ -248,7 +248,7 @@
                         <i class="fas fa-book-open me-2"></i> Materi Pelajaran
                     </a>
                 </li>
-                @if(auth()->user()->isWaliKelas())
+                @if(auth()->user()->canAccessKokurikuler())
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('guru.penilaian-kokurikuler.*') ? 'active' : '' }}" href="{{ route('guru.penilaian-kokurikuler.index') }}">
                         <i class="fas fa-star me-2"></i> Penilaian Kokurikuler

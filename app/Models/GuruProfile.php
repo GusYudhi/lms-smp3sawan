@@ -164,4 +164,23 @@ class GuruProfile extends Model
     {
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
+
+    /**
+     * Get the classes that this teacher assists as guru pendamping
+     */
+    public function kelasPendamping()
+    {
+        return $this->hasMany(Kelas::class, 'guru_pendamping_id');
+    }
+
+    protected static function booted()
+    {
+        static::saved(function ($guruProfile) {
+            // Jika guru memiliki kelas_id (menjadi wali kelas) atau dinonaktifkan/pensiun,
+            // otomatis lepaskan status guru pendamping dari seluruh kelas
+            if (!empty($guruProfile->kelas_id) || !$guruProfile->is_active) {
+                Kelas::where('guru_pendamping_id', $guruProfile->id)->update(['guru_pendamping_id' => null]);
+            }
+        });
+    }
 }

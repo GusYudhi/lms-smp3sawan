@@ -150,6 +150,11 @@
 
 .wizard-step-badge {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
     text-align: center;
     padding: 0.65rem 0.75rem;
     border-radius: $radius-sm;
@@ -161,10 +166,72 @@
     cursor: pointer;
     transition: all 0.2s ease;
 
+    .step-title {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-weight: 600;
+    }
+
+    .step-status-pill {
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 0.2rem 0.55rem;
+        border-radius: 50rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        line-height: 1.1;
+        transition: all 0.2s ease;
+    }
+
     &.active {
         background-color: $color-primary;
         border-color: $color-primary;
         color: #fff;
+
+        .step-status-pill {
+            &.status-done {
+                background-color: rgba(255, 255, 255, 0.25);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.4);
+            }
+            &.status-pending {
+                background-color: rgba(255, 255, 255, 0.15);
+                color: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+            }
+            &.status-partial {
+                background-color: #ffc107;
+                color: #212529;
+                border: 1px solid #ffc107;
+            }
+        }
+    }
+
+    &:not(.active) {
+        .step-status-pill {
+            &.status-done {
+                background-color: $color-success-container;
+                color: $color-success;
+                border: 1px solid rgba($color-success, 0.25);
+            }
+            &.status-pending {
+                background-color: $color-surface-container;
+                color: $color-muted-text;
+                border: 1px solid $color-border;
+            }
+            &.status-partial {
+                background-color: #fff3cd;
+                color: #664d03;
+                border: 1px solid #ffe69c;
+            }
+        }
+
+        &:hover {
+            border-color: darken($color-border, 10%);
+            background-color: rgba(0, 0, 0, 0.02);
+        }
     }
 
     &.completed {

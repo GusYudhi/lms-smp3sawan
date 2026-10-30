@@ -113,6 +113,42 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is a Guru Pendamping (Assisting teacher for kokurikuler)
+     */
+    public function isGuruPendamping(): bool
+    {
+        return $this->isGuru() && !$this->isWaliKelas() && $this->guruProfile?->kelasPendamping()->exists();
+    }
+
+    /**
+     * Check if user has access to kokurikuler (either Wali Kelas or Guru Pendamping)
+     */
+    public function canAccessKokurikuler(): bool
+    {
+        return $this->isWaliKelas() || $this->isGuruPendamping();
+    }
+
+    /**
+     * Get list of classes accessible for kokurikuler
+     */
+    public function kokurikulerKelasList()
+    {
+        if ($this->isWaliKelas()) {
+            $waliKelas = $this->waliKelasOf();
+            return $waliKelas ? collect([$waliKelas]) : collect();
+        }
+
+        if ($this->isGuru() && $this->guruProfile) {
+            return $this->guruProfile->kelasPendamping()
+                ->orderBy('tingkat')
+                ->orderBy('nama_kelas')
+                ->get();
+        }
+
+        return collect();
+    }
+
+    /**
      * Get role display name
      */
     public function getRoleDisplayName()
