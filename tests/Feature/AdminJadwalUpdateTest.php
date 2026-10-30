@@ -285,7 +285,7 @@ class AdminJadwalUpdateTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'conflict' => true,
-            'message' => 'Guru ini sedang mengajar di kelas ' . $this->kelasB->full_name . ' pada jam ke-3',
+            'message' => 'Guru ini sedang mengajar di kelas '.$this->kelasB->full_name.' pada jam ke-3',
         ]);
     }
 }

@@ -47,7 +47,7 @@
                         @endif
                         <div class="mb-3">
                             <label class="form-label">Jam Ke-</label>
-                            <input type="number" class="form-control" name="jam_ke" required min="1">
+                            <input type="number" class="form-control" name="jam_ke" value="{{ old('jam_ke') }}" required min="0">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jam Mulai</label>
@@ -122,10 +122,13 @@
             <form action="{{ route('admin.jam-pelajaran.update', $jam->id) }}" method="POST">
                 @csrf
                 @method('PUT')
+                @if($jam->semester_id)
+                <input type="hidden" name="semester_id" value="{{ $jam->semester_id }}">
+                @endif
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Jam Ke-</label>
-                        <input type="number" class="form-control" name="jam_ke" value="{{ $jam->jam_ke }}" required>
+                        <input type="number" class="form-control" name="jam_ke" value="{{ $jam->jam_ke }}" required min="0">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Jam Mulai</label>

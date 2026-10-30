@@ -216,7 +216,7 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                 $jamKe = $row['jam_ke'] ?? null;
                 $waktu = $row['waktu'] ?? null;
 
-                if (! $hari || ! $jamKe) {
+                if (! $hari || ($jamKe === null || $jamKe === '')) {
                     continue;
                 }
 

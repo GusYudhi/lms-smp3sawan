@@ -75,10 +75,15 @@ class JadwalPelajaranController extends Controller
         $data = [];
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
+        $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
+        $slotNumbers = $jamPelajarans->isNotEmpty()
+            ? $jamPelajarans->pluck('jam_ke')->unique()->sort()->values()
+            : collect(range(1, 7));
+
         foreach ($days as $hari) {
             $data[$hari] = [];
             // Initialize with empty or fixed
-            for ($i = 1; $i <= 7; $i++) { // Assuming 7 slots
+            foreach ($slotNumbers as $i) {
                 $fixed = $fixedSchedules->where('hari', $hari)->where('jam_ke', $i)->first();
                 if ($fixed) {
                     $data[$hari][$i] = [

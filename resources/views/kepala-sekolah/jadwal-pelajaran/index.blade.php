@@ -135,7 +135,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for ($i = 1; $i <= 7; $i++)
+                        @php
+                            $slotNumbers = $jamPelajarans->isNotEmpty() 
+                                ? $jamPelajarans->pluck('jam_ke')->unique()->sort()->values() 
+                                : collect(range(1, 7));
+                        @endphp
+                        @foreach ($slotNumbers as $i)
                             @php
                                 $jam = $jamPelajarans->firstWhere('jam_ke', $i);
                                 $waktu = $jam ? \Carbon\Carbon::parse($jam->jam_mulai)->format('H:i') . ' - ' . \Carbon\Carbon::parse($jam->jam_selesai)->format('H:i') : '-';
@@ -151,7 +156,7 @@
                                     </td>
                                 @endforeach
                             </tr>
-                        @endfor
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -213,8 +218,8 @@ $(document).ready(function() {
                 days.forEach(hari => {
                     const slots = schedule[hari] || {};
 
-                    // Render 7 slots
-                    for (let i = 1; i <= 7; i++) {
+                    // Render all dynamic slots
+                    Object.keys(slots).forEach(i => {
                         const cell = $(`#cell-${hari}-${i}`);
                         const item = slots[i];
 
