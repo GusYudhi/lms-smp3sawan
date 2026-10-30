@@ -191,6 +191,10 @@ class PenilaianKokurikulerController extends Controller
             abort(403, 'Kelas tidak valid atau Anda tidak memiliki akses ke kelas ini.');
         }
 
+        if (!$request->filled('kelas_id')) {
+            $request->merge(['kelas_id' => $kelas->id]);
+        }
+
         $canAssessRubric = $user->isWaliKelas() && optional($user->waliKelasOf())->id === $kelas->id;
         $activeSemester = Semester::where('is_active', true)->firstOrFail();
 

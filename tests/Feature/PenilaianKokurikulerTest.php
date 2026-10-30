@@ -264,7 +264,10 @@ class PenilaianKokurikulerTest extends TestCase
                 ],
             ]);
 
-        $storeResponse->assertRedirect(route('guru.penilaian-kokurikuler.index', ['tanggal' => $targetDate]));
+        $storeResponse->assertRedirect(route('guru.penilaian-kokurikuler.index', [
+            'tanggal' => $targetDate,
+            'kelas_id' => $this->kelas->id,
+        ]));
         $storeResponse->assertSessionHas('success');
 
         $session = KokurikulerSession::where('kelas_id', $this->kelas->id)

@@ -132,7 +132,7 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        <div class="btn-group-vertical gap-1" role="group">
+                                        <div class="btn-group-vertical" role="group">
                                             <a href="{{ route('admin.tahun-pelajaran.dashboard', $tahunPelajaran->id) }}"
                                                class="btn btn-sm btn-primary"
                                                title="Dashboard">
@@ -141,13 +141,13 @@
                                             </a>
 
                                             @if(!$tahunPelajaran->is_active)
-                                            <form action="{{ route('admin.tahun-pelajaran.set-active', $tahunPelajaran->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-success w-100" title="Aktifkan">
-                                                    <i class="fas fa-check-circle"></i>
-                                                    <span class="d-none d-lg-inline ms-1">Aktifkan</span>
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success"
+                                                    onclick="confirmSetActive({{ $tahunPelajaran->id }}, '{{ addslashes($tahunPelajaran->nama) }}')"
+                                                    title="Aktifkan">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span class="d-none d-lg-inline ms-1">Aktifkan</span>
+                                            </button>
                                             @endif
 
                                             <a href="{{ route('admin.tahun-pelajaran.edit', $tahunPelajaran->id) }}"
@@ -158,7 +158,8 @@
                                             </a>
 
                                             @if(!$tahunPelajaran->is_active)
-                                            <button class="btn btn-sm btn-danger"
+                                            <button type="button"
+                                                    class="btn btn-sm btn-danger"
                                                     onclick="confirmDelete({{ $tahunPelajaran->id }}, '{{ addslashes($tahunPelajaran->nama) }}')"
                                                     title="Hapus">
                                                 <i class="fas fa-trash"></i>
@@ -195,14 +196,38 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Form -->
 <form id="deleteForm" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
 
+<!-- Set Active Confirmation Form -->
+<form id="setActiveForm" method="POST" style="display: none;">
+    @csrf
+</form>
+
 @push('scripts')
 <script>
+function confirmSetActive(id, nama) {
+    Swal.fire({
+        title: 'Aktifkan Tahun Pelajaran?',
+        html: `Apakah Anda yakin ingin mengaktifkan Tahun Pelajaran <strong>"${nama}"</strong>?<br><br><span class="text-muted small">Tahun Pelajaran ini beserta Semester Ganjil akan diaktifkan secara otomatis.</span>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Aktifkan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('setActiveForm');
+            form.action = `/admin/tahun-pelajaran/${id}/set-active`;
+            form.submit();
+        }
+    });
+}
+
 function confirmDelete(id, nama) {
     Swal.fire({
         title: 'Hapus Tahun Pelajaran?',

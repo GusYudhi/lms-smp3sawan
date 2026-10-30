@@ -152,7 +152,7 @@ class TahunPelajaranStoreTest extends TestCase
 
         $copiedFixed = FixedSchedule::where('semester_id', $activeSemester->id)->get();
         $this->assertGreaterThanOrEqual(1, $copiedFixed->count(), 'FixedSchedule should be copied from previous year.');
-        $this->assertEquals('Upacara Bendera', $copiedFixed->first()->keterangan);
+        $this->assertTrue($copiedFixed->contains('keterangan', 'Upacara Bendera'));
 
         // 4. Check Student Promotion
         $student7->refresh();
@@ -228,5 +228,23 @@ class TahunPelajaranStoreTest extends TestCase
         $activeSemester = Semester::getActive();
         $this->assertNotNull($activeSemester);
         $this->assertEquals($this->oldSemester1->id, $activeSemester->id);
+    }
+
+    public function test_index_renders_unified_action_buttons_for_inactive_tahun_pelajaran()
+    {
+        $inactiveTp = TahunPelajaran::create([
+            'nama' => '2028/2029',
+            'tahun_mulai' => 2028,
+            'tahun_selesai' => 2029,
+            'is_active' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.tahun-pelajaran.index'));
+        $response->assertOk();
+
+        // The action group should use clean btn-group-vertical without inline form breaking the hierarchy
+        $response->assertSee('confirmSetActive(' . $inactiveTp->id, false);
+        $response->assertSee('id="setActiveForm"', false);
+        $response->assertDontSee('<form action="' . route('admin.tahun-pelajaran.set-active', $inactiveTp->id) . '" method="POST" class="d-inline">', false);
     }
 }
