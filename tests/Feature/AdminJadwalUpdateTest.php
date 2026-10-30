@@ -258,4 +258,34 @@ class AdminJadwalUpdateTest extends TestCase
             'id' => $jadwal->id,
         ]);
     }
+
+    public function test_check_schedule_conflict_includes_tingkat_in_class_name()
+    {
+        // Jadwal guru di Kelas B (7B) pada hari Rabu jam ke-3
+        JadwalPelajaran::create([
+            'semester_id' => $this->semester->id,
+            'kelas_id' => $this->kelasB->id, // 7B
+            'mata_pelajaran_id' => $this->mapel1->id,
+            'guru_id' => $this->teacher->id,
+            'hari' => 'Rabu',
+            'jam_ke' => 3,
+        ]);
+
+        // Cek konflik untuk Kelas A saat memilih guru tersebut di hari Rabu jam ke-3
+        $response = $this->actingAs($this->admin)
+            ->postJson(route('admin.jadwal.check-conflict'), [
+                'guru_id' => $this->teacher->id,
+                'hari' => 'Rabu',
+                'jam_ke' => 3,
+                'semester_id' => $this->semester->id,
+                'kelas_id' => $this->kelasA->id,
+                'jumlah_jam' => 1,
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'conflict' => true,
+            'message' => 'Guru ini sedang mengajar di kelas ' . $this->kelasB->full_name . ' pada jam ke-3',
+        ]);
+    }
 }

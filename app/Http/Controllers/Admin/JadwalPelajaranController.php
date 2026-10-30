@@ -340,9 +340,10 @@ class JadwalPelajaranController extends Controller
                 ->first();
 
             if ($teacherConflict) {
+                $namaKelas = $teacherConflict->kelas ? $teacherConflict->kelas->full_name : 'lain';
                 return response()->json([
                     'conflict' => true,
-                    'message' => "Guru ini sedang mengajar di kelas {$teacherConflict->kelas->nama_kelas} pada jam ke-$currentJam"
+                    'message' => "Guru ini sedang mengajar di kelas {$namaKelas} pada jam ke-$currentJam"
                 ]);
             }
         }
