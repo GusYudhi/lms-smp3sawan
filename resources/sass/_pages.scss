@@ -351,8 +351,8 @@
 }
 
 .drop-zone {
-    min-height: 90px;
-    height: 90px;
+    height: 100%;
+    min-height: 96px;
     vertical-align: top;
     transition: background-color 0.2s ease;
 
@@ -363,9 +363,35 @@
 }
 
 td.schedule-slot {
-    min-height: 90px;
-    height: 90px;
+    height: 100%;
+    min-height: 96px;
     vertical-align: top;
+    padding: 0.25rem !important;
+
+    > div {
+        height: 100%;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+    }
+
+    .card {
+        height: 100%;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        border-radius: 6px;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        flex: 1 1 auto;
+    }
 }
 
 @keyframes slotPulse {
@@ -390,7 +416,7 @@ td.schedule-slot {
     z-index: 2;
 }
 
-// --- Full Schedule Table (Siswa Jadwal Mapel) ---
+// --- Full Schedule Table (Siswa Jadwal Mapel & Admin/Guru Grid) ---
 .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -411,58 +437,34 @@ td.schedule-slot {
 
 .jadwal-table {
     table-layout: fixed;
-    width: 1000px;
-    min-width: 1000px;
-
-    th:nth-child(1), td:nth-child(1) { width: 70px; min-width: 70px; }
-    th:nth-child(2), td:nth-child(2) { width: 90px; min-width: 90px; }
-    th:nth-child(3), td:nth-child(3),
-    th:nth-child(4), td:nth-child(4),
-    th:nth-child(5), td:nth-child(5),
-    th:nth-child(6), td:nth-child(6),
-    th:nth-child(7), td:nth-child(7),
-    th:nth-child(8), td:nth-child(8) { width: 140px; min-width: 140px; }
+    width: 100%;
+    min-width: 1050px;
 
     tbody td > div > div.fw-bold {
         color: #0d6efd;
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
         margin-bottom: 4px;
-        line-height: 1.3;
+        line-height: 1.25;
     }
 
     tbody td > div > div.text-muted {
-        font-size: 0.7rem !important;
-        opacity: 0.7;
+        font-size: 0.75rem !important;
+        opacity: 0.75;
+    }
+
+    .card {
+        border-radius: 6px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     @media (max-width: 768px) {
         font-size: 0.75rem;
-        width: 1000px !important;
         min-width: 1000px !important;
 
         td, th {
             padding: 0.4rem 0.3rem;
             word-wrap: break-word;
             overflow-wrap: break-word;
-        }
-
-        th:nth-child(n+3),
-        td:nth-child(n+3) {
-            display: table-cell !important;
-            width: 140px !important;
-            min-width: 140px !important;
-        }
-
-        tbody td > div {
-            padding: 4px !important;
-            > div.fw-bold {
-                font-size: 0.7rem !important;
-                word-break: break-word;
-            }
-            > div.text-muted {
-                font-size: 0.6rem !important;
-                word-break: break-word;
-            }
         }
     }
 }

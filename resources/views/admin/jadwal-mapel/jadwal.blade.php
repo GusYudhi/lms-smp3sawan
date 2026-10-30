@@ -193,11 +193,11 @@
             }
         @endphp
 
-        <table class="table table-bordered mb-0 jadwal-table" style="min-width: 1000px; table-layout: fixed;">
+        <table class="table table-bordered mb-0 jadwal-table w-100" style="table-layout: fixed;">
             <colgroup>
-                <col style="width: 100px;">
+                <col style="width: 110px;">
                 @foreach($daysToShow as $hari)
-                <col style="width: 150px;">
+                <col style="width: calc((100% - 110px) / {{ count($daysToShow) }});">
                 @endforeach
             </colgroup>
             <thead class="bg-light text-center">
@@ -225,7 +225,7 @@
                             <small class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $waktu }}</small>
                         </td>
                         @foreach($daysToShow as $hari)
-                            <td id="cell-{{ $hari }}-{{ $i }}" class="p-1 drop-zone schedule-slot" style="min-height: 90px; height: 90px; vertical-align: top;">
+                            <td id="cell-{{ $hari }}-{{ $i }}" class="p-1 drop-zone schedule-slot" style="height: 100%;">
                                 <!-- Content injected by JS -->
                             </td>
                         @endforeach
@@ -689,14 +689,14 @@ $(document).ready(function() {
                         let onClick = `onclick="openAddModal('${hari}', ${i})"`;
                         
                         // Default styling
-                        let style = 'height: 100%; width: 100%; min-height: 80px;';
+                        let style = 'height: 100%; width: 100%; min-height: 90px; display: flex; flex-direction: column; flex: 1 1 auto;';
 
                         if (item) {
                             if (item.type === 'fixed') {
                                 onClick = '';
                                 style += 'background-color: #f8f9fa; cursor: default;';
                                 content = `
-                                    <div class="d-flex align-items-center justify-content-center h-100 w-100 text-center">
+                                    <div class="d-flex align-items-center justify-content-center h-100 w-100 text-center flex-grow-1" style="min-height: 90px; border-radius: 6px;">
                                         <div>
                                             <i class="fas fa-lock mb-1 text-secondary"></i><br>
                                             <small class="fw-bold text-secondary">${escapeHtml(item.keterangan)}</small>
@@ -709,13 +709,14 @@ $(document).ready(function() {
                                 
                                 // Draggable Item
                                 content = `
-                                    <div class="card border-start border-4 border-primary shadow-sm h-100 w-100 border-0 draggable-item" 
+                                    <div class="card border-start border-4 border-primary shadow-sm h-100 w-100 border-0 draggable-item flex-grow-1" 
                                          draggable="true" 
                                          ondragstart="handleDragStartById(event, ${item.id})"
-                                         data-id="${item.id}">
-                                        <div class="card-body p-2">
-                                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.9rem;">${escapeHtml(item.mata_pelajaran.nama_mapel)}</h6>
-                                            <div class="small text-secondary">
+                                         data-id="${item.id}"
+                                         style="min-height: 90px;">
+                                        <div class="card-body p-2 d-flex flex-column justify-content-between h-100">
+                                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.85rem; line-height: 1.25;">${escapeHtml(item.mata_pelajaran.nama_mapel)}</h6>
+                                            <div class="small text-secondary" style="font-size: 0.75rem;">
                                                 <i class="far fa-user me-1"></i> ${escapeHtml(item.guru.name)}
                                             </div>
                                         </div>
@@ -725,7 +726,7 @@ $(document).ready(function() {
                         } else {
                             // Empty slot
                             content = `
-                                <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted" style="border: 2px dashed #dee2e6; border-radius: 4px; cursor: pointer;">
+                                <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted flex-grow-1" style="min-height: 90px; border: 2px dashed #dee2e6; border-radius: 6px; cursor: pointer;">
                                     <i class="fas fa-plus"></i>
                                 </div>
                             `;
