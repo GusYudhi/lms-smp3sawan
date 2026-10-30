@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Exports\PenilaianKokurikulerExport;
+use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\FixedSchedule;
 use App\Models\Kelas;
+use App\Models\KokurikulerSession;
 use App\Models\PenilaianKokurikuler;
 use App\Models\Semester;
 use App\Models\StudentProfile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PenilaianKokurikulerController extends Controller
@@ -26,8 +30,23 @@ class PenilaianKokurikulerController extends Controller
         'Saturday'  => 'Sabtu',
     ];
 
+    public const INDONESIAN_MONTHS = [
+        1  => 'Januari',
+        2  => 'Februari',
+        3  => 'Maret',
+        4  => 'April',
+        5  => 'Mei',
+        6  => 'Juni',
+        7  => 'Juli',
+        8  => 'Agustus',
+        9  => 'September',
+        10 => 'Oktober',
+        11 => 'November',
+        12 => 'Desember',
+    ];
+
     /**
-     * Display daily assessment input page for Wali Kelas
+     * Display 3-Step Wizard for daily Kokurikuler Attendance, Documentation, and Rubric Assessment
      */
     public function index(Request $request)
     {
@@ -50,6 +69,8 @@ class PenilaianKokurikulerController extends Controller
                 'kokurikulerSchedule' => null,
                 'allKokurikulerSchedules' => collect(),
                 'students' => collect(),
+                'absensiPagi' => collect(),
+                'existingSession' => null,
                 'existingAssessments' => collect(),
                 'historySessions' => collect(),
             ]);
@@ -65,7 +86,7 @@ class PenilaianKokurikulerController extends Controller
 
         $selectedDayName = self::INDONESIAN_DAYS[$parsedDate->format('l')] ?? 'Senin';
 
-        // Get all Kokurikuler schedules in this semester (typically Selasa - Jumat Jam ke-0)
+        // Get all Kokurikuler schedules in this semester
         $allKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
             ->kokurikuler()
             ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
@@ -82,6 +103,17 @@ class PenilaianKokurikulerController extends Controller
             ->orderBy('nis')
             ->get();
 
+        // Get morning QR/daily attendance for default status in Step 1
+        $absensiPagi = Attendance::whereIn('user_id', $students->pluck('user_id'))
+            ->whereDate('date', $selectedDate)
+            ->get()
+            ->keyBy('user_id');
+
+        // Get existing session header (photo & description) if already filled
+        $existingSession = KokurikulerSession::where('kelas_id', $kelas->id)
+            ->whereDate('tanggal', $selectedDate)
+            ->first();
+
         // Get existing assessments for this class on the selected date
         $existingAssessments = PenilaianKokurikuler::where('semester_id', $activeSemester->id)
             ->where('kelas_id', $kelas->id)
@@ -94,7 +126,8 @@ class PenilaianKokurikulerController extends Controller
                 'tanggal',
                 'hari',
                 'tema',
-                DB::raw('COUNT(*) as total_dinilai')
+                DB::raw('COUNT(*) as total_siswa'),
+                DB::raw("SUM(CASE WHEN predikat IS NOT NULL AND predikat != '' THEN 1 ELSE 0 END) as total_dinilai")
             )
             ->where('semester_id', $activeSemester->id)
             ->where('kelas_id', $kelas->id)
@@ -111,13 +144,15 @@ class PenilaianKokurikulerController extends Controller
             'kokurikulerSchedule',
             'allKokurikulerSchedules',
             'students',
+            'absensiPagi',
+            'existingSession',
             'existingAssessments',
             'historySessions'
         ));
     }
 
     /**
-     * Store or update student assessments for a specific meeting date
+     * Store or update 3-Step Wizard: Attendance, Documentation Photo & Description, and Student Rubric
      */
     public function store(Request $request)
     {
@@ -131,16 +166,30 @@ class PenilaianKokurikulerController extends Controller
         $kelas = $user->waliKelasOf();
         $activeSemester = Semester::where('is_active', true)->firstOrFail();
 
+        $parsedDate = Carbon::parse($request->input('tanggal', Carbon::today()->format('Y-m-d')));
+        $dateString = $parsedDate->format('Y-m-d');
+
+        $existingSession = KokurikulerSession::where('kelas_id', $kelas->id)
+            ->whereDate('tanggal', $dateString)
+            ->first();
+
+        // Foto bukti wajib jika belum ada sesi dengan foto sebelumnya
+        $fotoRule = ($existingSession && $existingSession->foto_bukti) ? 'nullable|string' : 'required|string';
+
         $request->validate([
             'tanggal' => 'required|date',
             'tema' => 'nullable|string|max:255',
+            'deskripsi' => 'nullable|string|max:2000',
+            'foto_bukti' => $fotoRule,
+            'absensi' => 'nullable|array',
+            'absensi.*' => 'nullable|in:hadir,terlambat,sakit,izin,alpa',
             'nilai' => 'required|array',
             'nilai.*.predikat' => 'nullable|in:B,SB,BSH,SAB',
             'nilai.*.catatan' => 'nullable|string|max:500',
+        ], [
+            'foto_bukti.required' => 'Foto bukti kegiatan kokurikuler wajib diambil atau diunggah.',
         ]);
 
-        $parsedDate = Carbon::parse($request->input('tanggal'));
-        $dateString = $parsedDate->format('Y-m-d');
         $dayName = self::INDONESIAN_DAYS[$parsedDate->format('l')] ?? 'Selasa';
 
         $kokurikulerSchedule = FixedSchedule::where('semester_id', $activeSemester->id)
@@ -152,10 +201,35 @@ class PenilaianKokurikulerController extends Controller
         $tema = $request->input('tema')
             ?: ($kokurikulerSchedule ? $kokurikulerSchedule->keterangan : "Kokurikuler {$dayName}");
 
-        $validStudentIds = StudentProfile::where('kelas_id', $kelas->id)
+        // Handle Foto Bukti (Base64 image compression to WebP)
+        $fotoPath = $existingSession?->foto_bukti;
+        if ($request->filled('foto_bukti')) {
+            try {
+                $compressedImage = ImageCompressor::compressBase64Image(
+                    $request->input('foto_bukti'),
+                    60,
+                    1200
+                );
+
+                $filename = 'koku_' . $kelas->id . '_' . $user->id . '_' . time() . '_' . uniqid() . '.webp';
+                $newPath = 'kokurikuler_bukti/' . $filename;
+
+                Storage::disk('public')->put($newPath, $compressedImage);
+
+                // Delete old photo if replacing
+                if ($fotoPath && Storage::disk('public')->exists($fotoPath)) {
+                    Storage::disk('public')->delete($fotoPath);
+                }
+
+                $fotoPath = $newPath;
+            } catch (\Exception $e) {
+                return back()->withErrors(['foto_bukti' => 'Gagal memproses foto bukti: ' . $e->getMessage()])->withInput();
+            }
+        }
+
+        $validStudents = StudentProfile::where('kelas_id', $kelas->id)
             ->where('is_active', true)
-            ->pluck('user_id')
-            ->all();
+            ->get();
 
         $savedCount = 0;
 
@@ -167,34 +241,60 @@ class PenilaianKokurikulerController extends Controller
             $dateString,
             $dayName,
             $tema,
+            $fotoPath,
             $user,
-            $validStudentIds,
+            $validStudents,
             &$savedCount
         ) {
-            foreach ($request->input('nilai', []) as $studentUserId => $item) {
-                if (!in_array((int) $studentUserId, $validStudentIds, true)) {
-                    continue;
-                }
+            $session = KokurikulerSession::updateOrCreate(
+                [
+                    'kelas_id' => $kelas->id,
+                    'tanggal' => $dateString,
+                ],
+                [
+                    'semester_id' => $activeSemester->id,
+                    'fixed_schedule_id' => $kokurikulerSchedule?->id,
+                    'penilai_user_id' => $user->id,
+                    'hari' => $dayName,
+                    'tema' => $tema,
+                    'deskripsi' => $request->filled('deskripsi') ? trim($request->input('deskripsi')) : null,
+                    'foto_bukti' => $fotoPath,
+                ]
+            );
 
-                $predikat = $item['predikat'] ?? null;
-                if (empty($predikat)) {
+            $absensiInput = $request->input('absensi', []);
+            $nilaiInput = $request->input('nilai', []);
+
+            foreach ($validStudents as $student) {
+                $studentUserId = (int) $student->user_id;
+                $statusAbsensi = $absensiInput[$studentUserId] ?? 'hadir';
+                $isPresent = in_array($statusAbsensi, ['hadir', 'terlambat'], true);
+
+                $itemNilai = $nilaiInput[$studentUserId] ?? [];
+                $predikat = $isPresent ? ($itemNilai['predikat'] ?? null) : null;
+                $catatan = !empty($itemNilai['catatan']) ? trim($itemNilai['catatan']) : null;
+
+                // Skip if neither attendance was explicitly submitted nor rubric was selected
+                if (!isset($absensiInput[$studentUserId]) && empty($predikat) && empty($catatan)) {
                     continue;
                 }
 
                 PenilaianKokurikuler::updateOrCreate(
                     [
                         'kelas_id' => $kelas->id,
-                        'student_user_id' => (int) $studentUserId,
+                        'student_user_id' => $studentUserId,
                         'tanggal' => $dateString,
                     ],
                     [
+                        'kokurikuler_session_id' => $session->id,
                         'semester_id' => $activeSemester->id,
                         'fixed_schedule_id' => $kokurikulerSchedule?->id,
                         'hari' => $dayName,
                         'tema' => $tema,
                         'penilai_user_id' => $user->id,
+                        'status_absensi' => $statusAbsensi,
                         'predikat' => $predikat,
-                        'catatan' => !empty($item['catatan']) ? trim($item['catatan']) : null,
+                        'catatan' => $catatan,
                     ]
                 );
 
@@ -204,7 +304,7 @@ class PenilaianKokurikulerController extends Controller
 
         return redirect()
             ->route('guru.penilaian-kokurikuler.index', ['tanggal' => $dateString])
-            ->with('success', "Penilaian kokurikuler ({$dayName}, {$parsedDate->format('d/m/Y')}) untuk {$savedCount} siswa berhasil disimpan.");
+            ->with('success', "Absensi, dokumentasi, dan penilaian kokurikuler ({$dayName}, {$parsedDate->format('d/m/Y')}) untuk {$savedCount} siswa berhasil disimpan.");
     }
 
     /**
@@ -236,8 +336,13 @@ class PenilaianKokurikulerController extends Controller
 
         $students = collect();
         $kokurikulerSchedules = collect();
+        $allKokurikulerSchedules = collect();
         $penilaians = collect();
         $sessions = collect();
+
+        $selectedBulan = $request->input('bulan', 'all');
+        $selectedHari = $request->input('hari', 'all');
+        $monthsList = self::INDONESIAN_MONTHS;
 
         if ($kelas && $activeSemester) {
             $students = StudentProfile::with('user')
@@ -246,26 +351,49 @@ class PenilaianKokurikulerController extends Controller
                 ->orderBy('nis')
                 ->get();
 
-            $kokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
+            $allKokurikulerSchedules = FixedSchedule::where('semester_id', $activeSemester->id)
                 ->kokurikuler()
                 ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
                 ->orderBy('jam_ke')
                 ->get();
 
-            $penilaians = PenilaianKokurikuler::where('semester_id', $activeSemester->id)
-                ->where('kelas_id', $kelas->id)
-                ->orderBy('tanggal')
-                ->get();
+            $kokurikulerSchedules = ($selectedHari !== 'all')
+                ? $allKokurikulerSchedules->where('hari', $selectedHari)->values()
+                : $allKokurikulerSchedules;
+
+            $penilaianQuery = PenilaianKokurikuler::where('semester_id', $activeSemester->id)
+                ->where('kelas_id', $kelas->id);
+
+            $sessionQuery = KokurikulerSession::where('semester_id', $activeSemester->id)
+                ->where('kelas_id', $kelas->id);
+
+            if ($selectedBulan !== 'all' && is_numeric($selectedBulan)) {
+                $penilaianQuery->whereMonth('tanggal', (int) $selectedBulan);
+                $sessionQuery->whereMonth('tanggal', (int) $selectedBulan);
+            }
+
+            if ($selectedHari !== 'all') {
+                $penilaianQuery->where('hari', $selectedHari);
+                $sessionQuery->where('hari', $selectedHari);
+            }
+
+            $penilaians = $penilaianQuery->orderBy('tanggal')->get();
+
+            $sessionModels = $sessionQuery->get()
+                ->keyBy(fn ($s) => Carbon::parse($s->tanggal)->format('Y-m-d'));
 
             $sessions = $penilaians
                 ->groupBy(fn ($item) => Carbon::parse($item->tanggal)->format('Y-m-d'))
-                ->map(function ($group, $dateStr) {
+                ->map(function ($group, $dateStr) use ($sessionModels) {
                     $first = $group->first();
+                    $sessModel = $sessionModels->get($dateStr);
                     return [
                         'tanggal' => $dateStr,
                         'hari' => $first->hari,
-                        'tema' => $first->tema,
-                        'total_dinilai' => $group->count(),
+                        'tema' => $sessModel?->tema ?? $first->tema,
+                        'deskripsi' => $sessModel?->deskripsi,
+                        'foto_bukti' => $sessModel?->foto_bukti,
+                        'total_dinilai' => $group->whereNotNull('predikat')->count(),
                     ];
                 })
                 ->sortKeys()
@@ -279,13 +407,17 @@ class PenilaianKokurikulerController extends Controller
             'activeSemester',
             'students',
             'kokurikulerSchedules',
+            'allKokurikulerSchedules',
             'penilaians',
-            'sessions'
+            'sessions',
+            'selectedBulan',
+            'selectedHari',
+            'monthsList'
         ));
     }
 
     /**
-     * Export Excel Recap for selected Class & Semester
+     * Export Excel Recap for selected Class & Semester (with optional month & day filters)
      */
     public function export(Request $request)
     {
@@ -309,9 +441,19 @@ class PenilaianKokurikulerController extends Controller
             }
         }
 
-        $filename = 'Rekap_Penilaian_Kokurikuler_Kelas_' . $kelas->full_name . '_' . str_replace(['/', ' '], '_', $semester->nama) . '.xlsx';
+        $bulan = $request->input('bulan', 'all');
+        $hari = $request->input('hari', 'all');
 
-        return Excel::download(new PenilaianKokurikulerExport($kelas, $semester), $filename);
+        $suffix = '';
+        if ($bulan !== 'all' && isset(self::INDONESIAN_MONTHS[(int) $bulan])) {
+            $suffix .= '_' . self::INDONESIAN_MONTHS[(int) $bulan];
+        }
+        if ($hari !== 'all') {
+            $suffix .= '_' . $hari;
+        }
+
+        $filename = 'Rekap_Penilaian_Kokurikuler_Kelas_' . $kelas->full_name . $suffix . '_' . str_replace(['/', ' '], '_', $semester->nama) . '.xlsx';
+
+        return Excel::download(new PenilaianKokurikulerExport($kelas, $semester, $bulan, $hari), $filename);
     }
 }
-

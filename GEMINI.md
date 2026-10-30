@@ -61,12 +61,15 @@ A robust system for managing class schedules.
 ## 💻 Technical Standards
 
 ### 🎨 UI/UX Guidelines
-1.  **Confirmations:** **NEVER** use native `confirm()`. Use **SweetAlert2** modals.
+1.  **Styling & Architecture (Zero Inline `<style>`):**
+    *   **NEVER** write `<style>` blocks or `@push('styles')` in Blade views.
+    *   All custom styles MUST be placed in the centralized Sass architecture (`resources/sass/_tokens.scss`, `_variables.scss`, `_base.scss`, `_components.scss`, `_pages.scss`) using Material Design 3 tokens and compiled via `npm run build`.
+2.  **Confirmations:** **NEVER** use native `confirm()` or `alert()`. Use **SweetAlert2** modals.
     *   **Pattern:** Use `<form class="delete-form" data-message="...">`. A global handler in `app.js`/`layout` intercepts this and shows the SweetAlert.
-2.  **Dropdowns:** Use **Select2** (Bootstrap 5 Theme) for all select inputs.
+3.  **Dropdowns:** Use **Select2** (Bootstrap 5 Theme) for all select inputs.
     *   **Behavior:** Auto-focus search field on open.
     *   **Sorting:** Alphanumeric sorting (7A, 7B, 8A...).
-3.  **Alerts:** Use Bootstrap utility classes (`bg-warning bg-opacity-10`) for persistent messages within modals to avoid conflict with auto-dismiss scripts.
+4.  **Alerts:** Use Bootstrap utility classes (`bg-warning bg-opacity-10`) for persistent messages within modals to avoid conflict with auto-dismiss scripts.
 
 ### 💾 Database Conventions
 *   **Codes:**

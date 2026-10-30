@@ -6,12 +6,14 @@ use App\Models\FixedSchedule;
 use App\Models\GuruProfile;
 use App\Models\JamPelajaran;
 use App\Models\Kelas;
+use App\Models\KokurikulerSession;
 use App\Models\PenilaianKokurikuler;
 use App\Models\Semester;
 use App\Models\StudentProfile;
 use App\Models\TahunPelajaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PenilaianKokurikulerTest extends TestCase
@@ -19,16 +21,27 @@ class PenilaianKokurikulerTest extends TestCase
     use DatabaseTransactions;
 
     protected User $admin;
+
     protected User $waliKelas;
+
     protected User $regularGuru;
+
     protected User $student1;
+
     protected User $student2;
+
     protected Kelas $kelas;
+
     protected Semester $semester;
+
+    // 1x1 valid transparent PNG base64
+    protected string $sampleBase64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('public');
 
         $this->admin = User::create([
             'name' => 'Admin Kokurikuler Test',
@@ -46,7 +59,6 @@ class PenilaianKokurikulerTest extends TestCase
             'is_active' => true,
         ]);
 
-        // Deactivate other semesters first
         Semester::query()->update(['is_active' => false]);
 
         $this->semester = Semester::create([
@@ -186,7 +198,29 @@ class PenilaianKokurikulerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_wali_kelas_can_view_and_save_penilaian_kokurikuler_for_past_or_current_dates()
+    public function test_new_session_requires_foto_bukti()
+    {
+        $targetDate = '2026-10-27';
+
+        $response = $this->actingAs($this->waliKelas)
+            ->post(route('guru.penilaian-kokurikuler.store'), [
+                'tanggal' => $targetDate,
+                'tema' => 'Tema Selasa: Literasi Digital',
+                'foto_bukti' => '',
+                'absensi' => [
+                    $this->student1->id => 'hadir',
+                ],
+                'nilai' => [
+                    $this->student1->id => [
+                        'predikat' => 'BSH',
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHasErrors(['foto_bukti']);
+    }
+
+    public function test_wali_kelas_can_save_attendance_photo_description_and_rubric()
     {
         FixedSchedule::create([
             'semester_id' => $this->semester->id,
@@ -207,11 +241,17 @@ class PenilaianKokurikulerTest extends TestCase
         $pageResponse->assertSee($this->student1->name);
         $pageResponse->assertSee($this->student2->name);
 
-        // Store assessment
+        // Student 1 is 'hadir' with 'SAB', Student 2 is 'sakit' (even if predikat is sent, it must be nulled)
         $storeResponse = $this->actingAs($this->waliKelas)
             ->post(route('guru.penilaian-kokurikuler.store'), [
                 'tanggal' => $targetDate,
                 'tema' => 'Tema Selasa: Literasi Digital',
+                'deskripsi' => 'Siswa membaca buku dan mendiskusikan intisari bacaan.',
+                'foto_bukti' => $this->sampleBase64Image,
+                'absensi' => [
+                    $this->student1->id => 'hadir',
+                    $this->student2->id => 'sakit',
+                ],
                 'nilai' => [
                     $this->student1->id => [
                         'predikat' => 'SAB',
@@ -219,7 +259,7 @@ class PenilaianKokurikulerTest extends TestCase
                     ],
                     $this->student2->id => [
                         'predikat' => 'BSH',
-                        'catatan' => '',
+                        'catatan' => 'Surat dokter',
                     ],
                 ],
             ]);
@@ -227,45 +267,70 @@ class PenilaianKokurikulerTest extends TestCase
         $storeResponse->assertRedirect(route('guru.penilaian-kokurikuler.index', ['tanggal' => $targetDate]));
         $storeResponse->assertSessionHas('success');
 
+        $session = KokurikulerSession::where('kelas_id', $this->kelas->id)
+            ->whereDate('tanggal', $targetDate)
+            ->first();
+
+        $this->assertNotNull($session);
+        $this->assertEquals('Siswa membaca buku dan mendiskusikan intisari bacaan.', $session->deskripsi);
+        $this->assertNotNull($session->foto_bukti);
+        Storage::disk('public')->assertExists($session->foto_bukti);
+
+        // Student 1 (hadir) has predikat SAB
         $this->assertDatabaseHas('penilaian_kokurikuler', [
+            'kokurikuler_session_id' => $session->id,
             'semester_id' => $this->semester->id,
             'kelas_id' => $this->kelas->id,
             'tanggal' => $targetDate,
-            'hari' => 'Selasa',
-            'tema' => 'Tema Selasa: Literasi Digital',
             'student_user_id' => $this->student1->id,
+            'status_absensi' => 'hadir',
             'predikat' => 'SAB',
             'catatan' => 'Sangat aktif berdiskusi',
         ]);
 
+        // Student 2 (sakit) must have predikat = null
         $this->assertDatabaseHas('penilaian_kokurikuler', [
+            'kokurikuler_session_id' => $session->id,
             'semester_id' => $this->semester->id,
             'kelas_id' => $this->kelas->id,
             'tanggal' => $targetDate,
             'student_user_id' => $this->student2->id,
-            'predikat' => 'BSH',
-            'catatan' => null,
+            'status_absensi' => 'sakit',
+            'predikat' => null,
+            'catatan' => 'Surat dokter',
         ]);
 
-        // Update assessment on a later day (upsert check)
-        $this->actingAs($this->waliKelas)
+        // Updating existing session without uploading a new photo keeps old photo
+        $updateResponse = $this->actingAs($this->waliKelas)
             ->post(route('guru.penilaian-kokurikuler.store'), [
                 'tanggal' => $targetDate,
                 'tema' => 'Tema Selasa: Literasi Digital',
+                'deskripsi' => 'Deskripsi diperbarui.',
+                'foto_bukti' => '',
+                'absensi' => [
+                    $this->student1->id => 'hadir',
+                    $this->student2->id => 'terlambat',
+                ],
                 'nilai' => [
+                    $this->student1->id => [
+                        'predikat' => 'SAB',
+                    ],
                     $this->student2->id => [
                         'predikat' => 'SB',
-                        'catatan' => 'Perlu pendampingan tambahan',
+                        'catatan' => 'Menyusul hadir terlambat',
                     ],
                 ],
             ]);
+
+        $updateResponse->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('penilaian_kokurikuler', [
             'kelas_id' => $this->kelas->id,
             'tanggal' => $targetDate,
             'student_user_id' => $this->student2->id,
+            'status_absensi' => 'terlambat',
             'predikat' => 'SB',
-            'catatan' => 'Perlu pendampingan tambahan',
+            'catatan' => 'Menyusul hadir terlambat',
         ]);
     }
 
@@ -279,24 +344,31 @@ class PenilaianKokurikulerTest extends TestCase
             'tema' => 'Tema Rabu: Lingkungan Hidup',
             'student_user_id' => $this->student1->id,
             'penilai_user_id' => $this->waliKelas->id,
+            'status_absensi' => 'hadir',
             'predikat' => 'BSH',
             'catatan' => 'Baik',
         ]);
 
-        $rekapResponse = $this->actingAs($this->waliKelas)->get(route('guru.penilaian-kokurikuler.rekap'));
+        $rekapResponse = $this->actingAs($this->waliKelas)->get(route('guru.penilaian-kokurikuler.rekap', [
+            'bulan' => 10,
+            'hari' => 'Rabu',
+        ]));
         $rekapResponse->assertStatus(200);
         $rekapResponse->assertSee($this->student1->name);
 
         $adminRekapResponse = $this->actingAs($this->admin)->get(route('admin.penilaian-kokurikuler.rekap', [
             'kelas_id' => $this->kelas->id,
             'semester_id' => $this->semester->id,
+            'bulan' => 10,
+            'hari' => 'Rabu',
         ]));
         $adminRekapResponse->assertStatus(200);
 
         $exportResponse = $this->actingAs($this->waliKelas)->get(route('guru.penilaian-kokurikuler.export', [
             'semester_id' => $this->semester->id,
+            'bulan' => 10,
+            'hari' => 'Rabu',
         ]));
         $exportResponse->assertStatus(200);
     }
 }
-

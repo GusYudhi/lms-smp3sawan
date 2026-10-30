@@ -138,9 +138,154 @@
     }
 }
 
-// --- Jurnal Mengajar Wizard ---
+// --- Jurnal Mengajar & Penilaian Kokurikuler Wizard ---
 .wizard-step {
     animation: fadeIn 0.3s;
+}
+
+.wizard-step-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.wizard-step-badge {
+    flex: 1;
+    text-align: center;
+    padding: 0.65rem 0.75rem;
+    border-radius: $radius-sm;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid $color-border;
+    background-color: $color-surface;
+    color: $color-muted-text;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+        background-color: $color-primary;
+        border-color: $color-primary;
+        color: #fff;
+    }
+
+    &.completed {
+        background-color: $color-success-container;
+        border-color: rgba($color-success, 0.25);
+        color: $color-success;
+    }
+}
+
+.rubrik-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.rubrik-pill-label {
+    cursor: pointer;
+    user-select: none;
+    padding: 0.35rem 0.65rem;
+    border-radius: $radius-pill;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1.5px solid $color-outline;
+    background-color: #fff;
+    color: $color-body-text;
+    transition: all 0.15s ease-in-out;
+}
+
+.rubrik-radio {
+    &:checked + .rubrik-pill-label {
+        &[data-val="B"] {
+            background-color: $color-secondary;
+            border-color: $color-secondary;
+            color: #fff;
+        }
+        &[data-val="SB"] {
+            background-color: $color-info;
+            border-color: $color-info;
+            color: #fff;
+        }
+        &[data-val="BSH"] {
+            background-color: $color-primary;
+            border-color: $color-primary;
+            color: #fff;
+        }
+        &[data-val="SAB"] {
+            background-color: $color-success;
+            border-color: $color-success;
+            color: #fff;
+        }
+    }
+
+    &:disabled + .rubrik-pill-label {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background-color: $color-surface;
+    }
+}
+
+.history-item.active {
+    background-color: $color-primary-container;
+    border-color: rgba($color-primary, 0.25);
+    color: $color-on-primary-container;
+}
+
+// --- Rekap Kokurikuler Sticky Table ---
+.table-kokurikuler-rekap {
+    th,
+    td {
+        vertical-align: middle;
+    }
+
+    .col-sticky-no {
+        position: sticky;
+        left: 0;
+        width: 48px;
+        min-width: 48px;
+        z-index: 2;
+        background-color: #fff;
+    }
+
+    .col-sticky-nama {
+        position: sticky;
+        left: 48px;
+        min-width: 200px;
+        max-width: 240px;
+        z-index: 2;
+        background-color: #fff;
+        box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.08);
+    }
+
+    thead {
+        .col-sticky-no,
+        .col-sticky-nama {
+            z-index: 3;
+            background-color: $color-surface;
+        }
+    }
+
+    .col-tema-header {
+        min-width: 155px;
+        max-width: 200px;
+    }
+
+    .col-session-header {
+        min-width: 135px;
+        max-width: 165px;
+    }
+
+    .session-tema-label {
+        max-width: 140px;
+        font-size: 0.75rem;
+    }
+
+    .session-bukti-btn {
+        font-size: 0.72rem;
+    }
+
+    .catatan-cell-text {
+        font-size: 0.72rem;
+    }
 }
 
 .step-indicator {

@@ -28,18 +28,26 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
 
     protected Collection $penilaians;
 
+    protected string $bulan;
+
+    protected string $hari;
+
     public function __construct(
         Kelas $kelas,
         Semester $semester,
         Collection $students,
         Collection $kokurikulerSchedules,
-        Collection $penilaians
+        Collection $penilaians,
+        string $bulan = 'all',
+        string $hari = 'all'
     ) {
         $this->kelas = $kelas;
         $this->semester = $semester;
         $this->students = $students;
         $this->kokurikulerSchedules = $kokurikulerSchedules;
         $this->penilaians = $penilaians;
+        $this->bulan = $bulan;
+        $this->hari = $hari;
     }
 
     public function title(): string
@@ -55,14 +63,24 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
         }
 
         if (empty($temaHeaders)) {
-            foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari) {
+            $fallbackDays = ($this->hari !== 'all') ? [$this->hari] : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+            foreach ($fallbackDays as $hari) {
                 $temaHeaders[] = "Tema {$hari}";
             }
         }
 
+        $filterInfo = [];
+        if ($this->bulan !== 'all' && isset(\App\Http\Controllers\Guru\PenilaianKokurikulerController::INDONESIAN_MONTHS[(int) $this->bulan])) {
+            $filterInfo[] = 'Bulan: '.\App\Http\Controllers\Guru\PenilaianKokurikulerController::INDONESIAN_MONTHS[(int) $this->bulan];
+        }
+        if ($this->hari !== 'all') {
+            $filterInfo[] = 'Hari: '.$this->hari;
+        }
+        $filterSuffix = ! empty($filterInfo) ? ' | Filter: '.implode(', ', $filterInfo) : '';
+
         return [
             ['REKAP PENILAIAN KOKURIKULER KELAS '.strtoupper($this->kelas->full_name)],
-            ['Semester: '.($this->semester->tahunPelajaran->nama ?? '').' - '.$this->semester->nama],
+            ['Semester: '.($this->semester->tahunPelajaran->nama ?? '').' - '.$this->semester->nama.$filterSuffix],
             ['Keterangan Rubrik: B = Berkembang | SB = Sedang Berkembang | BSH = Berkembang Sesuai Harapan | SAB = Sangat Berkembang'],
             [],
             array_merge(
@@ -78,10 +96,13 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
         $rows = collect();
         $daysList = $this->kokurikulerSchedules->isNotEmpty()
             ? $this->kokurikulerSchedules->pluck('hari')->all()
-            : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+            : (($this->hari !== 'all') ? [$this->hari] : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
 
         foreach ($this->students as $index => $student) {
-            $studentScores = $this->penilaians->where('student_user_id', $student->user_id);
+            $studentScores = $this->penilaians
+                ->where('student_user_id', $student->user_id)
+                ->whereNotNull('predikat')
+                ->where('predikat', '!=', '');
 
             $row = [
                 $index + 1,

@@ -23,17 +23,23 @@ class PenilaianKokurikulerHarianSheet implements FromCollection, WithTitle, With
     protected Collection $students;
     protected Collection $penilaians;
     protected Collection $sessions;
+    protected string $bulan;
+    protected string $hari;
 
     public function __construct(
         Kelas $kelas,
         Semester $semester,
         Collection $students,
-        Collection $penilaians
+        Collection $penilaians,
+        string $bulan = 'all',
+        string $hari = 'all'
     ) {
         $this->kelas = $kelas;
         $this->semester = $semester;
         $this->students = $students;
         $this->penilaians = $penilaians;
+        $this->bulan = $bulan;
+        $this->hari = $hari;
 
         // Unique dates & themes sorted chronologically
         $this->sessions = $penilaians
@@ -63,9 +69,18 @@ class PenilaianKokurikulerHarianSheet implements FromCollection, WithTitle, With
             $sessionHeaders[] = "{$s['hari']}, {$formattedDate} ({$s['tema']})";
         }
 
+        $filterInfo = [];
+        if ($this->bulan !== 'all' && isset(\App\Http\Controllers\Guru\PenilaianKokurikulerController::INDONESIAN_MONTHS[(int) $this->bulan])) {
+            $filterInfo[] = 'Bulan: ' . \App\Http\Controllers\Guru\PenilaianKokurikulerController::INDONESIAN_MONTHS[(int) $this->bulan];
+        }
+        if ($this->hari !== 'all') {
+            $filterInfo[] = 'Hari: ' . $this->hari;
+        }
+        $filterSuffix = !empty($filterInfo) ? ' | Filter: ' . implode(', ', $filterInfo) : '';
+
         return [
             ['RINCIAN HARIAN PENILAIAN KOKURIKULER KELAS ' . strtoupper($this->kelas->full_name)],
-            ['Semester: ' . ($this->semester->tahunPelajaran->nama ?? '') . ' - ' . $this->semester->nama],
+            ['Semester: ' . ($this->semester->tahunPelajaran->nama ?? '') . ' - ' . $this->semester->nama . $filterSuffix],
             [],
             array_merge(['No', 'NIS', 'Nama Siswa'], $sessionHeaders),
         ];
@@ -91,7 +106,11 @@ class PenilaianKokurikulerHarianSheet implements FromCollection, WithTitle, With
                 if (!$score) {
                     $row[] = '-';
                 } else {
-                    $cell = $score->predikat;
+                    if (!empty($score->predikat)) {
+                        $cell = $score->predikat;
+                    } else {
+                        $cell = strtoupper($score->status_absensi ?? '-');
+                    }
                     if (!empty($score->catatan)) {
                         $cell .= " ({$score->catatan})";
                     }
