@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -55,19 +56,27 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
         return 'Rekap Tema '.$this->kelas->full_name;
     }
 
-    public function headings(): array
+    protected function getScheduleItems(): Collection
     {
-        $temaHeaders = [];
-        foreach ($this->kokurikulerSchedules as $ks) {
-            $temaHeaders[] = "{$ks->hari} ({$ks->keterangan})";
+        if ($this->kokurikulerSchedules->isNotEmpty()) {
+            return $this->kokurikulerSchedules->map(fn ($ks) => [
+                'hari' => $ks->hari,
+                'keterangan' => $ks->keterangan,
+            ])->values();
         }
 
-        if (empty($temaHeaders)) {
-            $fallbackDays = ($this->hari !== 'all') ? [$this->hari] : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-            foreach ($fallbackDays as $hari) {
-                $temaHeaders[] = "Tema {$hari}";
-            }
-        }
+        $fallbackDays = ($this->hari !== 'all') ? [$this->hari] : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+        return collect($fallbackDays)->map(fn ($h) => [
+            'hari' => $h,
+            'keterangan' => $h === 'Senin' ? 'Pembiasaan Upacara Bendera' : "Tema {$h}",
+        ]);
+    }
+
+    public function headings(): array
+    {
+        $scheduleItems = $this->getScheduleItems();
+        $dayHeaders = $scheduleItems->pluck('hari')->all();
 
         $filterInfo = [];
         if ($this->bulan !== 'all' && isset(\App\Http\Controllers\Guru\PenilaianKokurikulerController::INDONESIAN_MONTHS[(int) $this->bulan])) {
@@ -78,25 +87,32 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
         }
         $filterSuffix = ! empty($filterInfo) ? ' | Filter: '.implode(', ', $filterInfo) : '';
 
-        return [
+        $rows = [
             ['REKAP PENILAIAN KOKURIKULER KELAS '.strtoupper($this->kelas->full_name)],
             ['Semester: '.($this->semester->tahunPelajaran->nama ?? '').' - '.$this->semester->nama.$filterSuffix],
             ['Keterangan Rubrik: B = Berkembang | SB = Sedang Berkembang | BSH = Berkembang Sesuai Harapan | SAB = Sangat Berkembang'],
             [],
-            array_merge(
-                ['No', 'NIS', 'NISN', 'Nama Siswa'],
-                $temaHeaders,
-                ['Total Pertemuan Dinilai', 'Predikat Dominan']
-            ),
+            ['Daftar Kegiatan Kokurikuler:'],
         ];
+
+        foreach ($scheduleItems as $item) {
+            $rows[] = ["• {$item['hari']} : {$item['keterangan']}"];
+        }
+
+        $rows[] = [];
+        $rows[] = array_merge(
+            ['No', 'NIS', 'NISN', 'Nama Siswa'],
+            $dayHeaders,
+            ['Total Dinilai', 'Predikat Dominan']
+        );
+
+        return $rows;
     }
 
     public function collection(): Collection
     {
         $rows = collect();
-        $daysList = $this->kokurikulerSchedules->isNotEmpty()
-            ? $this->kokurikulerSchedules->pluck('hari')->all()
-            : (($this->hari !== 'all') ? [$this->hari] : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
+        $daysList = $this->getScheduleItems()->pluck('hari')->all();
 
         foreach ($this->students as $index => $student) {
             $studentScores = $this->penilaians
@@ -117,8 +133,7 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
                     $row[] = '-';
                 } else {
                     $dominant = $this->getDominantPredikat($dayScores);
-                    $label = PenilaianKokurikuler::PREDIKAT_LABELS[$dominant] ?? $dominant;
-                    $row[] = "{$dominant} ({$label}) - {$dayScores->count()}x";
+                    $row[] = "{$dominant} ({$dayScores->count()}x)";
                 }
             }
 
@@ -157,34 +172,55 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
 
     public function columnWidths(): array
     {
-        return [
+        $widths = [
             'A' => 6,
             'B' => 14,
             'C' => 16,
-            'D' => 32,
-            'E' => 28,
-            'F' => 28,
-            'G' => 28,
-            'H' => 28,
-            'I' => 22,
-            'J' => 30,
+            'D' => 30,
         ];
+
+        $dayCount = $this->getScheduleItems()->count();
+        $colIndex = 5; // Column E
+
+        for ($i = 0; $i < $dayCount; $i++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex++);
+            $widths[$colLetter] = 14;
+        }
+
+        $totalCol = Coordinate::stringFromColumnIndex($colIndex++);
+        $dominantCol = Coordinate::stringFromColumnIndex($colIndex);
+
+        $widths[$totalCol] = 15;
+        $widths[$dominantCol] = 30;
+
+        return $widths;
     }
 
     public function styles(Worksheet $sheet)
     {
+        $scheduleCount = $this->getScheduleItems()->count();
+        $tableHeaderRow = 7 + $scheduleCount;
+
         $highestColumn = $sheet->getHighestColumn();
         $highestRow = $sheet->getHighestRow();
+        $mergeEndCol = Coordinate::ColumnIndexFromString($highestColumn) < 8 ? 'H' : $highestColumn;
 
-        $sheet->mergeCells("A1:{$highestColumn}1");
-        $sheet->mergeCells("A2:{$highestColumn}2");
-        $sheet->mergeCells("A3:{$highestColumn}3");
+        $sheet->mergeCells("A1:{$mergeEndCol}1");
+        $sheet->mergeCells("A2:{$mergeEndCol}2");
+        $sheet->mergeCells("A3:{$mergeEndCol}3");
+        $sheet->mergeCells("A5:{$mergeEndCol}5");
+
+        for ($r = 6; $r < 6 + $scheduleCount; $r++) {
+            $sheet->mergeCells("A{$r}:{$mergeEndCol}{$r}");
+            $sheet->getStyle("A{$r}")->getFont()->setSize(10);
+        }
 
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(11);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10);
+        $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(10);
 
-        $sheet->getStyle("A5:{$highestColumn}5")->applyFromArray([
+        $sheet->getStyle("A{$tableHeaderRow}:{$highestColumn}{$tableHeaderRow}")->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -196,8 +232,8 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
             ],
         ]);
 
-        if ($highestRow >= 5) {
-            $sheet->getStyle("A5:{$highestColumn}{$highestRow}")->applyFromArray([
+        if ($highestRow >= $tableHeaderRow) {
+            $sheet->getStyle("A{$tableHeaderRow}:{$highestColumn}{$highestRow}")->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -205,6 +241,14 @@ class PenilaianKokurikulerRekapSheet implements FromCollection, WithColumnWidths
                     ],
                 ],
             ]);
+
+            if ($highestRow > $tableHeaderRow) {
+                $dataStartRow = $tableHeaderRow + 1;
+                $sheet->getStyle("A{$dataStartRow}:A{$highestRow}")
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("E{$dataStartRow}:{$highestColumn}{$highestRow}")
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
         }
 
         return [];

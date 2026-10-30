@@ -370,5 +370,15 @@ class PenilaianKokurikulerTest extends TestCase
             'hari' => 'Rabu',
         ]));
         $exportResponse->assertStatus(200);
+
+        $export = new \App\Exports\PenilaianKokurikulerExport($this->kelas, $this->semester, '10', 'Rabu');
+        $sheets = $export->sheets();
+        $rekapHeadings = $sheets[0]->headings();
+        $harianHeadings = $sheets[1]->headings();
+
+        $this->assertEquals(['Daftar Kegiatan Kokurikuler:'], $rekapHeadings[4]);
+        $this->assertContains('Rabu', end($rekapHeadings));
+        $this->assertEquals(['Daftar Kegiatan Kokurikuler:'], $harianHeadings[4]);
+        $this->assertContains('Rabu, 28/10/2026', end($harianHeadings));
     }
 }

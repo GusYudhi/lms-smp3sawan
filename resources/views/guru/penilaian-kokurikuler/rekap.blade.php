@@ -127,12 +127,52 @@
     @if(!$kelas || !$activeSemester)
         <div class="alert alert-info">Silakan pilih kelas dan semester terlebih dahulu.</div>
     @else
-        <!-- Legenda Rubrik -->
-        <div class="d-flex flex-wrap gap-3 mb-3 small text-muted">
-            <span><strong class="badge bg-secondary">B</strong> = Berkembang</span>
-            <span><strong class="badge bg-info text-dark">SB</strong> = Sedang Berkembang</span>
-            <span><strong class="badge bg-primary">BSH</strong> = Berkembang Sesuai Harapan</span>
-            <span><strong class="badge bg-success">SAB</strong> = Sangat Berkembang</span>
+        @php
+            $defaultDays = collect([
+                (object)['hari' => 'Senin', 'keterangan' => 'Pembiasaan Upacara Bendera'],
+                (object)['hari' => 'Selasa', 'keterangan' => 'Tema Selasa'],
+                (object)['hari' => 'Rabu', 'keterangan' => 'Tema Rabu'],
+                (object)['hari' => 'Kamis', 'keterangan' => 'Tema Kamis'],
+                (object)['hari' => 'Jumat', 'keterangan' => 'Tema Jumat'],
+            ]);
+            if (($selectedHari ?? 'all') !== 'all') {
+                $defaultDays = $defaultDays->where('hari', $selectedHari)->values();
+            }
+            $daysList = $kokurikulerSchedules->isNotEmpty()
+                ? $kokurikulerSchedules
+                : $defaultDays;
+            $weights = ['B' => 1, 'SB' => 2, 'BSH' => 3, 'SAB' => 4];
+        @endphp
+
+        <!-- Daftar Kegiatan Kokurikuler & Legenda Rubrik -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-7">
+                        <div class="fw-semibold small text-dark mb-2">
+                            <i class="fas fa-list-ul text-primary me-1"></i>Daftar Kegiatan Kokurikuler:
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($daysList as $d)
+                                <span class="badge bg-light text-dark border fw-normal px-2 py-1">
+                                    <strong class="text-primary">{{ $d->hari }}:</strong> {{ $d->keterangan }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="col-lg-5 border-start-lg">
+                        <div class="fw-semibold small text-dark mb-2">
+                            <i class="fas fa-info-circle text-primary me-1"></i>Keterangan Rubrik:
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 small text-muted">
+                            <span><strong class="badge bg-secondary">B</strong> Berkembang</span>
+                            <span><strong class="badge bg-info text-dark">SB</strong> Sedang Berkembang</span>
+                            <span><strong class="badge bg-primary">BSH</strong> Berkembang Sesuai Harapan</span>
+                            <span><strong class="badge bg-success">SAB</strong> Sangat Berkembang</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs: Ringkasan per Tema Hari vs Rincian Pertemuan Harian -->
@@ -154,22 +194,6 @@
             <div class="tab-pane fade show active" id="tab-rekap-tema" role="tabpanel">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
-                        @php
-                            $defaultDays = collect([
-                                (object)['hari' => 'Senin', 'keterangan' => 'Pembiasaan Upacara Bendera'],
-                                (object)['hari' => 'Selasa', 'keterangan' => 'Tema Selasa'],
-                                (object)['hari' => 'Rabu', 'keterangan' => 'Tema Rabu'],
-                                (object)['hari' => 'Kamis', 'keterangan' => 'Tema Kamis'],
-                                (object)['hari' => 'Jumat', 'keterangan' => 'Tema Jumat'],
-                            ]);
-                            if (($selectedHari ?? 'all') !== 'all') {
-                                $defaultDays = $defaultDays->where('hari', $selectedHari)->values();
-                            }
-                            $daysList = $kokurikulerSchedules->isNotEmpty()
-                                ? $kokurikulerSchedules
-                                : $defaultDays;
-                            $weights = ['B' => 1, 'SB' => 2, 'BSH' => 3, 'SAB' => 4];
-                        @endphp
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover align-middle table-kokurikuler-rekap">
                                 <thead class="table-light text-center">
@@ -177,9 +201,8 @@
                                         <th class="col-sticky-no">No</th>
                                         <th class="text-start col-sticky-nama">Nama Siswa</th>
                                         @foreach($daysList as $d)
-                                            <th class="col-tema-header">
+                                            <th class="col-tema-header" title="{{ $d->hari }}: {{ $d->keterangan }}">
                                                 <div>{{ $d->hari }}</div>
-                                                <small class="text-muted fw-normal d-block">{{ $d->keterangan }}</small>
                                             </th>
                                         @endforeach
                                         <th>Total Dinilai</th>
@@ -221,7 +244,7 @@
                                                               title="{{ \App\Models\PenilaianKokurikuler::PREDIKAT_LABELS[$dom] ?? $dom }}">
                                                             {{ $dom }}
                                                         </span>
-                                                        <small class="text-muted d-block mt-1">{{ $dayScores->count() }}x pertemuan</small>
+                                                        <small class="text-muted d-block mt-1">{{ $dayScores->count() }}x</small>
                                                     @else
                                                         <span class="text-muted">-</span>
                                                     @endif
@@ -277,11 +300,8 @@
                                             <th class="col-sticky-no">No</th>
                                             <th class="text-start col-sticky-nama">Nama Siswa</th>
                                             @foreach($sessions as $sess)
-                                                <th class="col-session-header">
+                                                <th class="col-session-header" title="{{ $sess['hari'] }}: {{ $sess['tema'] }}">
                                                     <div>{{ $sess['hari'] }}, {{ \Carbon\Carbon::parse($sess['tanggal'])->format('d/m') }}</div>
-                                                    <small class="text-muted fw-normal d-block text-truncate mx-auto session-tema-label" title="{{ $sess['tema'] }}">
-                                                        {{ $sess['tema'] }}
-                                                    </small>
                                                     @if(!empty($sess['foto_bukti']) || !empty($sess['deskripsi']))
                                                         <button type="button"
                                                                 class="btn btn-link btn-sm p-0 mt-1 text-decoration-none session-bukti-btn"

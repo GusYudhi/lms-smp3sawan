@@ -70,6 +70,7 @@ class PenilaianKokurikulerExport implements WithMultipleSheets
                 $this->kelas,
                 $this->semester,
                 $students,
+                $kokurikulerSchedules,
                 $penilaians,
                 $this->bulan,
                 $this->hari
