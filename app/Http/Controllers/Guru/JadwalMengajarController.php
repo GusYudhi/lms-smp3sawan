@@ -86,6 +86,16 @@ class JadwalMengajarController extends Controller
 
             $fixedSchedules = $fixedQuery->get();
 
+            // Get all available time slots based on active semester or default range
+            $jamQuery = JamPelajaran::orderBy('jam_ke');
+            if ($semesterId) {
+                $jamQuery->where('semester_id', $semesterId);
+            }
+            $jamPelajarans = $jamQuery->get();
+            $slotNumbers = $jamPelajarans->isNotEmpty()
+                ? $jamPelajarans->pluck('jam_ke')->unique()->sort()->values()
+                : collect(range(1, 7));
+
             // Organize by day and jam_ke
             $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             $organized = [];
@@ -93,37 +103,35 @@ class JadwalMengajarController extends Controller
             foreach ($days as $day) {
                 $organized[$day] = [];
 
-                // Add lessons
-                foreach ($schedules as $schedule) {
-                    if ($schedule->hari === $day) {
-                        // Check if this is current teacher's schedule
-                        $isCurrentTeacher = ($schedule->guru_id == $currentUserId);
-
-                        $organized[$day][$schedule->jam_ke] = [
-                            'type' => 'lesson',
-                            'id' => $schedule->id,
-                            'jam_ke' => $schedule->jam_ke,
-                            'mata_pelajaran' => [
-                                'id' => $schedule->mata_pelajaran_id,
-                                'nama_mapel' => $schedule->mataPelajaran->nama_mapel ?? '-',
-                                'kode_mapel' => $schedule->mataPelajaran->kode_mapel ?? '-',
-                            ],
-                            'guru' => [
-                                'id' => $schedule->guru_id,
-                                'name' => $schedule->guru->name ?? '-',
-                            ],
-                            'is_current_teacher' => $isCurrentTeacher,
-                        ];
-                    }
-                }
-
-                // Add fixed schedules (Overwrite if exists, typically fixed schedule blocks everything)
-                foreach ($fixedSchedules as $fixed) {
-                    if ($fixed->hari === $day) {
-                        $organized[$day][$fixed->jam_ke] = [
+                foreach ($slotNumbers as $i) {
+                    $fixed = $fixedSchedules->where('hari', $day)->where('jam_ke', $i)->first();
+                    if ($fixed) {
+                        $organized[$day][$i] = [
                             'type' => 'fixed',
                             'keterangan' => $fixed->keterangan,
                         ];
+                    } else {
+                        $lesson = $schedules->where('hari', $day)->where('jam_ke', $i)->first();
+                        if ($lesson) {
+                            $isCurrentTeacher = ($lesson->guru_id == $currentUserId);
+                            $organized[$day][$i] = [
+                                'type' => 'lesson',
+                                'id' => $lesson->id,
+                                'jam_ke' => $lesson->jam_ke,
+                                'mata_pelajaran' => [
+                                    'id' => $lesson->mata_pelajaran_id,
+                                    'nama_mapel' => $lesson->mataPelajaran->nama_mapel ?? '-',
+                                    'kode_mapel' => $lesson->mataPelajaran->kode_mapel ?? '-',
+                                ],
+                                'guru' => [
+                                    'id' => $lesson->guru_id,
+                                    'name' => $lesson->guru->name ?? '-',
+                                ],
+                                'is_current_teacher' => $isCurrentTeacher,
+                            ];
+                        } else {
+                            $organized[$day][$i] = null;
+                        }
                     }
                 }
             }

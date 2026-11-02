@@ -176,6 +176,8 @@ $(document).ready(function() {
                     // Render all dynamic slots
                     for (const i of Object.keys(slots)) {
                         const cell = $(`#cell-${hari}-${i}`);
+                        if (!cell.length) continue;
+
                         const item = slots[i];
 
                         let content = '';
@@ -237,8 +239,15 @@ $(document).ready(function() {
                 });
             })
             .fail(function(xhr) {
-                alert('Gagal memuat jadwal');
-                console.error(xhr);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal memuat jadwal kelas.',
+                    });
+                } else {
+                    console.error('Gagal memuat jadwal', xhr);
+                }
             })
             .always(function() {
                 $('#loading-indicator').addClass('d-none');
