@@ -161,11 +161,8 @@
 
                     <!-- MOBILE CARD LIST VIEW (< 768px) -->
                     <div class="d-md-none mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                        <div class="mb-2 px-1">
                             <span class="text-muted small fw-bold text-uppercase">Daftar Kehadiran Siswa</span>
-                            <button type="button" class="btn btn-sm btn-outline-success py-1 px-2" onclick="markAllHadir()">
-                                <i class="fas fa-check-double me-1"></i>Set Hadir Semua
-                            </button>
                         </div>
                         @foreach($siswaKelas as $index => $siswa)
                             @php
