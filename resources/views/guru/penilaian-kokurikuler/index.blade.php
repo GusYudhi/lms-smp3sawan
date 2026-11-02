@@ -829,7 +829,10 @@
         updateWizardStatusBadges();
     }
 
+    let hasAutoFilledRubric = false;
+
     function setAllPredikat(code) {
+        hasAutoFilledRubric = true;
         syncAttendanceToRubric();
         const radios = document.querySelectorAll(`.rubrik-radio[value="${code}"]`);
         radios.forEach(r => {
@@ -1080,9 +1083,33 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         syncAttendanceToRubric();
+        hasAutoFilledRubric = document.querySelectorAll('.rubrik-radio:checked').length > 0;
 
         document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('rubrik-radio') || e.target.classList.contains('absensi-select')) {
+            if (e.target.classList.contains('rubrik-radio')) {
+                if (!hasAutoFilledRubric) {
+                    hasAutoFilledRubric = true;
+                    const selectedCode = e.target.value;
+                    const labelEl = document.querySelector(`label[for="${e.target.id}"]`);
+                    const predikatLabel = labelEl ? labelEl.textContent.trim() : selectedCode;
+
+                    syncAttendanceToRubric();
+                    const radios = document.querySelectorAll(`.rubrik-radio[value="${selectedCode}"]`);
+                    radios.forEach(r => {
+                        if (!r.disabled) {
+                            r.checked = true;
+                        }
+                    });
+
+                    if (window.Toast) {
+                        window.Toast.fire({
+                            icon: 'info',
+                            title: `Semua siswa otomatis diset "${predikatLabel}". Anda dapat menyesuaikan siswa yang berbeda.`
+                        });
+                    }
+                }
+                updateWizardStatusBadges();
+            } else if (e.target.classList.contains('absensi-select')) {
                 updateWizardStatusBadges();
             }
         });
