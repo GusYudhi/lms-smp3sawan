@@ -81,7 +81,7 @@ class JurnalMengajarController extends Controller
         $hari = Carbon::parse($tanggal)->locale('id')->dayName;
 
         // Ambil data semester aktif
-        $semesterAktif = Semester::where('is_active', true)->first();
+        $semesterAktif = Semester::getActive();
 
         // Ambil jadwal mengajar guru untuk hari tertentu (dibatasi semester aktif)
         $jadwalQuery = JadwalPelajaran::with(['kelas', 'mataPelajaran'])
@@ -161,7 +161,7 @@ class JurnalMengajarController extends Controller
             ->keyBy('user_id');
 
         // Ambil jam pelajaran untuk display
-        $semesterAktif = Semester::where('is_active', true)->first();
+        $semesterAktif = Semester::getActive();
         $jamPelajarans = [];
 
         if ($semesterAktif) {
@@ -220,7 +220,7 @@ class JurnalMengajarController extends Controller
         }
 
         // Validasi jam pelajaran exists
-        $semesterAktif = Semester::where('is_active', true)->first();
+        $semesterAktif = Semester::getActive();
 
         if (! $semesterAktif) {
             return back()->withErrors(['semester' => 'Semester aktif tidak ditemukan.'])->withInput();

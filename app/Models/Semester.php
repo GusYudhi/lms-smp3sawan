@@ -91,9 +91,11 @@ class Semester extends Model
         // Activate this one
         $this->update(['is_active' => true]);
 
-        // Also make sure the parent tahun pelajaran is active
+        // Also make sure the parent tahun pelajaran is active and other years inactive
         if ($this->tahunPelajaran) {
             $this->tahunPelajaran->setActive(false);
+            // Re-ensure no other semesters in other years remain active
+            static::where('id', '!=', $this->id)->update(['is_active' => false]);
         }
 
         return $this;

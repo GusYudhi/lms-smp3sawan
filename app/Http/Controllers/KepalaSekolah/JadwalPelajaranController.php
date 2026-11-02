@@ -19,7 +19,7 @@ class JadwalPelajaranController extends Controller
 
         // If no semester_id provided, get the active semester
         if (!$semesterId) {
-            $activeSemester = Semester::where('is_active', true)->first();
+            $activeSemester = Semester::getActive();
             $semesterId = $activeSemester ? $activeSemester->id : null;
         }
 

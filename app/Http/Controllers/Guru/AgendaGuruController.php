@@ -44,7 +44,7 @@ class AgendaGuruController extends Controller
                         ->paginate(15);
 
         // Get active semester and its jam pelajaran
-        $activeSemester = Semester::where('is_active', true)->first();
+        $activeSemester = Semester::getActive();
         $jamPelajarans = [];
         $kelasList = [];
 

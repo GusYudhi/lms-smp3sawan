@@ -198,7 +198,7 @@ class PenilaianKokurikulerController extends Controller
         }
 
         $canAssessRubric = $user->isWaliKelas() && optional($user->waliKelasOf())->id === $kelas->id;
-        $activeSemester = Semester::where('is_active', true)->firstOrFail();
+        $activeSemester = Semester::getActive() ?? Semester::firstOrFail();
 
         $parsedDate = Carbon::parse($request->input('tanggal', Carbon::today()->format('Y-m-d')));
         $dateString = $parsedDate->format('Y-m-d');

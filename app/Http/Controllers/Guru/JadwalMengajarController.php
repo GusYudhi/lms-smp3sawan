@@ -23,8 +23,8 @@ class JadwalMengajarController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        // Get active semester
-        $activeSemester = Semester::where('is_active', true)->first();
+        // Get active semester (tied to active academic year)
+        $activeSemester = Semester::getActive();
 
         $semesterId = $activeSemester ? $activeSemester->id : null;
         $tahunPelajaranId = $activeSemester ? $activeSemester->tahun_pelajaran_id : null;
@@ -63,8 +63,8 @@ class JadwalMengajarController extends Controller
         try {
             $currentUserId = auth()->id();
 
-            // Get current active semester
-            $activeSemester = Semester::where('is_active', true)->first();
+            // Get current active semester (tied to active academic year)
+            $activeSemester = Semester::getActive();
             $semesterId = $activeSemester ? $activeSemester->id : null;
 
             // Get all schedules for the class using Eloquent
@@ -160,7 +160,7 @@ class JadwalMengajarController extends Controller
         $currentUserId = $user->id;
         $today = \Carbon\Carbon::now()->locale('id')->dayName;
 
-        $activeSemester = Semester::where('is_active', true)->first();
+        $activeSemester = Semester::getActive();
         $semesterId = $activeSemester ? $activeSemester->id : null;
 
         // Get today's schedules for current teacher using Eloquent

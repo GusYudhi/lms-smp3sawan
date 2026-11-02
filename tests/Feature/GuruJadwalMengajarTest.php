@@ -205,4 +205,53 @@ class GuruJadwalMengajarTest extends TestCase
             $this->assertArrayHasKey('2', $json[$day]);
         }
     }
+
+    public function test_guru_schedule_prefers_active_academic_year_even_if_old_year_has_active_semester()
+    {
+        // Deactivate existing years first in transaction
+        TahunPelajaran::query()->update(['is_active' => false]);
+        Semester::query()->update(['is_active' => false]);
+
+        // Simulate previous academic year which mistakenly has active semester
+        $oldTp = TahunPelajaran::create([
+            'nama' => '2023/2024 Old Year',
+            'tahun_mulai' => 2023,
+            'tahun_selesai' => 2024,
+            'is_active' => false,
+        ]);
+
+        $oldSem = Semester::create([
+            'tahun_pelajaran_id' => $oldTp->id,
+            'nama' => 'Genap',
+            'semester_ke' => 2,
+            'is_active' => true, // Mistakenly left active
+        ]);
+
+        // Current academic year is active
+        $currentTp = TahunPelajaran::create([
+            'nama' => '2026/2027 New Year',
+            'tahun_mulai' => 2026,
+            'tahun_selesai' => 2027,
+            'is_active' => true,
+        ]);
+
+        $currentSem = Semester::create([
+            'tahun_pelajaran_id' => $currentTp->id,
+            'nama' => 'Ganjil',
+            'semester_ke' => 1,
+            'is_active' => true,
+        ]);
+
+        // Semester::getActive() must resolve to current academic year semester
+        $resolved = Semester::getActive();
+        $this->assertEquals($currentSem->id, $resolved->id);
+        $this->assertEquals($currentTp->id, $resolved->tahun_pelajaran_id);
+
+        // When activating a new Tahun Pelajaran via setActive, all other semesters are wiped of is_active
+        $oldTp->setActive(true);
+        $this->assertTrue((bool) $oldTp->fresh()->is_active);
+        $this->assertFalse((bool) $currentTp->fresh()->is_active);
+        $this->assertFalse((bool) $currentSem->fresh()->is_active);
+        $this->assertTrue((bool) $oldSem->fresh()->is_active);
+    }
 }

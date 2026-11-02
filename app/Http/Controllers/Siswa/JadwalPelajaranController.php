@@ -34,7 +34,7 @@ class JadwalPelajaranController extends Controller
         }
 
         // Get active semester
-        $activeSemester = Semester::where('is_active', true)->first();
+        $activeSemester = Semester::getActive();
 
         if (!$activeSemester) {
             return view('siswa.jadwal-pelajaran.jadwal-mapel', [

@@ -28,7 +28,7 @@ class JadwalPelajaranController extends Controller
             $jamPelajarans = JamPelajaran::where('semester_id', $semesterId)->orderBy('jam_ke')->get();
         } else {
             // Default to active semester if available
-            $semester = Semester::where('is_active', true)->with('tahunPelajaran')->first();
+            $semester = Semester::getActive();
 
             if ($semester) {
                 $jamPelajarans = JamPelajaran::where('semester_id', $semester->id)->orderBy('jam_ke')->get();

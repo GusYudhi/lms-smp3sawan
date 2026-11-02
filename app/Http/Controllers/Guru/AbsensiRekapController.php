@@ -39,7 +39,7 @@ class AbsensiRekapController extends Controller
                           ->get();
 
         // Get active semester
-        $activeSemester = Semester::where('is_active', true)->first();
+        $activeSemester = Semester::getActive();
 
         return view('guru.absensi.siswa.index', compact(
             'rekap',
@@ -62,7 +62,7 @@ class AbsensiRekapController extends Controller
         $currentUserId = auth()->id();
 
         // Get active semester
-        $semesterId = Semester::where('is_active', true)->value('id');
+        $semesterId = Semester::getActive()?->id;
 
         // Get unique kelas_id from jadwal_pelajarans where guru is current user
         $query = DB::table('jadwal_pelajarans')

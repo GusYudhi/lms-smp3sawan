@@ -75,13 +75,15 @@ class TahunPelajaran extends Model
         $this->update(['is_active' => true]);
 
         if ($syncSemester) {
-            $activeSemester = $this->semester()->where('is_active', true)->first()
-                ?? $this->semester()->orderBy('semester_ke')->first();
+            // Find which semester to activate: the one currently active in this year, or the first semester
+            $activeSemesterId = $this->semester()->where('is_active', true)->value('id')
+                ?? $this->semester()->orderBy('semester_ke')->value('id');
 
-            if ($activeSemester) {
-                // Deactivate all other semesters globally
-                Semester::where('id', '!=', $activeSemester->id)->update(['is_active' => false]);
-                $activeSemester->update(['is_active' => true]);
+            // Deactivate ALL semesters across all academic years
+            Semester::query()->update(['is_active' => false]);
+
+            if ($activeSemesterId) {
+                Semester::where('id', $activeSemesterId)->update(['is_active' => true]);
             }
         }
 
