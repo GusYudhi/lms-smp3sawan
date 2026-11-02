@@ -1,56 +1,33 @@
 // Base Shell, Layout Scoping & Production Utilities
 
-// --- Global Minimalist Scrollbar (Firefox & Chrome/WebKit Transparent Track) ---
+// --- Hide Default Browser Scrollbar & Top Progress Indicator ---
+html,
+body {
+    scrollbar-width: none !important; // Firefox & modern standard
+    -ms-overflow-style: none !important; // IE / legacy Edge
 
-// Firefox: Standard CSS Thin & Transparent Track
-@supports (-moz-appearance: none) {
-    html,
-    body,
-    * {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+    &::-webkit-scrollbar {
+        display: none !important; // Chrome, Safari, Chromium
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
     }
 }
 
-// Chromium & WebKit (Chrome, Edge, Safari, Opera): Explicit Transparent Track & Slim Pill Thumb
-::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-    background: transparent !important;
-}
-
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-track-piece {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 116, 139, 0.38);
-    border-radius: 9999px;
-    border: 1px solid transparent;
-    background-clip: padding-box;
-    transition: background-color 0.2s ease;
-
-    &:hover {
-        background-color: rgba(100, 116, 139, 0.65);
-    }
-
-    &:active {
-        background-color: rgba(13, 71, 161, 0.8);
-    }
-}
-
-::-webkit-scrollbar-corner,
-::-webkit-resizer {
-    background: transparent !important;
-}
-
-::-webkit-scrollbar-button {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+// Top Scroll Progress Bar (Replaces Default Chunky Scrollbar)
+.scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3.5px;
+    background: linear-gradient(90deg, #0d47a1 0%, #1565c0 40%, #38bdf8 100%);
+    transform-origin: 0% 50%;
+    transform: scaleX(0);
+    z-index: 1090; // Higher than fixed navbar (1030) and modals scrim
+    pointer-events: none;
+    box-shadow: 0 1px 6px rgba(13, 71, 161, 0.4);
+    transition: transform 0.04s ease-out;
 }
 
 // --- Admin / App / Semester Shell ---

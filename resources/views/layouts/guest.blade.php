@@ -15,6 +15,9 @@
 </head>
 
 <body class="layout-guest">
+    <!-- Top Scroll Progress Bar -->
+    <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+
     <!-- Adaptive M3 Header -->
     <nav id="guestNavbar" class="navbar navbar-expand-lg guest-header fixed-top" aria-label="Navigasi Utama">
         <div class="container">

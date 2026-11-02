@@ -91,6 +91,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 500);
     });
 
+    // Top Scroll Progress Bar (Minimalist Reading Indicator)
+    let scrollProgressBar = document.getElementById("scrollProgressBar");
+    if (!scrollProgressBar) {
+        scrollProgressBar = document.createElement("div");
+        scrollProgressBar.id = "scrollProgressBar";
+        scrollProgressBar.className = "scroll-progress-bar";
+        scrollProgressBar.setAttribute("aria-hidden", "true");
+        document.body.prepend(scrollProgressBar);
+    }
+
+    const updateScrollProgress = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = scrollHeight > 0 ? Math.min(Math.max(scrollTop / scrollHeight, 0), 1) : 0;
+        scrollProgressBar.style.transform = `scaleX(${progress})`;
+    };
+
+    window.addEventListener("scroll", updateScrollProgress, { passive: true });
+    window.addEventListener("resize", updateScrollProgress, { passive: true });
+    updateScrollProgress();
+
     // Guest Navbar Adaptive Scroll & Mobile Collapse State
     const guestNavbar = document.getElementById("guestNavbar");
     const guestNavbarCollapse = document.getElementById("navbarNav");
