@@ -33,30 +33,40 @@
     @endif
 
     <!-- Header Info -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h4 class="mb-2"><i class="fas fa-book-open text-primary me-2"></i>Isi Jurnal Mengajar</h4>
-                    <p class="mb-1"><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($tanggal)->format('d F Y') }} ({{ ucfirst($hari) }})</p>
-                    <p class="mb-1"><strong>Jam Pelajaran:</strong>
-                        @if($jamKeMulai == $jamKeSelesai)
-                            Jam ke-{{ $jamKeMulai }}
-                        @else
-                            Jam ke-{{ $jamKeMulai }} - {{ $jamKeSelesai }}
-                        @endif
-                        @if(isset($jamPelajarans[$jamKeMulai]) && isset($jamPelajarans[$jamKeSelesai]))
-                            <span class="badge bg-info">{{ $jamPelajarans[$jamKeMulai]->jam_mulai }} - {{ $jamPelajarans[$jamKeSelesai]->jam_selesai }}</span>
-                        @endif
-                    </p>
-                    <p class="mb-1"><strong>Kelas:</strong> Kelas {{ $kelas->full_name }}</p>
-                    <p class="mb-0"><strong>Mata Pelajaran:</strong> {{ $mataPelajaran->nama_mapel }}</p>
+    <div class="jurnal-info-bar">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h4 class="mb-1 text-primary fw-bold">
+                    <i class="fas fa-book-open me-2"></i>Isi Jurnal Mengajar
+                </h4>
+                <div class="info-chips-list">
+                    <div class="info-chip-item">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>{{ \Carbon\Carbon::parse($tanggal)->locale('id')->isoFormat('D MMMM YYYY') }} ({{ ucfirst($hari) }})</span>
+                    </div>
+                    <div class="info-chip-item">
+                        <i class="fas fa-clock"></i>
+                        <span>
+                            Jam ke-{{ $jamKeMulai == $jamKeSelesai ? $jamKeMulai : "$jamKeMulai - $jamKeSelesai" }}
+                            @if(isset($jamPelajarans[$jamKeMulai]) && isset($jamPelajarans[$jamKeSelesai]))
+                                ({{ $jamPelajarans[$jamKeMulai]->jam_mulai }} - {{ $jamPelajarans[$jamKeSelesai]->jam_selesai }})
+                            @endif
+                        </span>
+                    </div>
+                    <div class="info-chip-item">
+                        <i class="fas fa-users"></i>
+                        <span>Kelas {{ $kelas->full_name }}</span>
+                    </div>
+                    <div class="info-chip-item">
+                        <i class="fas fa-book"></i>
+                        <span>{{ $mataPelajaran->nama_mapel }}</span>
+                    </div>
                 </div>
-                <div class="col-md-4 text-end">
-                    <a href="{{ ($returnTo ?? request('return_to')) === 'today' ? route('guru.jadwal-mengajar.today') : route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Kembali
-                    </a>
-                </div>
+            </div>
+            <div class="w-100 w-md-auto text-end">
+                <a href="{{ ($returnTo ?? request('return_to')) === 'today' ? route('guru.jadwal-mengajar.today') : route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary w-100 w-md-auto">
+                    <i class="fas fa-arrow-left me-2"></i>Kembali
+                </a>
             </div>
         </div>
     </div>
@@ -75,25 +85,29 @@
 
         <!-- Step 1: Absensi Siswa -->
         <div class="wizard-step" id="step-1">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Step 1: Absensi Siswa</h5>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+                    <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Step 1: Absensi Siswa ({{ count($siswaKelas) }} Siswa)</h5>
+                    <button type="button" class="btn btn-sm btn-light text-primary fw-bold" onclick="markAllHadir()">
+                        <i class="fas fa-check-double me-1"></i>Tandai Semua Hadir
+                    </button>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Silakan lakukan absensi untuk semua siswa. Status default sesuai dengan absensi pagi hari ini.
+                    <div class="alert alert-info d-flex align-items-center mb-3">
+                        <i class="fas fa-info-circle me-2 fs-5"></i>
+                        <span class="small">Silakan periksa absensi siswa. Default kehadiran disesuaikan dengan absensi pagi. Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.</span>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                    <!-- DESKTOP TABLE VIEW (>= 768px) -->
+                    <div class="table-responsive d-none d-md-block mb-3">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="min-width: 36px" width="5%">No</th>
-                                    <th style="min-width: 100px" width="15%">NIS</th>
-                                    <th style="min-width: 200px" width="40%">Nama Siswa</th>
-                                    <th style="min-width: 100px" width="20%">Absensi Pagi</th>
-                                    <th style="min-width: 125px" width="20%">Status Absensi</th>
+                                    <th class="text-center" style="width: 50px;">No</th>
+                                    <th style="width: 140px;">NIS</th>
+                                    <th>Nama Siswa</th>
+                                    <th class="text-center" style="width: 150px;">Absensi Pagi</th>
+                                    <th style="width: 180px;">Status Absensi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,35 +115,42 @@
                                     @php
                                         $absensiHarian = $absensiPagi->get($siswa->user_id);
                                         $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
-                                        // Default: hadir jika absen pagi hadir/terlambat, alpa jika tidak
                                         $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'hadir';
+                                        if ($statusPagi === 'sakit') $defaultStatus = 'sakit';
+                                        elseif ($statusPagi === 'izin') $defaultStatus = 'izin';
+                                        elseif ($statusPagi === 'alpa') $defaultStatus = 'alpa';
                                     @endphp
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $siswa->nis }}</td>
-                                        <td>{{ $siswa->user->name ?? '-' }}</td>
-                                        <td>
+                                        <td class="text-center">{{ $index + 1 }}</td>
+                                        <td><code>{{ $siswa->nis }}</code></td>
+                                        <td class="fw-bold">{{ $siswa->user->name ?? '-' }}</td>
+                                        <td class="text-center">
                                             @if($statusPagi == 'hadir')
                                                 <span class="badge bg-success">Hadir</span>
                                             @elseif($statusPagi == 'terlambat')
-                                                <span class="badge bg-warning">Terlambat</span>
+                                                <span class="badge bg-warning text-dark">Terlambat</span>
                                             @elseif($statusPagi == 'sakit')
-                                                <span class="badge bg-warning">Sakit</span>
+                                                <span class="badge bg-info">Sakit</span>
                                             @elseif($statusPagi == 'izin')
-                                                <span class="badge bg-info">Izin</span>
+                                                <span class="badge bg-secondary">Izin</span>
                                             @elseif($statusPagi == 'alpa')
                                                 <span class="badge bg-danger">Alpa</span>
                                             @else
-                                                <span class="badge bg-secondary">Belum Absen</span>
+                                                <span class="badge bg-light text-dark border">Belum Absen</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm" name="absensi[{{ $siswa->id }}]" required>
+                                            <select class="form-select form-select-sm absensi-select"
+                                                    id="select-absensi-{{ $siswa->id }}"
+                                                    name="absensi[{{ $siswa->id }}]"
+                                                    data-siswa-id="{{ $siswa->id }}"
+                                                    onchange="syncSelectToMobile('{{ $siswa->id }}', this.value)"
+                                                    required>
                                                 <option value="hadir" {{ $defaultStatus == 'hadir' ? 'selected' : '' }}>Hadir</option>
-                                                <option value="terlambat">Terlambat</option>
-                                                <option value="sakit" {{ $statusPagi == 'sakit' ? 'selected' : '' }}>Sakit</option>
-                                                <option value="izin" {{ $statusPagi == 'izin' ? 'selected' : '' }}>Izin</option>
-                                                <option value="alpa" {{ $defaultStatus == 'alpa' && !in_array($statusPagi, ['sakit', 'izin']) ? 'selected' : '' }}>Alpa</option>
+                                                <option value="terlambat" {{ $defaultStatus == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
+                                                <option value="sakit" {{ $defaultStatus == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                                                <option value="izin" {{ $defaultStatus == 'izin' ? 'selected' : '' }}>Izin</option>
+                                                <option value="alpa" {{ $defaultStatus == 'alpa' ? 'selected' : '' }}>Alpa</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -138,11 +159,94 @@
                         </table>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-secondary">
+                    <!-- MOBILE CARD LIST VIEW (< 768px) -->
+                    <div class="d-md-none mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                            <span class="text-muted small fw-bold text-uppercase">Daftar Kehadiran Siswa</span>
+                            <button type="button" class="btn btn-sm btn-outline-success py-1 px-2" onclick="markAllHadir()">
+                                <i class="fas fa-check-double me-1"></i>Set Hadir Semua
+                            </button>
+                        </div>
+                        @foreach($siswaKelas as $index => $siswa)
+                            @php
+                                $absensiHarian = $absensiPagi->get($siswa->user_id);
+                                $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                                $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'hadir';
+                                if ($statusPagi === 'sakit') $defaultStatus = 'sakit';
+                                elseif ($statusPagi === 'izin') $defaultStatus = 'izin';
+                                elseif ($statusPagi === 'alpa') $defaultStatus = 'alpa';
+                            @endphp
+                            <div class="student-attendance-card">
+                                <div class="student-card-header">
+                                    <div class="student-identity">
+                                        <div class="student-index-badge">{{ $index + 1 }}</div>
+                                        <div>
+                                            <div class="student-name-text">{{ $siswa->user->name ?? '-' }}</div>
+                                            <div class="student-nis-text">NIS: {{ $siswa->nis }}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        @if($statusPagi == 'hadir')
+                                            <span class="badge bg-success">Pagi: Hadir</span>
+                                        @elseif($statusPagi == 'terlambat')
+                                            <span class="badge bg-warning text-dark">Pagi: Telat</span>
+                                        @elseif($statusPagi == 'sakit')
+                                            <span class="badge bg-info">Pagi: Sakit</span>
+                                        @elseif($statusPagi == 'izin')
+                                            <span class="badge bg-secondary">Pagi: Izin</span>
+                                        @elseif($statusPagi == 'alpa')
+                                            <span class="badge bg-danger">Pagi: Alpa</span>
+                                        @else
+                                            <span class="badge bg-light text-dark border">Pagi: -</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="attendance-segmented-grid">
+                                    <button type="button"
+                                            class="attendance-chip-btn {{ $defaultStatus == 'hadir' ? 'active' : '' }}"
+                                            data-siswa-id="{{ $siswa->id }}"
+                                            data-status="hadir"
+                                            onclick="selectMobileAttendance('{{ $siswa->id }}', 'hadir')">
+                                        Hadir
+                                    </button>
+                                    <button type="button"
+                                            class="attendance-chip-btn {{ $defaultStatus == 'terlambat' ? 'active' : '' }}"
+                                            data-siswa-id="{{ $siswa->id }}"
+                                            data-status="terlambat"
+                                            onclick="selectMobileAttendance('{{ $siswa->id }}', 'terlambat')">
+                                        Telat
+                                    </button>
+                                    <button type="button"
+                                            class="attendance-chip-btn {{ $defaultStatus == 'sakit' ? 'active' : '' }}"
+                                            data-siswa-id="{{ $siswa->id }}"
+                                            data-status="sakit"
+                                            onclick="selectMobileAttendance('{{ $siswa->id }}', 'sakit')">
+                                        Sakit
+                                    </button>
+                                    <button type="button"
+                                            class="attendance-chip-btn {{ $defaultStatus == 'izin' ? 'active' : '' }}"
+                                            data-siswa-id="{{ $siswa->id }}"
+                                            data-status="izin"
+                                            onclick="selectMobileAttendance('{{ $siswa->id }}', 'izin')">
+                                        Izin
+                                    </button>
+                                    <button type="button"
+                                            class="attendance-chip-btn {{ $defaultStatus == 'alpa' ? 'active' : '' }}"
+                                            data-siswa-id="{{ $siswa->id }}"
+                                            data-status="alpa"
+                                            onclick="selectMobileAttendance('{{ $siswa->id }}', 'alpa')">
+                                        Alpa
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4 pt-2 border-top">
+                        <a href="{{ route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary order-2 order-sm-1 py-2">
                             <i class="fas fa-times me-2"></i>Batal
                         </a>
-                        <button type="button" class="btn btn-primary" onclick="nextStep()">
+                        <button type="button" class="btn btn-primary order-1 order-sm-2 py-2" onclick="nextStep()">
                             Lanjut ke Jurnal <i class="fas fa-arrow-right ms-2"></i>
                         </button>
                     </div>
@@ -221,11 +325,11 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4 pt-2 border-top">
+                        <button type="button" class="btn btn-outline-secondary order-2 order-sm-1 py-2" onclick="prevStep()">
                             <i class="fas fa-arrow-left me-2"></i>Kembali ke Absensi
                         </button>
-                        <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-success order-1 order-sm-2 py-2">
                             <i class="fas fa-save me-2"></i>Simpan Jurnal
                         </button>
                     </div>
@@ -266,14 +370,60 @@
     </div>
 </div>
 
-@push('styles')
-
-@endpush
-
 @push('scripts')
 <script>
     let currentStream = null;
     let capturedImageData = null;
+
+    // Synchronize Mobile Segmented Attendance Buttons with Desktop Select
+    function selectMobileAttendance(siswaId, status) {
+        const selectElem = document.getElementById('select-absensi-' + siswaId);
+        if (selectElem) {
+            selectElem.value = status;
+        }
+
+        const buttons = document.querySelectorAll('.attendance-chip-btn[data-siswa-id="' + siswaId + '"]');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-status') === status) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    function syncSelectToMobile(siswaId, status) {
+        const buttons = document.querySelectorAll('.attendance-chip-btn[data-siswa-id="' + siswaId + '"]');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-status') === status) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // Quick Action: Mark all students as 'Hadir'
+    function markAllHadir() {
+        const selects = document.querySelectorAll('.absensi-select');
+        selects.forEach(select => {
+            select.value = 'hadir';
+            const siswaId = select.getAttribute('data-siswa-id');
+            syncSelectToMobile(siswaId, 'hadir');
+        });
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Semua siswa ditandai Hadir',
+                showConfirmButton: false,
+                timer: 1800,
+                timerProgressBar: true
+            });
+        }
+    }
 
     // Step navigation
     function nextStep() {
