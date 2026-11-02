@@ -1433,5 +1433,187 @@ body.swal2-toast-shown div:where(.swal2-container) {
     }
 }
 
+// --- Adaptive Supervisi Card (Mobile: Agenda Guru & Jurnal Mengajar) ---
+.kepsek-supervisi-card {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid $color-primary;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        box-shadow: $m3-elevation-2;
+    }
+
+    &.status-selesai {
+        border-left-color: $color-success;
+    }
+
+    &.status-pending {
+        border-left-color: $color-warning;
+    }
+
+    .supervisi-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .supervisi-meta-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .supervisi-content {
+        font-size: 0.925rem;
+        color: $color-body-text;
+        line-height: 1.5;
+        margin-bottom: 0.85rem;
+        background-color: $color-surface-container;
+        padding: 0.65rem 0.85rem;
+        border-radius: $radius-md;
+    }
+
+    .supervisi-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+// --- Adaptive Saran Card (Mobile) ---
+.saran-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid $color-warning;
+
+    &.status-dibaca {
+        border-left-color: $color-success;
+    }
+
+    .saran-sender-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .saran-body-text {
+        font-size: 0.925rem;
+        color: $color-body-text;
+        line-height: 1.5;
+        background-color: $color-surface-container;
+        padding: 0.75rem;
+        border-radius: $radius-md;
+        margin-bottom: 0.85rem;
+    }
+
+    .saran-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+// --- Adaptive Rekap Absensi Card (Mobile) ---
+.rekap-absensi-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+
+    .rekap-person-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.85rem;
+    }
+
+    .rekap-attendance-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.35rem;
+        text-align: center;
+        margin-bottom: 0.85rem;
+
+        .rekap-stat-box {
+            background-color: $color-surface-container;
+            padding: 0.5rem 0.25rem;
+            border-radius: $radius-md;
+            border: 1px solid $color-outline-variant;
+
+            .rekap-label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                color: $color-muted-text;
+                display: block;
+                margin-bottom: 0.15rem;
+            }
+
+            .rekap-val {
+                font-size: 0.95rem;
+                font-weight: 700;
+            }
+        }
+    }
+
+    .rekap-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+// --- Adaptive Direktori Card (Mobile: Data Guru & Data Siswa) ---
+.direktori-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.85rem;
+
+    .direktori-header {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .direktori-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .direktori-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 0.65rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+
 
 

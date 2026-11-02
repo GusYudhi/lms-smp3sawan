@@ -27,113 +27,91 @@
         </div>
     </div>
 
-    <!-- Statistik Guru -->
-    <div class="row g-4 mb-4">
-        <!-- Total Guru -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-primary fs-1 mb-3">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Total Guru</h6>
-                    <h2 class="text-primary">{{ \App\Models\User::whereIn('role', ['guru', 'kepala_sekolah'])->count() }}</h2>
-                    <small class="text-muted">Semua Guru</small>
-                </div>
+    <!-- Statistik Guru (MD3 Stat Cards) -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="dashboard-stat-card text-center">
+                <span class="stat-label">Total Guru</span>
+                <div class="stat-value text-primary">{{ \App\Models\User::whereIn('role', ['guru', 'kepala_sekolah'])->count() }}</div>
             </div>
         </div>
-
-        <!-- Guru PNS -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-success fs-1 mb-3">
-                        <i class="fas fa-id-badge"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Guru PNS</h6>
-                    <h2 class="text-success">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PNS')->count() }}</h2>
-                    <small class="text-muted">Pegawai Negeri</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="dashboard-stat-card text-center">
+                <span class="stat-label">Guru PNS</span>
+                <div class="stat-value text-success">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PNS')->count() }}</div>
             </div>
         </div>
-
-        <!-- Guru PPPK -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-info fs-1 mb-3">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Guru PPPK</h6>
-                    <h2 class="text-info">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PPPK')->count() }}</h2>
-                    <small class="text-muted">P3K</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="dashboard-stat-card text-center">
+                <span class="stat-label">Guru PPPK</span>
+                <div class="stat-value text-info">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'PPPK')->count() }}</div>
             </div>
         </div>
-
-        <!-- Guru Honorer -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats text-center h-100">
-                <div class="card-body">
-                    <div class="text-warning fs-1 mb-3">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <h6 class="card-title text-muted">Guru Honorer</h6>
-                    <h2 class="text-warning">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'Honorer')->count() }}</h2>
-                    <small class="text-muted">Non PNS</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="dashboard-stat-card text-center">
+                <span class="stat-label">Guru Honorer</span>
+                <div class="stat-value text-warning">{{ \App\Models\GuruProfile::where('status_kepegawaian', 'Honorer')->count() }}</div>
             </div>
         </div>
     </div>
 
+    <!-- Mobile Filter Toggle Button -->
+    <div class="d-md-none mb-3">
+        <button class="btn btn-outline-primary w-100 d-flex justify-content-between align-items-center shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapseDataGuru" aria-expanded="false">
+            <span><i class="fas fa-filter me-2"></i>Filter Data Guru</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+
     <!-- Search and Filter -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form action="{{ route('kepala-sekolah.guru.index') }}" method="GET" class="row g-3" id="filterForm">
-                        <div class="col-md-5">
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text"
-                                       name="search"
-                                       class="form-control search-input"
-                                       placeholder="Cari berdasarkan nama, NIP, atau email..."
-                                       value="{{ $search }}">
-                            </div>
+    <div class="collapse d-md-block mb-4" id="filterCollapseDataGuru">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form action="{{ route('kepala-sekolah.guru.index') }}" method="GET" class="row g-3" id="filterForm">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold mb-1">Pencarian</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text"
+                                   name="search"
+                                   class="form-control border-start-0 search-input"
+                                   placeholder="Cari berdasarkan nama, NIP, atau email..."
+                                   value="{{ $search }}">
                         </div>
-                        <div class="col-md-3">
-                            <select name="mata_pelajaran" class="form-select auto-submit">
-                                <option value="">Semua Mata Pelajaran</option>
-                                @foreach($mataPelajaranList as $mapel)
-                                <option value="{{ $mapel->nama_mapel }}" {{ ($mataPelajaranFilter ?? '') == $mapel->nama_mapel ? 'selected' : '' }}>
-                                    {{ $mapel->nama_mapel }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select name="status_kepegawaian" class="form-select auto-submit">
-                                <option value="">Semua Status</option>
-                                <option value="PNS" {{ ($statusKepegawaianFilter ?? '') == 'PNS' ? 'selected' : '' }}>PNS</option>
-                                <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
-                                <option value="Honorer" {{ ($statusKepegawaianFilter ?? '') == 'Honorer' ? 'selected' : '' }}>Honorer</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <a href="{{ route('kepala-sekolah.guru.index') }}" class="btn btn-secondary w-100">
-                                <i class="fas fa-redo me-1"></i>Reset
-                            </a>
-                        </div>
-                        <div class="col-12">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>Filter akan diterapkan otomatis. Tekan Enter untuk pencarian teks.
-                            </small>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold mb-1">Mata Pelajaran</label>
+                        <select name="mata_pelajaran" class="form-select auto-submit">
+                            <option value="">Semua Mata Pelajaran</option>
+                            @foreach($mataPelajaranList as $mapel)
+                            <option value="{{ $mapel->nama_mapel }}" {{ ($mataPelajaranFilter ?? '') == $mapel->nama_mapel ? 'selected' : '' }}>
+                                {{ $mapel->nama_mapel }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small fw-bold mb-1">Kepegawaian</label>
+                        <select name="status_kepegawaian" class="form-select auto-submit">
+                            <option value="">Semua Status</option>
+                            <option value="PNS" {{ ($statusKepegawaianFilter ?? '') == 'PNS' ? 'selected' : '' }}>PNS</option>
+                            <option value="PPPK" {{ ($statusKepegawaianFilter ?? '') == 'PPPK' ? 'selected' : '' }}>PPPK</option>
+                            <option value="Honorer" {{ ($statusKepegawaianFilter ?? '') == 'Honorer' ? 'selected' : '' }}>Honorer</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <a href="{{ route('kepala-sekolah.guru.index') }}" class="btn btn-secondary w-100">
+                            <i class="fas fa-redo me-1"></i>Reset
+                        </a>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Filter diterapkan otomatis. Tekan Enter untuk pencarian nama.
+                        </small>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -142,23 +120,24 @@
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-list me-2"></i>Daftar Guru
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-semibold text-high-contrast">
+                        <i class="fas fa-list text-primary me-2"></i>Daftar Guru
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                <div class="card-body p-0">
+                    <!-- Desktop Table View -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="5%">No</th>
-                                    <th width="25%">Nama Lengkap</th>
-                                    <th width="15%">NIP</th>
-                                    <th width="15%">Mata Pelajaran</th>
-                                    <th width="15%">Status Kepegawaian</th>
-                                    <th width="15%">Jabatan</th>
-                                    <th width="10%" class="text-center">Aksi</th>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 25%;">Nama Lengkap</th>
+                                    <th style="width: 15%;">NIP</th>
+                                    <th style="width: 15%;">Mata Pelajaran</th>
+                                    <th style="width: 15%;">Status Kepegawaian</th>
+                                    <th style="width: 15%;">Jabatan</th>
+                                    <th style="width: 10%;" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,7 +157,7 @@
                                                 />
                                             </div>
                                             <div>
-                                                <strong>{{ $user->name }}</strong>
+                                                <strong class="text-body-emphasis">{{ $user->name }}</strong>
                                                 @if($user->role === 'kepala_sekolah')
                                                 <span class="badge bg-danger ms-1">Kepala Sekolah</span>
                                                 @endif
@@ -186,19 +165,19 @@
                                         </div>
                                     </td>
                                     <td>{{ $user->guruProfile->nip ?? '-' }}</td>
-                <td class="text-center">
-                    @if($user->guruProfile && $user->guruProfile->mataPelajaran)
-                        <span class="badge bg-primary-subtle text-primary border">{{ $user->guruProfile->mataPelajaran->nama_mapel }}</span>
-                    @else
-                        <span class="text-muted fst-italic">-</span>
-                    @endif
-                </td>
+                                    <td>
+                                        @if($user->guruProfile && $user->guruProfile->mataPelajaran)
+                                            <span class="badge bg-primary-subtle text-primary border">{{ $user->guruProfile->mataPelajaran->nama_mapel }}</span>
+                                        @else
+                                            <span class="text-muted fst-italic">-</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($user->guruProfile)
                                         <span class="badge
                                             @if($user->guruProfile->status_kepegawaian == 'PNS') bg-success
                                             @elseif($user->guruProfile->status_kepegawaian == 'PPPK') bg-info
-                                            @else bg-warning @endif">
+                                            @else bg-warning text-dark @endif">
                                             {{ $user->guruProfile->status_kepegawaian }}
                                         </span>
                                         @else
@@ -208,7 +187,7 @@
                                     <td>{{ $user->guruProfile->jabatan_di_sekolah ?? '-' }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('kepala-sekolah.guru.show', $user->id) }}"
-                                           class="btn btn-sm btn-info"
+                                           class="btn btn-sm btn-info text-white"
                                            title="Lihat Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
@@ -225,8 +204,63 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Mobile Adaptive Cards View -->
+                    <div class="d-md-none p-3">
+                        @forelse($users as $index => $user)
+                            <div class="direktori-card-mobile">
+                                <div class="direktori-header">
+                                    <x-profile-photo
+                                        :src="$user->guruProfile && $user->guruProfile->foto_profil
+                                            ? asset('storage/profile_photos/' . $user->guruProfile->foto_profil)
+                                            : null"
+                                        :name="$user->name"
+                                        size="md"
+                                        :clickable="true"
+                                    />
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-body-emphasis">{{ $user->name }}</h6>
+                                        <small class="text-muted">NIP: {{ $user->guruProfile->nip ?? '-' }}</small>
+                                        @if($user->role === 'kepala_sekolah')
+                                            <span class="badge bg-danger ms-1">Kepala Sekolah</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="direktori-meta">
+                                    @if($user->guruProfile && $user->guruProfile->mataPelajaran)
+                                        <span class="badge bg-primary-subtle text-primary border">
+                                            {{ $user->guruProfile->mataPelajaran->nama_mapel }}
+                                        </span>
+                                    @endif
+                                    @if($user->guruProfile)
+                                        <span class="badge
+                                            @if($user->guruProfile->status_kepegawaian == 'PNS') bg-success
+                                            @elseif($user->guruProfile->status_kepegawaian == 'PPPK') bg-info
+                                            @else bg-warning text-dark @endif">
+                                            {{ $user->guruProfile->status_kepegawaian }}
+                                        </span>
+                                        @if($user->guruProfile->jabatan_di_sekolah)
+                                            <span class="badge bg-secondary-subtle text-secondary border">
+                                                {{ $user->guruProfile->jabatan_di_sekolah }}
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
+                                <div class="direktori-footer">
+                                    <a href="{{ route('kepala-sekolah.guru.show', $user->id) }}" class="btn btn-sm btn-info text-white">
+                                        <i class="fas fa-eye me-1"></i>Lihat Profil Lengkap
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-4 bg-white rounded-3 border">
+                                <i class="fas fa-inbox text-muted fs-1 mb-3 d-block opacity-50"></i>
+                                <p class="text-muted mb-0">Tidak ada data guru</p>
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
-                <div class="card-footer bg-white border-top">
+                <div class="card-footer bg-white border-top py-3">
                     <div class="pagination-container">
                         <div class="pagination-info">
                             Menampilkan {{ $users->firstItem() ?? 0 }}-{{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data

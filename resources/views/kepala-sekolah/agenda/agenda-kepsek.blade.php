@@ -43,78 +43,84 @@
         </div>
     </div>
 
+    <!-- Mobile Filter Toggle Button -->
+    <div class="d-md-none mb-3">
+        <button class="btn btn-outline-primary w-100 d-flex justify-content-between align-items-center shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapseAgendaKepsek" aria-expanded="false">
+            <span><i class="fas fa-filter me-2"></i>Filter Agenda</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+
     <!-- Filter dan Pencarian -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card card-modern border-0 shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title text-high-contrast fw-semibold mb-3">
-                        <i class="fas fa-filter text-primary me-2"></i>Filter & Pencarian
-                    </h6>
-                    <form method="GET" action="{{ route('kepala-sekolah.agenda') }}" id="filterForm">
-                        <div class="row g-3 align-items-end">
-                            <!-- Search Input -->
-                            <div class="col-md-4">
-                                <label for="agendaSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="fas fa-search text-muted"></i>
-                                    </span>
-                                    <input type="text"
-                                           name="search"
-                                           id="agendaSearch"
-                                           class="form-control border-start-0 search-input"
-                                           placeholder="Cari materi atau kompetensi..."
-                                           value="{{ request('search') }}">
-                                </div>
-                            </div>
-
-                            <!-- Kelas Filter -->
-                            <div class="col-md-2">
-                                <label for="kelasFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
-                                <select name="kelas" id="kelasFilter" class="form-select auto-submit">
-                                    <option value="">Semua Kelas</option>
-                                    @foreach($kelasList as $kelas)
-                                        <option value="{{ $kelas->full_name }}" {{ request('kelas') == $kelas->full_name ? 'selected' : '' }}>
-                                            {{ $kelas->full_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Status Jurnal Filter -->
-                            <div class="col-md-2">
-                                <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status Jurnal</label>
-                                <select name="status" id="statusFilter" class="form-select auto-submit">
-                                    <option value="">Semua Status</option>
-                                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                    <option value="belum_selesai" {{ request('status') == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
-                                </select>
-                            </div>
-
-                            <!-- Keterangan Filter -->
-                            <div class="col-md-2">
-                                <label for="keteranganFilter" class="form-label text-medium-contrast fw-medium">Keterangan</label>
-                                <select name="keterangan" id="keteranganFilter" class="form-select auto-submit">
-                                    <option value="">Semua</option>
-                                    <option value="pengayaan" {{ request('keterangan') == 'pengayaan' ? 'selected' : '' }}>Pengayaan</option>
-                                    <option value="perbaikan" {{ request('keterangan') == 'perbaikan' ? 'selected' : '' }}>Perbaikan</option>
-                                    <option value="-" {{ request('keterangan') == '-' ? 'selected' : '' }}>Tidak Ada</option>
-                                </select>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="col-md-2">
-                                <a href="{{ route('kepala-sekolah.agenda') }}" class="btn btn-secondary w-100 shadow-sm fw-medium">
-                                    <i class="fas fa-redo me-1"></i> Reset
-                                </a>
-                                <small class="text-muted d-block mt-2">
-                                    <i class="fas fa-info-circle me-1"></i>Auto-submit
-                                </small>
+    <div class="collapse d-md-block mb-4" id="filterCollapseAgendaKepsek">
+        <div class="card card-modern border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title text-high-contrast fw-semibold mb-3">
+                    <i class="fas fa-filter text-primary me-2"></i>Filter & Pencarian
+                </h6>
+                <form method="GET" action="{{ route('kepala-sekolah.agenda') }}" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <!-- Search Input -->
+                        <div class="col-md-4">
+                            <label for="agendaSearch" class="form-label text-medium-contrast fw-medium">Pencarian</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text"
+                                       name="search"
+                                       id="agendaSearch"
+                                       class="form-control border-start-0 search-input"
+                                       placeholder="Cari materi atau kompetensi..."
+                                       value="{{ request('search') }}">
                             </div>
                         </div>
-                    </form>
-                </div>
+
+                        <!-- Kelas Filter -->
+                        <div class="col-md-2">
+                            <label for="kelasFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
+                            <select name="kelas" id="kelasFilter" class="form-select auto-submit">
+                                <option value="">Semua Kelas</option>
+                                @foreach($kelasList as $kelas)
+                                    <option value="{{ $kelas->full_name }}" {{ request('kelas') == $kelas->full_name ? 'selected' : '' }}>
+                                        {{ $kelas->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Status Jurnal Filter -->
+                        <div class="col-md-2">
+                            <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status Jurnal</label>
+                            <select name="status" id="statusFilter" class="form-select auto-submit">
+                                <option value="">Semua Status</option>
+                                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                <option value="belum_selesai" {{ request('status') == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                            </select>
+                        </div>
+
+                        <!-- Keterangan Filter -->
+                        <div class="col-md-2">
+                            <label for="keteranganFilter" class="form-label text-medium-contrast fw-medium">Keterangan</label>
+                            <select name="keterangan" id="keteranganFilter" class="form-select auto-submit">
+                                <option value="">Semua</option>
+                                <option value="pengayaan" {{ request('keterangan') == 'pengayaan' ? 'selected' : '' }}>Pengayaan</option>
+                                <option value="perbaikan" {{ request('keterangan') == 'perbaikan' ? 'selected' : '' }}>Perbaikan</option>
+                                <option value="-" {{ request('keterangan') == '-' ? 'selected' : '' }}>Tidak Ada</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="col-md-2">
+                            <a href="{{ route('kepala-sekolah.agenda') }}" class="btn btn-secondary w-100 shadow-sm fw-medium">
+                                <i class="fas fa-redo me-1"></i> Reset
+                            </a>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Auto-submit
+                            </small>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -138,42 +144,43 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                        <table class="table table-hover align-middle mb-0" id="agendaTable" style="min-width: 1100px; width: 100%;">
+                    <!-- Desktop Table View -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-hover align-middle mb-0" id="agendaTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 50px;">#</th>
-                                    <th scope="col" class="fw-semibold" style="min-width: 150px;">Hari/Tanggal</th>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 100px;">Kelas</th>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 100px;">Jam Ke-</th>
-                                    <th scope="col" class="fw-semibold" style="min-width: 250px;">Batasan Materi/Kompetensi</th>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Jurnal</th>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Keterangan</th>
-                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Aksi</th>
+                                    <th scope="col" class="text-center fw-semibold" style="width: 50px;">#</th>
+                                    <th scope="col" class="fw-semibold">Hari/Tanggal</th>
+                                    <th scope="col" class="text-center fw-semibold">Kelas</th>
+                                    <th scope="col" class="text-center fw-semibold">Jam Ke-</th>
+                                    <th scope="col" class="fw-semibold">Batasan Materi/Kompetensi</th>
+                                    <th scope="col" class="text-center fw-semibold">Jurnal</th>
+                                    <th scope="col" class="text-center fw-semibold">Keterangan</th>
+                                    <th scope="col" class="text-center fw-semibold" style="width: 120px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($agendas as $index => $agenda)
                                 <tr>
-                                    <td class="text-center fw-bold" style="min-width: 50px;">{{ $agendas->firstItem() + $index }}</td>
-                                    <td style="min-width: 150px;">
+                                    <td class="text-center fw-bold">{{ $agendas->firstItem() + $index }}</td>
+                                    <td>
                                         <div class="text-start">
                                             <div class="fw-semibold mb-1">{{ $agenda->hari }}</div>
                                             <small class="text-muted fst-italic">{{ $agenda->tanggal->format('d M Y') }}</small>
                                         </div>
                                     </td>
-                                    <td class="text-center" style="min-width: 100px;">
+                                    <td class="text-center">
                                         <span class="badge bg-primary-subtle text-primary border">{{ $agenda->kelas }}</span>
                                     </td>
-                                    <td class="text-center" style="min-width: 100px;">
+                                    <td class="text-center">
                                         <span class="badge bg-info-subtle text-info border">{{ $agenda->jam_ke }}</span>
                                     </td>
-                                    <td style="min-width: 250px;">
+                                    <td>
                                         <div class="text-start" title="{{ $agenda->materi }}">
                                             {{ $agenda->materi }}
                                         </div>
                                     </td>
-                                    <td class="text-center" style="min-width: 150px;">
+                                    <td class="text-center">
                                         @if($agenda->status_jurnal == 'selesai')
                                             <span class="badge bg-success-subtle text-success border">
                                                 <i class="fas fa-check-circle me-1"></i>Selesai
@@ -184,7 +191,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="text-center" style="min-width: 150px;">
+                                    <td class="text-center">
                                         @if($agenda->keterangan == 'pengayaan')
                                             <span class="badge bg-warning-subtle text-warning border">
                                                 <i class="fas fa-star me-1"></i>Pengayaan
@@ -197,7 +204,7 @@
                                             <span class="text-muted fst-italic">-</span>
                                         @endif
                                     </td>
-                                    <td class="text-center" style="min-width: 150px;">
+                                    <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
                                             <button type="button"
                                                     class="btn btn-outline-warning"
@@ -228,9 +235,79 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Mobile Adaptive Cards View -->
+                    <div class="d-md-none p-3">
+                        @forelse($agendas as $index => $agenda)
+                            <div class="agenda-card-mobile {{ $agenda->status_jurnal == 'selesai' ? 'status-selesai' : '' }}">
+                                <div class="agenda-top-bar">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary border">
+                                            {{ $agenda->hari }}, {{ $agenda->tanggal->format('d M Y') }}
+                                        </span>
+                                        <span class="badge bg-info-subtle text-info border">
+                                            Jam Ke: {{ $agenda->jam_ke }}
+                                        </span>
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary border">
+                                        Kelas {{ $agenda->kelas }}
+                                    </span>
+                                </div>
+                                <div class="agenda-materi-text">
+                                    {{ $agenda->materi }}
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    @if($agenda->status_jurnal == 'selesai')
+                                        <span class="badge bg-success-subtle text-success border">
+                                            <i class="fas fa-check-circle me-1"></i>Jurnal Selesai
+                                        </span>
+                                    @else
+                                        <span class="badge bg-danger-subtle text-danger border">
+                                            <i class="fas fa-times-circle me-1"></i>Jurnal Belum Selesai
+                                        </span>
+                                    @endif
+
+                                    @if($agenda->keterangan == 'pengayaan')
+                                        <span class="badge bg-warning-subtle text-warning border">
+                                            <i class="fas fa-star me-1"></i>Pengayaan
+                                        </span>
+                                    @elseif($agenda->keterangan == 'perbaikan')
+                                        <span class="badge bg-info-subtle text-info border">
+                                            <i class="fas fa-wrench me-1"></i>Perbaikan
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="agenda-actions">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-warning"
+                                            onclick="editAgenda({{ $agenda->id }}, '{{ $agenda->tanggal->format('Y-m-d') }}', '{{ $agenda->kelas }}', {{ $agenda->jam_mulai_id }}, {{ $agenda->jam_selesai_id }}, `{{ addslashes($agenda->materi) }}`, '{{ $agenda->status_jurnal }}', '{{ $agenda->keterangan }}')">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="deleteAgenda({{ $agenda->id }})">
+                                        <i class="fas fa-trash me-1"></i>Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-5 bg-white rounded-3 border">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3 d-block opacity-50"></i>
+                                <p class="mb-0 fw-medium text-muted">Belum ada agenda yang ditambahkan</p>
+                                <small class="text-muted">Klik tombol "Tambah Agenda" untuk membuat agenda baru</small>
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
                 <div class="card-footer bg-light border-top-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div class="text-muted small">
+                            Menampilkan <strong>{{ $agendas->firstItem() ?? 0 }}-{{ $agendas->lastItem() ?? 0 }}</strong> dari <strong>{{ $agendas->total() }}</strong> agenda
+                        </div>
+                        <nav>
+                            {{ $agendas->links('pagination::bootstrap-5') }}
+                        </nav>
+                    </div>
                         <div class="text-muted small">
                             Menampilkan <strong>{{ $agendas->firstItem() ?? 0 }}-{{ $agendas->lastItem() ?? 0 }}</strong> dari <strong>{{ $agendas->total() }}</strong> agenda
                         </div>
