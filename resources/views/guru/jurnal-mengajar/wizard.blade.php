@@ -4,10 +4,11 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-4">
+    <!-- Breadcrumb (Desktop only) -->
+    <div class="row mb-3 d-none d-md-block">
         <div class="col-12">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('guru.jurnal-mengajar.index') }}">Jurnal Mengajar</a></li>
                     @if(($returnTo ?? request('return_to')) === 'today')
                         <li class="breadcrumb-item"><a href="{{ route('guru.jadwal-mengajar.today') }}">Jadwal Hari Ini</a></li>
@@ -21,7 +22,7 @@
     </div>
 
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
             <strong>Terjadi kesalahan!</strong>
             <ul class="mb-0 mt-2">
                 @foreach ($errors->all() as $error)
@@ -32,42 +33,44 @@
         </div>
     @endif
 
-    <!-- Header Info -->
-    <div class="jurnal-info-bar">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div>
-                <h4 class="mb-1 text-primary fw-bold">
-                    <i class="fas fa-book-open me-2"></i>Isi Jurnal Mengajar
-                </h4>
-                <div class="info-chips-list">
-                    <div class="info-chip-item">
-                        <i class="fas fa-calendar-day"></i>
-                        <span>{{ \Carbon\Carbon::parse($tanggal)->locale('id')->isoFormat('D MMMM YYYY') }} ({{ ucfirst($hari) }})</span>
-                    </div>
-                    <div class="info-chip-item">
-                        <i class="fas fa-clock"></i>
-                        <span>
-                            Jam ke-{{ $jamKeMulai == $jamKeSelesai ? $jamKeMulai : "$jamKeMulai - $jamKeSelesai" }}
-                            @if(isset($jamPelajarans[$jamKeMulai]) && isset($jamPelajarans[$jamKeSelesai]))
-                                ({{ $jamPelajarans[$jamKeMulai]->jam_mulai }} - {{ $jamPelajarans[$jamKeSelesai]->jam_selesai }})
-                            @endif
-                        </span>
-                    </div>
-                    <div class="info-chip-item">
-                        <i class="fas fa-users"></i>
-                        <span>Kelas {{ $kelas->full_name }}</span>
-                    </div>
-                    <div class="info-chip-item">
-                        <i class="fas fa-book"></i>
-                        <span>{{ $mataPelajaran->nama_mapel }}</span>
-                    </div>
+    @php
+        $jamMulaiFmt = isset($jamPelajarans[$jamKeMulai])
+            ? \Carbon\Carbon::parse($jamPelajarans[$jamKeMulai]->jam_mulai)->format('H:i')
+            : null;
+        $jamSelesaiFmt = isset($jamPelajarans[$jamKeSelesai])
+            ? \Carbon\Carbon::parse($jamPelajarans[$jamKeSelesai]->jam_selesai)->format('H:i')
+            : null;
+        $waktuDisplay = ($jamMulaiFmt && $jamSelesaiFmt) ? "({$jamMulaiFmt} - {$jamSelesaiFmt})" : '';
+        $jamKeText = ($jamKeMulai == $jamKeSelesai) ? "Jam ke-{$jamKeMulai}" : "Jam ke-{$jamKeMulai} - {$jamKeSelesai}";
+    @endphp
+
+    <!-- Compact Session Info Bar -->
+    <div class="jurnal-info-bar mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <span class="badge bg-primary fs-6 py-2 px-2 rounded-circle">
+                    <i class="fas fa-book-open"></i>
+                </span>
+                <div class="min-w-0">
+                    <h5 class="mb-0 fw-bold text-dark text-truncate">{{ $mataPelajaran->nama_mapel }}</h5>
+                    <small class="text-muted"><i class="fas fa-users me-1 text-primary"></i>Kelas {{ $kelas->full_name }}</small>
                 </div>
             </div>
-            <div class="w-100 w-md-auto text-end">
-                <a href="{{ ($returnTo ?? request('return_to')) === 'today' ? route('guru.jadwal-mengajar.today') : route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary w-100 w-md-auto">
-                    <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-            </div>
+            <a href="{{ ($returnTo ?? request('return_to')) === 'today' ? route('guru.jadwal-mengajar.today') : route('guru.jurnal-mengajar.create', ['tanggal' => $tanggal]) }}"
+               class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Kembali
+            </a>
+        </div>
+        <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+            <span class="badge bg-light text-dark border">
+                <i class="far fa-calendar-alt text-primary me-1"></i>{{ \Carbon\Carbon::parse($tanggal)->locale('id')->isoFormat('D MMMM YYYY') }} ({{ ucfirst($hari) }})
+            </span>
+            <span class="badge bg-light text-dark border">
+                <i class="far fa-clock text-primary me-1"></i>{{ $jamKeText }} {{ $waktuDisplay }}
+            </span>
+            <span class="badge bg-light text-dark border">
+                <i class="fas fa-user-friends text-primary me-1"></i>{{ count($siswaKelas) }} Siswa
+            </span>
         </div>
     </div>
 

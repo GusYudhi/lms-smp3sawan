@@ -73,6 +73,21 @@ body {
     transition: margin-left 0.3s ease-in-out;
 }
 
+// --- Dashboard App Bar Top Nav ---
+.dashboard-top-nav {
+    min-height: 48px;
+
+    .dashboard-page-title {
+        font-size: 1.125rem;
+        color: $color-body-text;
+        letter-spacing: -0.01em;
+
+        @media (min-width: 768px) {
+            font-size: 1.35rem;
+        }
+    }
+}
+
 .sidebar-brand {
     padding: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);

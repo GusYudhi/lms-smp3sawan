@@ -47,15 +47,15 @@
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-2 px-md-4 main-content">
                 <!-- Top Navigation -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <button class="navbar-toggler d-md-none btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h1 class="h2 navbar-brand">@yield('title', 'Dashboard')</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <span class="text-muted">Selamat datang, {{ auth()->user()->name }}</span>
-                        </div>
+                <div class="dashboard-top-nav d-flex align-items-center justify-content-between pt-2 pb-2 mb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <button class="navbar-toggler d-md-none btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="h4 mb-0 fw-bold text-truncate dashboard-page-title">@yield('title', 'Dashboard')</h1>
+                    </div>
+                    <div class="d-none d-md-block text-muted small">
+                        Selamat datang, <span class="fw-medium text-dark">{{ auth()->user()->name }}</span>
                     </div>
                 </div>
 
