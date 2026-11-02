@@ -51,40 +51,76 @@
                     </h5>
                 </div>
                 <div class="card-body p-3">
-                    @if($todaySchedules->count() > 0)
+                    @if(isset($todayTimeline) && $todayTimeline->count() > 0)
                         <div class="list-group list-group-flush">
-                            @foreach($todaySchedules as $schedule)
-                            <div class="list-group-item border-0 border-start border-4 border-primary mb-2 shadow-sm">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1 fw-bold text-primary">
-                                            {{ $schedule->mataPelajaran ? $schedule->mataPelajaran->nama_mapel : 'Mata Pelajaran tidak tersedia' }}
-                                        </h6>
-                                        <div class="small text-muted">
-                                            <i class="fas fa-user me-1"></i>
-                                            {{ $schedule->guru ? $schedule->guru->name : 'Belum ditentukan' }}
+                            @foreach($todayTimeline as $item)
+                                @if($item->type === 'lesson')
+                                    <div class="list-group-item border-0 border-start border-4 border-primary mb-2 shadow-sm rounded-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-bold text-primary">
+                                                    {{ $item->nama_mapel }}
+                                                </h6>
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    {{ $item->guru_name }}
+                                                </div>
+                                                @if($item->waktu_text)
+                                                <div class="small text-muted mt-1">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ $item->waktu_text }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-primary">
+                                                    {{ $item->jam_label }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        @if(isset($jamPelajaranList[$schedule->jam_ke]))
-                                        <div class="small text-muted mt-1">
-                                            <i class="fas fa-clock me-1"></i>
-                                            {{ \Carbon\Carbon::parse($jamPelajaranList[$schedule->jam_ke]->jam_mulai)->format('H:i') }} -
-                                            {{ \Carbon\Carbon::parse($jamPelajaranList[$schedule->jam_ke]->jam_selesai)->format('H:i') }}
+                                    </div>
+                                @elseif($item->type === 'fixed')
+                                    @php
+                                        $isKokuri = ($item->tipe ?? '') === \App\Models\FixedSchedule::TIPE_KOKURIKULER;
+                                        $badgeClass = $isKokuri ? 'bg-warning text-dark' : 'bg-secondary text-white';
+                                        $iconClass = $isKokuri ? 'fas fa-star text-warning' : 'fas fa-lock text-secondary';
+                                        $borderClass = $isKokuri ? 'border-warning' : 'border-secondary';
+                                    @endphp
+                                    <div class="list-group-item border-0 border-start border-4 {{ $borderClass }} bg-light mb-2 shadow-sm rounded-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-1 mb-1">
+                                                    <i class="{{ $iconClass }} me-1"></i>
+                                                    <h6 class="mb-0 fw-bold text-dark">
+                                                        {{ $item->keterangan }}
+                                                    </h6>
+                                                </div>
+                                                <div class="small text-muted">
+                                                    <span class="badge {{ $badgeClass }} me-1" style="font-size: 0.65rem;">
+                                                        {{ $isKokuri ? 'Kokurikuler / Pembiasaan' : 'Jadwal Tetap' }}
+                                                    </span>
+                                                </div>
+                                                @if($item->waktu_text)
+                                                <div class="small text-muted mt-1">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ $item->waktu_text }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ $item->jam_label }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        @endif
                                     </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-primary">
-                                            Jam ke-{{ $schedule->jam_ke }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                @endif
                             @endforeach
                         </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mt-3">Tidak ada jadwal pelajaran hari ini</p>
+                            <p class="text-muted mt-3">Tidak ada jadwal hari ini</p>
                         </div>
                     @endif
                 </div>
@@ -100,40 +136,76 @@
                     </h5>
                 </div>
                 <div class="card-body p-3">
-                    @if($tomorrowSchedules->count() > 0)
+                    @if(isset($tomorrowTimeline) && $tomorrowTimeline->count() > 0)
                         <div class="list-group list-group-flush">
-                            @foreach($tomorrowSchedules as $schedule)
-                            <div class="list-group-item border-0 border-start border-4 border-success mb-2 shadow-sm">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1 fw-bold text-success">
-                                            {{ $schedule->mataPelajaran ? $schedule->mataPelajaran->nama_mapel : 'Mata Pelajaran tidak tersedia' }}
-                                        </h6>
-                                        <div class="small text-muted">
-                                            <i class="fas fa-user me-1"></i>
-                                            {{ $schedule->guru ? $schedule->guru->name : 'Belum ditentukan' }}
+                            @foreach($tomorrowTimeline as $item)
+                                @if($item->type === 'lesson')
+                                    <div class="list-group-item border-0 border-start border-4 border-success mb-2 shadow-sm rounded-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-bold text-success">
+                                                    {{ $item->nama_mapel }}
+                                                </h6>
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    {{ $item->guru_name }}
+                                                </div>
+                                                @if($item->waktu_text)
+                                                <div class="small text-muted mt-1">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ $item->waktu_text }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-success">
+                                                    {{ $item->jam_label }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        @if(isset($jamPelajaranList[$schedule->jam_ke]))
-                                        <div class="small text-muted mt-1">
-                                            <i class="fas fa-clock me-1"></i>
-                                            {{ \Carbon\Carbon::parse($jamPelajaranList[$schedule->jam_ke]->jam_mulai)->format('H:i') }} -
-                                            {{ \Carbon\Carbon::parse($jamPelajaranList[$schedule->jam_ke]->jam_selesai)->format('H:i') }}
+                                    </div>
+                                @elseif($item->type === 'fixed')
+                                    @php
+                                        $isKokuri = ($item->tipe ?? '') === \App\Models\FixedSchedule::TIPE_KOKURIKULER;
+                                        $badgeClass = $isKokuri ? 'bg-warning text-dark' : 'bg-secondary text-white';
+                                        $iconClass = $isKokuri ? 'fas fa-star text-warning' : 'fas fa-lock text-secondary';
+                                        $borderClass = $isKokuri ? 'border-warning' : 'border-secondary';
+                                    @endphp
+                                    <div class="list-group-item border-0 border-start border-4 {{ $borderClass }} bg-light mb-2 shadow-sm rounded-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-1 mb-1">
+                                                    <i class="{{ $iconClass }} me-1"></i>
+                                                    <h6 class="mb-0 fw-bold text-dark">
+                                                        {{ $item->keterangan }}
+                                                    </h6>
+                                                </div>
+                                                <div class="small text-muted">
+                                                    <span class="badge {{ $badgeClass }} me-1" style="font-size: 0.65rem;">
+                                                        {{ $isKokuri ? 'Kokurikuler / Pembiasaan' : 'Jadwal Tetap' }}
+                                                    </span>
+                                                </div>
+                                                @if($item->waktu_text)
+                                                <div class="small text-muted mt-1">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ $item->waktu_text }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ $item->jam_label }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        @endif
                                     </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-success">
-                                            Jam ke-{{ $schedule->jam_ke }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                @endif
                             @endforeach
                         </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mt-3">Tidak ada jadwal pelajaran besok</p>
+                            <p class="text-muted mt-3">Tidak ada jadwal besok</p>
                         </div>
                     @endif
                 </div>
@@ -162,58 +234,76 @@
                         <table class="table table-hover table-bordered mb-0 jadwal-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-center">Jam Ke</th>
-                                    <th class="text-center">Waktu</th>
-                                    <th class="text-center">Senin</th>
-                                    <th class="text-center">Selasa</th>
-                                    <th class="text-center">Rabu</th>
-                                    <th class="text-center">Kamis</th>
-                                    <th class="text-center">Jumat</th>
-                                    <th class="text-center">Sabtu</th>
+                                    <th class="text-center align-middle" style="width: 80px;">Jam Ke</th>
+                                    <th class="text-center align-middle" style="width: 100px;">Waktu</th>
+                                    <th class="text-center align-middle">Senin</th>
+                                    <th class="text-center align-middle">Selasa</th>
+                                    <th class="text-center align-middle">Rabu</th>
+                                    <th class="text-center align-middle">Kamis</th>
+                                    <th class="text-center align-middle">Jumat</th>
+                                    <th class="text-center align-middle">Sabtu</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    // Get all unique jam_ke values
-                                    $allJamKe = collect();
-                                    foreach($weeklySchedules as $daySchedules) {
-                                        foreach($daySchedules as $schedule) {
-                                            $allJamKe->push($schedule->jam_ke);
-                                        }
-                                    }
-                                    $jamKeList = $allJamKe->unique()->sort()->values();
-                                @endphp
-
-                                @if($jamKeList->count() > 0)
-                                    @foreach($jamKeList as $jamKe)
+                                @if(isset($slotNumbers) && $slotNumbers->count() > 0)
+                                    @foreach($slotNumbers as $slot)
                                     <tr>
-                                        <td class="text-center fw-bold align-middle">{{ $jamKe }}</td>
-                                        <td class="text-center align-middle small">
-                                            @if(isset($jamPelajaranList[$jamKe]))
+                                        <td class="text-center fw-bold align-middle bg-light">
+                                            <span class="badge {{ $slot === 0 ? 'bg-warning text-dark' : 'bg-secondary' }}">
+                                                Jam {{ $slot }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center align-middle small bg-light">
+                                            @if(isset($jamPelajaranList[$slot]))
                                                 <div style="line-height: 1.3;">
-                                                    {{ \Carbon\Carbon::parse($jamPelajaranList[$jamKe]->jam_mulai)->format('H:i') }}<br>
+                                                    <span class="fw-semibold">{{ \Carbon\Carbon::parse($jamPelajaranList[$slot]->jam_mulai)->format('H:i') }}</span><br>
                                                     <small class="text-muted">s/d</small><br>
-                                                    {{ \Carbon\Carbon::parse($jamPelajaranList[$jamKe]->jam_selesai)->format('H:i') }}
+                                                    <span class="fw-semibold">{{ \Carbon\Carbon::parse($jamPelajaranList[$slot]->jam_selesai)->format('H:i') }}</span>
                                                 </div>
                                             @else
-                                                -
+                                                <span class="text-muted">-</span>
                                             @endif
                                         </td>
                                         @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $day)
                                             @php
-                                                $schedule = $weeklySchedules[$day]->firstWhere('jam_ke', $jamKe);
+                                                $item = $weeklyGrid[$day][$slot] ?? null;
+                                                $isToday = ($day === $todayName);
                                             @endphp
-                                            <td class="align-middle {{ $day === $todayName ? 'table-primary' : '' }}">
-                                                @if($schedule)
-                                                    <div class="p-2">
-                                                        <div class="fw-bold text-center" style="font-size: 0.9rem;">
-                                                            {{ $schedule->mataPelajaran ? $schedule->mataPelajaran->nama_mapel : '-' }}
+                                            <td class="align-middle {{ $isToday ? 'table-primary' : '' }}">
+                                                @if($item)
+                                                    @if($item->type === 'fixed')
+                                                        @php
+                                                            $isKokuri = ($item->tipe ?? '') === \App\Models\FixedSchedule::TIPE_KOKURIKULER;
+                                                        @endphp
+                                                        <div class="p-2 text-center rounded-2 bg-light border border-dashed">
+                                                            <i class="{{ $isKokuri ? 'fas fa-star text-warning' : 'fas fa-lock text-secondary' }} mb-1"></i>
+                                                            <div class="fw-bold text-dark" style="font-size: 0.85rem; line-height: 1.25;">
+                                                                {{ $item->keterangan }}
+                                                            </div>
+                                                            <span class="badge {{ $isKokuri ? 'bg-warning text-dark' : 'bg-secondary text-white' }} mt-1" style="font-size: 0.65rem;">
+                                                                {{ $isKokuri ? 'Kokurikuler' : 'Jadwal Tetap' }}
+                                                            </span>
                                                         </div>
-                                                        <div class="text-center text-muted mt-1" style="font-size: 0.7rem;">
-                                                            <i class="fas fa-user" style="font-size: 0.65rem;"></i>
-                                                            {{ $schedule->guru ? $schedule->guru->name : '-' }}
+                                                    @elseif($item->type === 'lesson')
+                                                        <div class="card border-0 border-start border-4 border-primary shadow-sm h-100">
+                                                            <div class="card-body p-2 text-center">
+                                                                <div class="fw-bold text-primary" style="font-size: 0.85rem; line-height: 1.25;">
+                                                                    {{ $item->nama_mapel }}
+                                                                </div>
+                                                                <div class="text-muted mt-1 small" style="font-size: 0.72rem;">
+                                                                    <i class="fas fa-user me-1"></i>
+                                                                    {{ $item->guru_name }}
+                                                                </div>
+                                                                @if(!empty($item->kode_mapel) && $item->kode_mapel !== '-')
+                                                                    <div class="mt-1">
+                                                                        <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">
+                                                                            {{ $item->kode_mapel }}
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    @endif
                                                 @else
                                                     <div class="text-center text-muted">-</div>
                                                 @endif
@@ -246,23 +336,33 @@
                     <h6 class="mb-3">
                         <i class="fas fa-info-circle me-2"></i>Keterangan
                     </h6>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bg-primary" style="width: 30px; height: 20px; margin-right: 10px;"></div>
-                                <span>Hari ini</span>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded me-2" style="width: 24px; height: 18px;"></div>
+                                <span class="small">Hari ini</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bg-success" style="width: 30px; height: 20px; margin-right: 10px;"></div>
-                                <span>Hari besok</span>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success rounded me-2" style="width: 24px; height: 18px;"></div>
+                                <span class="small">Hari besok</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-user text-muted me-2"></i>
-                                <span>Nama guru pengampu</span>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light border border-dashed rounded me-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 18px;">
+                                    <i class="fas fa-lock text-secondary" style="font-size: 0.65rem;"></i>
+                                </div>
+                                <span class="small">Jadwal Tetap (Umum)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light border border-dashed rounded me-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 18px;">
+                                    <i class="fas fa-star text-warning" style="font-size: 0.65rem;"></i>
+                                </div>
+                                <span class="small">Kokurikuler / Pembiasaan</span>
                             </div>
                         </div>
                     </div>
