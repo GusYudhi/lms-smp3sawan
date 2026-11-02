@@ -100,7 +100,7 @@
 <!-- 2. Editorial Split: Tentang Sekolah & Visi Misi -->
 <section id="profil-sekolah" class="guest-section">
     <div class="container">
-        <div class="row g-5 align-items-stretch">
+        <div class="row g-4 g-lg-5 align-items-stretch">
             <!-- Left Column: Institutional Profile & Fact Strip -->
             <div class="col-lg-6 d-flex flex-column justify-content-between">
                 <div>

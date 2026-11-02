@@ -3,6 +3,8 @@
 // --- Hide Default Browser Scrollbar & Top Progress Indicator ---
 html,
 body {
+    overflow-x: hidden;
+    max-width: 100%;
     scrollbar-width: none !important; // Firefox & modern standard
     -ms-overflow-style: none !important; // IE / legacy Edge
 
@@ -370,6 +372,9 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
 
     .guest-header {
         background-color: transparent;
@@ -382,11 +387,14 @@ body {
             padding 0.3s cubic-bezier(0.2, 0, 0, 1),
             border-color 0.3s cubic-bezier(0.2, 0, 0, 1);
         z-index: 1030;
+        max-width: 100%;
 
         .navbar-brand {
             color: #ffffff;
             transition: color 0.25s ease;
             gap: 0.75rem;
+            min-width: 0;
+            max-width: calc(100% - 56px);
 
             .brand-logo-wrap {
                 width: 44px;
@@ -399,6 +407,7 @@ body {
                 justify-content: center;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
+                flex-shrink: 0;
 
                 img {
                     width: 100%;
@@ -408,11 +417,15 @@ body {
             }
 
             .brand-title {
-                font-size: 1.05rem;
+                font-size: clamp(0.9rem, 3.8vw, 1.05rem);
                 font-weight: 700;
                 letter-spacing: -0.01em;
                 line-height: 1.2;
                 color: inherit;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: block;
             }
 
             .brand-subtitle {
@@ -422,6 +435,9 @@ body {
                 letter-spacing: 0.02em;
                 display: block;
                 color: inherit;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             &:hover .brand-logo-wrap {
