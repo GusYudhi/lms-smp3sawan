@@ -161,7 +161,7 @@
                                         </td>
                                         <td>{{ \Str::limit($jurnal->materi_pembelajaran, 50) }}</td>
                                         <td class="text-center">
-                                            <a href="{{ route('kepala-sekolah.jurnal-mengajar.show', $jurnal->id) }}" class="btn btn-sm btn-info text-white" title="Lihat Detail">
+                                            <a href="{{ route('kepala-sekolah.jurnal-mengajar.show', $jurnal->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </td>

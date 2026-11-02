@@ -85,6 +85,116 @@
     }
 }
 
+.btn-outline-primary {
+    color: $color-primary;
+    border-color: rgba($color-primary, 0.4);
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $color-primary;
+        border-color: $color-primary;
+        color: #ffffff;
+    }
+}
+
+.btn-outline-success {
+    color: $color-success;
+    border-color: rgba($color-success, 0.4);
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $color-success;
+        border-color: $color-success;
+        color: #ffffff;
+    }
+}
+
+.btn-outline-danger {
+    color: $color-danger;
+    border-color: rgba($color-danger, 0.4);
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $color-danger;
+        border-color: $color-danger;
+        color: #ffffff;
+    }
+}
+
+// --- Universal Table Action Button System (All Roles & Tables) ---
+.table {
+    td.text-center,
+    td.text-end,
+    td:last-child {
+        // Prevent broken half-pill/half-square Bootstrap btn-group when containing forms
+        .btn-group,
+        .btn-group-sm {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex-wrap: nowrap;
+            box-shadow: none;
+
+            > .btn,
+            > form > .btn {
+                border-radius: $radius-sm !important;
+                margin: 0 !important;
+            }
+        }
+
+        // Action icon button standardization across all roles
+        .btn-sm {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: $radius-sm;
+            font-size: 0.85rem;
+            vertical-align: middle;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1;
+
+            &:hover {
+                transform: translateY(-1.5px);
+                box-shadow: $m3-elevation-1;
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
+
+            // If button contains text span (e.g. .d-none .d-lg-inline), allow auto width
+            &:has(span) {
+                width: auto;
+                padding: 0 0.65rem;
+            }
+        }
+
+        form.d-inline,
+        form.delete-form {
+            display: inline-flex !important;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0;
+        }
+    }
+}
+
+.action-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+}
+
+
+
 .m3-ripple {
     position: absolute;
     border-radius: 50%;

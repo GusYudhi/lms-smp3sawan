@@ -138,11 +138,11 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('kepala-sekolah.tugas-guru.show', $tugas->id) }}" class="btn btn-sm btn-info text-white" title="Detail">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <a href="{{ route('kepala-sekolah.tugas-guru.show', $tugas->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('kepala-sekolah.tugas-guru.edit', $tugas->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                            <a href="{{ route('kepala-sekolah.tugas-guru.edit', $tugas->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('kepala-sekolah.tugas-guru.destroy', $tugas->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus tugas ini?">

@@ -131,19 +131,19 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
+                                        <div class="d-inline-flex align-items-center gap-1">
                                             <a href="{{ route('guru.jurnal-mengajar.show', $jurnal->id) }}"
-                                               class="btn btn-sm btn-info"
+                                               class="btn btn-sm btn-outline-primary"
                                                title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="{{ route('guru.jurnal-mengajar.edit', $jurnal->id) }}"
-                                               class="btn btn-sm btn-warning"
+                                               class="btn btn-sm btn-outline-warning"
                                                title="Edit Jurnal">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button type="button"
-                                                    class="btn btn-sm btn-danger"
+                                                    class="btn btn-sm btn-outline-danger"
                                                     onclick="confirmDelete({{ $jurnal->id }})"
                                                     title="Hapus Jurnal">
                                                 <i class="fas fa-trash"></i>

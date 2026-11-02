@@ -160,7 +160,7 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('kepala-sekolah.agenda-guru.show', $agenda->id) }}" class="btn btn-sm btn-info text-white" title="Detail">
+                                            <a href="{{ route('kepala-sekolah.agenda-guru.show', $agenda->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </td>

@@ -76,12 +76,12 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
+                                    <div class="d-inline-flex align-items-center gap-1">
                                         @if($item->status == 'belum_dibaca')
                                         <form action="{{ route('kepala-sekolah.saran.update-status', $item->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('PUT')
-                                            <button type="submit" class="btn btn-outline-success" title="Tandai Sudah Dibaca">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Tandai Sudah Dibaca">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
@@ -89,7 +89,7 @@
                                         <form action="{{ route('kepala-sekolah.saran.destroy', $item->id) }}" method="POST" class="d-inline delete-form" data-message="Yakin ingin menghapus saran ini?">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Hapus">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

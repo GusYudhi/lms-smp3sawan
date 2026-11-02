@@ -220,16 +220,16 @@
                                             <span class="text-muted fst-italic">-</span>
                                         @endif
                                     </td>
-                                    <td class="text-center" style="min-width: 150px;">
-                                        <div class="btn-group btn-group-sm" role="group">
+                                    <td class="text-center">
+                                        <div class="d-inline-flex align-items-center gap-1">
                                             <button type="button"
-                                                    class="btn btn-outline-warning"
+                                                    class="btn btn-sm btn-outline-warning"
                                                     onclick="editAgenda({{ $agenda->id }}, '{{ $agenda->tanggal->format('Y-m-d') }}', '{{ $agenda->kelas }}', {{ $agenda->jam_mulai_id }}, {{ $agenda->jam_selesai_id }}, `{{ addslashes($agenda->materi) }}`, '{{ $agenda->status_jurnal }}', '{{ $agenda->keterangan }}')"
                                                     title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <button type="button"
-                                                    class="btn btn-outline-danger"
+                                                    class="btn btn-sm btn-outline-danger"
                                                     onclick="deleteAgenda({{ $agenda->id }})"
                                                     title="Hapus">
                                                 <i class="fas fa-trash"></i>
