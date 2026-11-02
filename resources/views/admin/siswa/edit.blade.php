@@ -206,6 +206,21 @@
                                 </div>
 
                                 <div class="col-md-3">
+                                    <label for="status" class="form-label fw-medium">Status Siswa <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
+                                        <option value="AKTIF" {{ old('status', $student->studentProfile->status ?? 'AKTIF') === 'AKTIF' ? 'selected' : '' }}>Aktif</option>
+                                        <option value="TIDAK_AKTIF" {{ old('status', $student->studentProfile->status ?? '') === 'TIDAK_AKTIF' ? 'selected' : '' }}>Tidak Aktif</option>
+                                        <option value="LULUS" {{ old('status', $student->studentProfile->status ?? '') === 'LULUS' ? 'selected' : '' }}>Lulus</option>
+                                    </select>
+                                    <div class="form-text">Non-aktif/lulus menonaktifkan login & absensi baru</div>
+                                    @error('status')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
                                     <label for="nomor_telepon_orangtua" class="form-label fw-medium">Nomor Telepon Orang Tua</label>
                                     <input type="tel"
                                            class="form-control @error('nomor_telepon_orangtua') is-invalid @enderror"

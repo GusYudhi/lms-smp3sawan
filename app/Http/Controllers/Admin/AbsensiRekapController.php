@@ -420,6 +420,12 @@ class AbsensiRekapController extends Controller
     protected function getRekapSiswa($startDate, $endDate, $kelasId = null, $statusFilter = null, $search = null)
     {
         $query = User::where('role', 'siswa')
+            ->whereHas('studentProfile', function($q) use ($kelasId) {
+                $q->where('is_active', true);
+                if ($kelasId) {
+                    $q->where('kelas_id', $kelasId);
+                }
+            })
             ->with(['studentProfile.kelas'])
             ->select('users.*')
             ->selectRaw('
@@ -451,11 +457,6 @@ class AbsensiRekapController extends Controller
                 $startDate, $endDate
             ]);
 
-        if ($kelasId) {
-            $query->whereHas('studentProfile', function($q) use ($kelasId) {
-                $q->where('kelas_id', $kelasId);
-            });
-        }
 
         if ($search) {
             $query->where('name', 'like', '%' . $search . '%');

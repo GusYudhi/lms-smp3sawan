@@ -187,9 +187,22 @@
                         <div class="col-md-6">
                             <div class="d-flex flex-column">
                                 <span class="small text-muted">Status Akun</span>
-                                <span class="badge bg-success-subtle text-success border mt-1 align-self-start">
-                                    <i class="fas fa-check-circle me-1"></i>Aktif
-                                </span>
+                                @php
+                                    $studentStatus = $student->studentProfile->status ?? ($student->studentProfile && $student->studentProfile->is_active ? 'AKTIF' : 'TIDAK_AKTIF');
+                                @endphp
+                                @if($studentStatus === 'AKTIF')
+                                    <span class="badge bg-success-subtle text-success border mt-1 align-self-start">
+                                        <i class="fas fa-check-circle me-1"></i>Aktif
+                                    </span>
+                                @elseif($studentStatus === 'LULUS')
+                                    <span class="badge bg-info-subtle text-info border mt-1 align-self-start">
+                                        <i class="fas fa-graduation-cap me-1"></i>Lulus
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-secondary border mt-1 align-self-start">
+                                        <i class="fas fa-times-circle me-1"></i>Tidak Aktif
+                                    </span>
+                                @endif
                             </div>
                         </div>
                         <div class="col-12">

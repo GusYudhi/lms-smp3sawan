@@ -149,6 +149,7 @@ class JurnalMengajarController extends Controller
         // Ambil siswa di kelas dengan relasi user dan sorting berdasarkan nama user
         $siswaKelas = StudentProfile::with('user')
             ->where('kelas_id', $kelasId)
+            ->where('is_active', true)
             ->get()
             ->sortBy(function ($siswa) {
                 return $siswa->user->name ?? '';
@@ -296,7 +297,9 @@ class JurnalMengajarController extends Controller
             }
         } else {
             // Fallback - buat otomatis dari absensi harian (untuk form lama)
-            $siswaKelas = StudentProfile::where('kelas_id', $request->kelas_id)->get();
+            $siswaKelas = StudentProfile::where('kelas_id', $request->kelas_id)
+                ->where('is_active', true)
+                ->get();
 
             foreach ($siswaKelas as $siswa) {
                 $absensiHarian = Attendance::where('user_id', $siswa->user_id)

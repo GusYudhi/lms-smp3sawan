@@ -84,6 +84,7 @@ class AbsensiRekapController extends Controller
         $query = User::with(['studentProfile.kelas'])
             ->where('role', 'siswa')
             ->whereHas('studentProfile', function($q) use ($kelasId, $teacherKelas) {
+                $q->where('is_active', true);
                 if ($kelasId) {
                     $q->where('kelas_id', $kelasId);
                 } elseif (!empty($teacherKelas)) {

@@ -138,6 +138,7 @@ class SiswaController extends Controller
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
             'pekerjaan_orangtua' => 'nullable|string|max:255',
+            'status' => 'nullable|in:AKTIF,TIDAK_AKTIF,LULUS',
         ]);
 
         $userData = $request->only(['name', 'email', 'password']);
@@ -146,6 +147,10 @@ class SiswaController extends Controller
             'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
             'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
+
+        $status = $request->input('status', 'AKTIF');
+        $profileData['status'] = $status;
+        $profileData['is_active'] = ($status === 'AKTIF');
 
         // Handle profile photo upload with compression
         if ($request->hasFile('profile_photo')) {
@@ -230,6 +235,7 @@ class SiswaController extends Controller
             'alamat' => 'nullable|string',
             'nama_orangtua_wali' => 'nullable|string|max:255',
             'pekerjaan_orangtua' => 'nullable|string|max:255',
+            'status' => 'required|in:AKTIF,TIDAK_AKTIF,LULUS',
         ]);
 
         $userData = $request->only(['name', 'email', 'password']);
@@ -238,6 +244,10 @@ class SiswaController extends Controller
             'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'tingkat', 'kelas',
             'tahun_angkatan', 'nomor_telepon_orangtua', 'alamat', 'nama_orangtua_wali', 'pekerjaan_orangtua', 'jenis_kelamin'
         ]);
+
+        $status = $request->input('status', 'AKTIF');
+        $profileData['status'] = $status;
+        $profileData['is_active'] = ($status === 'AKTIF');
 
         // Handle profile photo upload with compression
         if ($request->hasFile('profile_photo')) {

@@ -41,7 +41,8 @@ class UserManagementService
                 'foto_profil' => $profileData['foto_profil'] ?? null,
                 'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
                 'tahun_angkatan' => $profileData['tahun_angkatan'] ?? null,
-                'is_active' => true,
+                'is_active' => isset($profileData['is_active']) ? (bool) $profileData['is_active'] : true,
+                'status' => $profileData['status'] ?? 'AKTIF',
             ]);
 
             return $user->load('studentProfile.kelas');
@@ -155,6 +156,8 @@ class UserManagementService
                     'jenis_kelamin' => $profileData['jenis_kelamin'] ?? null,
                     'tahun_angkatan' => $profileData['tahun_angkatan'] ?? null,
                     'foto_profil' => $profileData['foto_profil'] ?? ($user->studentProfile->foto_profil ?? null),
+                    'is_active' => isset($profileData['is_active']) ? (bool) $profileData['is_active'] : ($user->studentProfile->is_active ?? true),
+                    'status' => $profileData['status'] ?? ($user->studentProfile->status ?? 'AKTIF'),
                 ]
             );
 
