@@ -1204,4 +1204,234 @@ body.swal2-toast-shown div:where(.swal2-container) {
     }
 }
 
+// --- Collapsible Mobile Filter Card ---
+.mobile-filter-card {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    margin-bottom: 1.25rem;
+
+    .filter-header-toggle {
+        padding: 0.85rem 1.15rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #ffffff;
+        border: none;
+        width: 100%;
+        text-align: left;
+        border-radius: $radius-lg;
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
+// --- Adaptive Tugas Guru Card (Mobile) ---
+.tugas-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &.is-expired {
+        border-left: 4px solid $color-danger;
+    }
+
+    .tugas-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: $color-body-text;
+        line-height: 1.35;
+        margin-bottom: 0.35rem;
+    }
+
+    .tugas-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .tugas-action-btn {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        font-weight: 600;
+    }
+}
+
+// --- Adaptive Materi Card (Mobile) ---
+.materi-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+
+    .materi-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .materi-type-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: $radius-md;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+
+        &.type-link {
+            background-color: $color-info-container;
+            color: $color-info;
+        }
+
+        &.type-file {
+            background-color: $color-primary-container;
+            color: $color-primary;
+        }
+    }
+
+    .materi-title {
+        font-size: 0.975rem;
+        font-weight: 700;
+        color: $color-body-text;
+        margin-bottom: 0.2rem;
+    }
+
+    .materi-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.85rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+// --- Adaptive Agenda Card (Mobile) ---
+.agenda-card-mobile {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1.15rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid $color-primary;
+
+    &.status-selesai {
+        border-left-color: $color-success;
+    }
+
+    .agenda-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .agenda-materi-text {
+        font-size: 0.95rem;
+        color: $color-body-text;
+        line-height: 1.45;
+        margin-bottom: 0.85rem;
+    }
+
+    .agenda-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $color-border;
+    }
+}
+
+// --- Adaptive Kokurikuler Rubrik Card (Mobile Step 3) ---
+.kokurikuler-rubrik-card {
+    background: #ffffff;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    box-shadow: $m3-elevation-1;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.85rem;
+
+    &.is-absent {
+        opacity: 0.6;
+        background-color: $color-surface-container;
+    }
+
+    .rubrik-student-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .rubrik-grid-mobile {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.35rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .rubrik-chip-option {
+        min-height: 40px;
+        border: 1px solid $color-outline;
+        background-color: #ffffff;
+        color: $color-body-text;
+        border-radius: $radius-sm;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s ease;
+        user-select: none;
+
+        &.active {
+            box-shadow: $m3-elevation-1;
+            transform: scale(1.02);
+
+            &[data-val="BSH"] {
+                background-color: $color-primary !important;
+                border-color: $color-primary !important;
+                color: #ffffff !important;
+            }
+            &[data-val="SAB"] {
+                background-color: $color-success !important;
+                border-color: $color-success !important;
+                color: #ffffff !important;
+            }
+            &[data-val="SB"] {
+                background-color: $color-info !important;
+                border-color: $color-info !important;
+                color: #ffffff !important;
+            }
+            &[data-val="B"] {
+                background-color: $color-secondary !important;
+                border-color: $color-secondary !important;
+                color: #ffffff !important;
+            }
+        }
+    }
+}
+
+
 

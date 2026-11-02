@@ -137,31 +137,39 @@
 
                 <!-- Riwayat Pertemuan yang Sudah Dinilai -->
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse"
+                         data-bs-target="#collapseRiwayatKokurikuler"
+                         role="button"
+                         aria-expanded="false"
+                         aria-controls="collapseRiwayatKokurikuler">
                         <h6 class="m-0 fw-bold text-primary">
                             <i class="fas fa-history me-1"></i> Riwayat Pertemuan
+                            <span class="badge bg-primary rounded-pill ms-1">{{ $historySessions->count() }}</span>
                         </h6>
-                        <span class="badge bg-primary rounded-pill">{{ $historySessions->count() }}</span>
+                        <i class="fas fa-chevron-down d-lg-none text-muted"></i>
                     </div>
-                    <div class="list-group list-group-flush" style="max-height: 380px; overflow-y: auto;">
-                        @forelse($historySessions as $hist)
-                            @php
-                                $histDateStr = \Carbon\Carbon::parse($hist->tanggal)->format('Y-m-d');
-                                $isActiveDate = ($histDateStr === $selectedDate);
-                            @endphp
-                            <a href="{{ route('guru.penilaian-kokurikuler.index', ['tanggal' => $histDateStr, 'kelas_id' => $kelas->id]) }}"
-                               class="list-group-item list-group-item-action history-item {{ $isActiveDate ? 'active' : '' }}">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <strong class="small">{{ $hist->hari }}, {{ \Carbon\Carbon::parse($hist->tanggal)->format('d/m/Y') }}</strong>
-                                    <span class="badge bg-success">{{ $hist->total_dinilai }}/{{ $hist->total_siswa }} dinilai</span>
+                    <div class="collapse d-lg-block" id="collapseRiwayatKokurikuler">
+                        <div class="list-group list-group-flush" style="max-height: 380px; overflow-y: auto;">
+                            @forelse($historySessions as $hist)
+                                @php
+                                    $histDateStr = \Carbon\Carbon::parse($hist->tanggal)->format('Y-m-d');
+                                    $isActiveDate = ($histDateStr === $selectedDate);
+                                @endphp
+                                <a href="{{ route('guru.penilaian-kokurikuler.index', ['tanggal' => $histDateStr, 'kelas_id' => $kelas->id]) }}"
+                                   class="list-group-item list-group-item-action history-item {{ $isActiveDate ? 'active' : '' }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="small">{{ $hist->hari }}, {{ \Carbon\Carbon::parse($hist->tanggal)->format('d/m/Y') }}</strong>
+                                        <span class="badge bg-success">{{ $hist->total_dinilai }}/{{ $hist->total_siswa }} dinilai</span>
+                                    </div>
+                                    <div class="small text-muted text-truncate mt-1">{{ $hist->tema }}</div>
+                                </a>
+                            @empty
+                                <div class="p-3 text-center text-muted small">
+                                    Belum ada riwayat pertemuan yang dinilai pada semester ini.
                                 </div>
-                                <div class="small text-muted text-truncate mt-1">{{ $hist->tema }}</div>
-                            </a>
-                        @empty
-                            <div class="p-3 text-center text-muted small">
-                                Belum ada riwayat pertemuan yang dinilai pada semester ini.
-                            </div>
-                        @endforelse
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
@@ -269,8 +277,11 @@
                     <!-- ========================================================= -->
                     <div class="wizard-step" id="step-1">
                         <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-primary text-white py-3">
-                                <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Step 1: Absensi Siswa</h5>
+                            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Step 1: Absensi Siswa ({{ $students->count() }} Siswa)</h5>
+                                <button type="button" class="btn btn-sm btn-light text-primary fw-bold" onclick="markAllKokuHadir()">
+                                    <i class="fas fa-check-double me-1"></i>Tandai Semua Hadir
+                                </button>
                             </div>
                             <div class="card-body">
                                 <div class="bg-info bg-opacity-10 border border-info text-dark p-3 rounded mb-3 small">
@@ -278,8 +289,9 @@
                                     Silakan periksa kehadiran siswa untuk kegiatan kokurikuler ini. Status awal otomatis mengikuti <strong>Absensi Pagi</strong> hari tersebut. Siswa yang <strong>Sakit / Izin / Alpa</strong> otomatis tidak dinilai rubriknya pada Step 3.
                                 </div>
 
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
+                                <!-- DESKTOP TABLE VIEW (>= 768px) -->
+                                <div class="table-responsive d-none d-md-block mb-3">
+                                    <table class="table table-hover align-middle mb-0">
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="width: 50px;">No</th>
@@ -325,9 +337,10 @@
                                                     </td>
                                                     <td>
                                                         <select class="form-select form-select-sm absensi-select"
+                                                                id="select-absensi-koku-{{ $student->user_id }}"
                                                                 name="absensi[{{ $student->user_id }}]"
                                                                 data-student-id="{{ $student->user_id }}"
-                                                                onchange="syncAttendanceToRubric()"
+                                                                onchange="syncAttendanceToRubric(); syncKokuSelectToMobile('{{ $student->user_id }}', this.value)"
                                                                 required>
                                                             <option value="hadir" {{ $selectedStatus === 'hadir' ? 'selected' : '' }}>Hadir</option>
                                                             <option value="terlambat" {{ $selectedStatus === 'terlambat' ? 'selected' : '' }}>Terlambat</option>
@@ -346,6 +359,90 @@
                                             @endforelse
                                         </tbody>
                                     </table>
+                                </div>
+
+                                <!-- MOBILE CARD LIST VIEW (< 768px) -->
+                                <div class="d-md-none mb-3">
+                                    @forelse($students as $idx => $student)
+                                        @php
+                                            $absensiHarian = $absensiPagi->get($student->user_id);
+                                            $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                                            $existing = $existingAssessments->get($student->user_id);
+
+                                            if ($existing && $existing->status_absensi) {
+                                                $selectedStatus = $existing->status_absensi;
+                                            } elseif (in_array($statusPagi, ['sakit', 'izin', 'alpa'])) {
+                                                $selectedStatus = $statusPagi;
+                                            } else {
+                                                $selectedStatus = 'hadir';
+                                            }
+                                        @endphp
+                                        <div class="student-attendance-card">
+                                            <div class="student-card-header">
+                                                <div class="student-identity">
+                                                    <div class="student-index-badge">{{ $idx + 1 }}</div>
+                                                    <div>
+                                                        <div class="student-name-text">{{ $student->user->name ?? '-' }}</div>
+                                                        <div class="student-nis-text">NIS: {{ $student->nis ?? '-' }}</div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    @if($statusPagi === 'hadir')
+                                                        <span class="badge bg-success">Pagi: Hadir</span>
+                                                    @elseif($statusPagi === 'terlambat')
+                                                        <span class="badge bg-warning text-dark">Pagi: Telat</span>
+                                                    @elseif($statusPagi === 'sakit')
+                                                        <span class="badge bg-warning text-dark">Pagi: Sakit</span>
+                                                    @elseif($statusPagi === 'izin')
+                                                        <span class="badge bg-info text-dark">Pagi: Izin</span>
+                                                    @elseif($statusPagi === 'alpa')
+                                                        <span class="badge bg-danger">Pagi: Alpa</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">Pagi: -</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="attendance-segmented-grid">
+                                                <button type="button"
+                                                        class="attendance-chip-btn {{ $selectedStatus === 'hadir' ? 'active' : '' }}"
+                                                        data-student-id="{{ $student->user_id }}"
+                                                        data-status="hadir"
+                                                        onclick="selectMobileKokuAttendance('{{ $student->user_id }}', 'hadir')">
+                                                    Hadir
+                                                </button>
+                                                <button type="button"
+                                                        class="attendance-chip-btn {{ $selectedStatus === 'terlambat' ? 'active' : '' }}"
+                                                        data-student-id="{{ $student->user_id }}"
+                                                        data-status="terlambat"
+                                                        onclick="selectMobileKokuAttendance('{{ $student->user_id }}', 'terlambat')">
+                                                    Telat
+                                                </button>
+                                                <button type="button"
+                                                        class="attendance-chip-btn {{ $selectedStatus === 'sakit' ? 'active' : '' }}"
+                                                        data-student-id="{{ $student->user_id }}"
+                                                        data-status="sakit"
+                                                        onclick="selectMobileKokuAttendance('{{ $student->user_id }}', 'sakit')">
+                                                    Sakit
+                                                </button>
+                                                <button type="button"
+                                                        class="attendance-chip-btn {{ $selectedStatus === 'izin' ? 'active' : '' }}"
+                                                        data-student-id="{{ $student->user_id }}"
+                                                        data-status="izin"
+                                                        onclick="selectMobileKokuAttendance('{{ $student->user_id }}', 'izin')">
+                                                    Izin
+                                                </button>
+                                                <button type="button"
+                                                        class="attendance-chip-btn {{ $selectedStatus === 'alpa' ? 'active' : '' }}"
+                                                        data-student-id="{{ $student->user_id }}"
+                                                        data-status="alpa"
+                                                        onclick="selectMobileKokuAttendance('{{ $student->user_id }}', 'alpa')">
+                                                    Alpa
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="text-center py-4 text-muted">Tidak ada siswa aktif di kelas {{ $kelas->full_name }}.</div>
+                                    @endforelse
                                 </div>
 
                                 @if($students->isNotEmpty())
@@ -499,8 +596,9 @@
                                     <span><strong class="badge bg-success">SAB</strong> = Sangat Berkembang</span>
                                 </div>
 
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
+                                <!-- DESKTOP TABLE VIEW (>= 768px) -->
+                                <div class="table-responsive d-none d-md-block mb-3">
+                                    <table class="table table-hover align-middle mb-0">
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="width: 45px;">No</th>
@@ -566,6 +664,51 @@
                                             @endforelse
                                         </tbody>
                                     </table>
+                                </div>
+
+                                <!-- MOBILE CARD LIST VIEW (< 768px) -->
+                                <div class="d-md-none mb-3">
+                                    @forelse($students as $idx => $student)
+                                        @php
+                                            $existing = $existingAssessments->get($student->user_id);
+                                            $currentVal = $existing?->predikat ?? '';
+                                            $currentNote = $existing?->catatan ?? '';
+                                        @endphp
+                                        <div class="kokurikuler-rubrik-card" id="rubrik-card-mobile-{{ $student->user_id }}">
+                                            <div class="rubrik-student-header">
+                                                <div>
+                                                    <strong class="text-dark">{{ $student->user->name ?? '-' }}</strong>
+                                                    <div class="small text-muted">NIS: {{ $student->nis ?? '-' }}</div>
+                                                </div>
+                                                <span class="badge bg-success" id="attendance-badge-mobile-{{ $student->user_id }}">Hadir</span>
+                                            </div>
+
+                                            <div class="rubrik-grid-mobile" id="rubrik-grid-mobile-{{ $student->user_id }}">
+                                                @foreach(\App\Models\PenilaianKokurikuler::PREDIKAT_LABELS as $code => $label)
+                                                    <button type="button"
+                                                            class="rubrik-chip-option {{ $currentVal === $code ? 'active' : '' }}"
+                                                            data-student-id="{{ $student->user_id }}"
+                                                            data-val="{{ $code }}"
+                                                            onclick="selectMobileRubrik('{{ $student->user_id }}', '{{ $code }}')"
+                                                            title="{{ $label }}">
+                                                        {{ $code }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+
+                                            <div id="absent-notice-mobile-{{ $student->user_id }}" class="small text-muted fst-italic py-1" style="display: none;">
+                                                <i class="fas fa-info-circle me-1"></i>Siswa tidak hadir — tidak dinilai rubrik.
+                                            </div>
+
+                                            <input type="text"
+                                                   class="form-control form-control-sm mt-2"
+                                                   placeholder="Catatan khusus (opsional)..."
+                                                   value="{{ $currentNote }}"
+                                                   oninput="const ni = document.getElementById('note-input-{{ $student->user_id }}'); if(ni) ni.value = this.value;">
+                                        </div>
+                                    @empty
+                                        <div class="text-center py-4 text-muted">Tidak ada siswa.</div>
+                                    @endforelse
                                 </div>
 
                                 @if($students->isNotEmpty())
@@ -807,9 +950,20 @@
                 badgeEl.textContent = badgeMap[status].text;
             }
 
+            // Mobile attendance badge
+            const mobileBadgeEl = document.getElementById(`attendance-badge-mobile-${studentId}`);
+            if (mobileBadgeEl && badgeMap[status]) {
+                mobileBadgeEl.className = `badge ${badgeMap[status].cls}`;
+                mobileBadgeEl.textContent = badgeMap[status].text;
+            }
+
             const radios = document.querySelectorAll(`.student-radio-${studentId}`);
             const rubricGroup = document.getElementById(`rubric-group-${studentId}`);
             const absentNotice = document.getElementById(`absent-notice-${studentId}`);
+
+            const mobileCard = document.getElementById(`rubrik-card-mobile-${studentId}`);
+            const mobileAbsentNotice = document.getElementById(`absent-notice-mobile-${studentId}`);
+            const mobileGrid = document.getElementById(`rubrik-grid-mobile-${studentId}`);
 
             radios.forEach(r => {
                 r.disabled = !isPresent;
@@ -824,9 +978,81 @@
             if (absentNotice) {
                 absentNotice.style.display = isPresent ? 'none' : 'block';
             }
+
+            // Mobile rubrik card sync
+            if (mobileCard) {
+                if (isPresent) {
+                    mobileCard.classList.remove('is-absent');
+                } else {
+                    mobileCard.classList.add('is-absent');
+                }
+            }
+            if (mobileGrid) {
+                mobileGrid.style.display = isPresent ? 'grid' : 'none';
+            }
+            if (mobileAbsentNotice) {
+                mobileAbsentNotice.style.display = isPresent ? 'none' : 'block';
+            }
         });
 
         updateWizardStatusBadges();
+    }
+
+    function selectMobileKokuAttendance(studentId, status) {
+        const select = document.getElementById(`select-absensi-koku-${studentId}`);
+        if (select) {
+            select.value = status;
+        }
+        syncKokuSelectToMobile(studentId, status);
+        syncAttendanceToRubric();
+    }
+
+    function syncKokuSelectToMobile(studentId, status) {
+        const btns = document.querySelectorAll(`.attendance-chip-btn[data-student-id="${studentId}"]`);
+        btns.forEach(b => {
+            if (b.getAttribute('data-status') === status) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+    }
+
+    function markAllKokuHadir() {
+        const selects = document.querySelectorAll('.absensi-select');
+        selects.forEach(select => {
+            select.value = 'hadir';
+            const studentId = select.getAttribute('data-student-id');
+            syncKokuSelectToMobile(studentId, 'hadir');
+        });
+        syncAttendanceToRubric();
+
+        if (window.Toast) {
+            window.Toast.fire({
+                icon: 'success',
+                title: 'Semua siswa ditandai Hadir'
+            });
+        }
+    }
+
+    function selectMobileRubrik(studentId, code) {
+        const radio = document.getElementById(`pred_${studentId}_${code}`);
+        if (radio && !radio.disabled) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        syncRubrikRadioToMobile(studentId, code);
+    }
+
+    function syncRubrikRadioToMobile(studentId, code) {
+        const btns = document.querySelectorAll(`.rubrik-chip-option[data-student-id="${studentId}"]`);
+        btns.forEach(b => {
+            if (b.getAttribute('data-val') === code) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
     }
 
     let hasAutoFilledRubric = false;
@@ -838,6 +1064,8 @@
         radios.forEach(r => {
             if (!r.disabled) {
                 r.checked = true;
+                const sId = r.getAttribute('data-student-id');
+                syncRubrikRadioToMobile(sId, code);
             }
         });
         updateWizardStatusBadges();

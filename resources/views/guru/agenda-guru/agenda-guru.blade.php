@@ -44,7 +44,28 @@
     </div>
 
     <!-- Filter dan Pencarian -->
-    <div class="row mb-4">
+    @php
+        $hasActiveFilter = request('search') || request('kelas') || request('status') || request('keterangan');
+    @endphp
+
+    <!-- Mobile Filter Toggle Button -->
+    <div class="d-md-none mb-3">
+        <button class="btn btn-outline-primary w-100 d-flex justify-content-between align-items-center py-2 shadow-sm"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#filterCollapseAgenda"
+                aria-expanded="{{ $hasActiveFilter ? 'true' : 'false' }}">
+            <span>
+                <i class="fas fa-filter me-2"></i>Filter & Pencarian
+                @if($hasActiveFilter)
+                    <span class="badge bg-primary ms-1">Aktif</span>
+                @endif
+            </span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+
+    <div class="row mb-4 collapse d-md-block {{ $hasActiveFilter ? 'show' : '' }}" id="filterCollapseAgenda">
         <div class="col-12">
             <div class="card card-modern border-0 shadow-sm">
                 <div class="card-body">
@@ -108,7 +129,7 @@
                                 <a href="{{ route('guru.agenda') }}" class="btn btn-secondary w-100 shadow-sm fw-medium">
                                     <i class="fas fa-redo me-1"></i> Reset
                                 </a>
-                                <small class="text-muted d-block mt-2">
+                                <small class="text-muted d-none d-md-block mt-2">
                                     <i class="fas fa-info-circle me-1"></i>Auto-submit
                                 </small>
                             </div>
@@ -138,7 +159,8 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <!-- DESKTOP TABLE VIEW (>= 768px) -->
+                    <div class="table-responsive d-none d-md-block" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
                         <table class="table table-hover align-middle mb-0" id="agendaTable" style="min-width: 1100px; width: 100%;">
 
                             <thead class="table-light">
@@ -148,6 +170,145 @@
                                     <th scope="col" class="text-center fw-semibold" style="min-width: 100px;">Kelas</th>
                                     <th scope="col" class="text-center fw-semibold" style="min-width: 100px;">Jam Ke-</th>
                                     <th scope="col" class="fw-semibold" style="min-width: 250px;">Batasan Materi/Kompetensi</th>
+                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Jurnal</th>
+                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Keterangan</th>
+                                    <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($agendas as $index => $agenda)
+                                <tr>
+                                    <td class="text-center fw-bold" style="min-width: 50px;">{{ $agendas->firstItem() + $index }}</td>
+                                    <td style="min-width: 150px;">
+                                        <div class="text-start">
+                                            <div class="fw-semibold mb-1">{{ $agenda->hari }}</div>
+                                            <small class="text-muted fst-italic">{{ $agenda->tanggal->format('d M Y') }}</small>
+                                        </div>
+                                    </td>
+                                    <td class="text-center" style="min-width: 100px;">
+                                        <span class="badge bg-primary-subtle text-primary border">{{ $agenda->kelas }}</span>
+                                    </td>
+                                    <td class="text-center" style="min-width: 100px;">
+                                        <span class="badge bg-info-subtle text-info border">{{ $agenda->jam_ke }}</span>
+                                    </td>
+                                    <td style="min-width: 250px;">
+                                        <div class="text-start" title="{{ $agenda->materi }}">
+                                            {{ $agenda->materi }}
+                                        </div>
+                                    </td>
+                                    <td class="text-center" style="min-width: 150px;">
+                                        @if($agenda->status_jurnal == 'selesai')
+                                            <span class="badge bg-success-subtle text-success border">
+                                                <i class="fas fa-check-circle me-1"></i>Selesai
+                                            </span>
+                                        @else
+                                            <span class="badge bg-danger-subtle text-danger border">
+                                                <i class="fas fa-times-circle me-1"></i>Belum Selesai
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center" style="min-width: 150px;">
+                                        @if($agenda->keterangan == 'pengayaan')
+                                            <span class="badge bg-warning-subtle text-warning border">
+                                                <i class="fas fa-star me-1"></i>Pengayaan
+                                            </span>
+                                        @elseif($agenda->keterangan == 'perbaikan')
+                                            <span class="badge bg-info-subtle text-info border">
+                                                <i class="fas fa-wrench me-1"></i>Perbaikan
+                                            </span>
+                                        @else
+                                            <span class="text-muted fst-italic">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center" style="min-width: 150px;">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button"
+                                                    class="btn btn-outline-warning"
+                                                    onclick="editAgenda({{ $agenda->id }}, '{{ $agenda->tanggal->format('Y-m-d') }}', '{{ $agenda->kelas }}', {{ $agenda->jam_mulai_id }}, {{ $agenda->jam_selesai_id }}, `{{ addslashes($agenda->materi) }}`, '{{ $agenda->status_jurnal }}', '{{ $agenda->keterangan }}')"
+                                                    title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-outline-danger"
+                                                    onclick="deleteAgenda({{ $agenda->id }})"
+                                                    title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-calendar-times fa-3x mb-3 opacity-50"></i>
+                                            <p class="mb-0 fw-medium">Belum ada agenda yang ditambahkan</p>
+                                            <small>Klik tombol "Tambah Agenda" untuk membuat agenda baru</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- MOBILE CARD LIST VIEW (< 768px) -->
+                    <div class="d-md-none p-3">
+                        @forelse($agendas as $index => $agenda)
+                        <div class="agenda-card-mobile {{ $agenda->status_jurnal == 'selesai' ? 'status-selesai' : '' }}">
+                            <div class="agenda-top-bar">
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <span class="badge bg-primary">Kelas {{ $agenda->kelas }}</span>
+                                    <span class="badge bg-info">Jam Ke-{{ $agenda->jam_ke }}</span>
+                                    @if($agenda->status_jurnal == 'selesai')
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Selesai</span>
+                                    @else
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Belum Selesai</span>
+                                    @endif
+                                </div>
+                                <small class="text-muted fw-bold">
+                                    <i class="far fa-calendar-alt me-1"></i>{{ $agenda->hari }}, {{ $agenda->tanggal->format('d M Y') }}
+                                </small>
+                            </div>
+
+                            <div class="agenda-materi-text">
+                                <strong class="d-block text-muted small text-uppercase mb-1">Materi / Batasan Kompetensi:</strong>
+                                {{ $agenda->materi }}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div>
+                                    @if($agenda->keterangan == 'pengayaan')
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-star me-1"></i>Pengayaan</span>
+                                    @elseif($agenda->keterangan == 'perbaikan')
+                                        <span class="badge bg-info"><i class="fas fa-wrench me-1"></i>Perbaikan</span>
+                                    @endif
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button"
+                                            class="btn btn-outline-warning"
+                                            onclick="editAgenda({{ $agenda->id }}, '{{ $agenda->tanggal->format('Y-m-d') }}', '{{ $agenda->kelas }}', {{ $agenda->jam_mulai_id }}, {{ $agenda->jam_selesai_id }}, `{{ addslashes($agenda->materi) }}`, '{{ $agenda->status_jurnal }}', '{{ $agenda->keterangan }}')"
+                                            title="Edit">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-outline-danger"
+                                            onclick="deleteAgenda({{ $agenda->id }})"
+                                            title="Hapus">
+                                        <i class="fas fa-trash me-1"></i>Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x mb-3 text-muted opacity-50"></i>
+                            <h6 class="text-muted fw-medium">Belum ada agenda yang ditambahkan</h6>
+                            <small class="text-muted">Klik tombol "Tambah Agenda" di atas untuk membuat agenda baru.</small>
+                        </div>
+                        @endforelse
+                    </div>
+                </div>
                                     <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Jurnal</th>
                                     <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Keterangan</th>
                                     <th scope="col" class="text-center fw-semibold" style="min-width: 150px;">Aksi</th>
