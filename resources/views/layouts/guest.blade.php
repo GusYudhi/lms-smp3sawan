@@ -3,31 +3,37 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'SMPN 3 SAWAN' }}</title>
+    <title>@yield('title', $title ?? ($schoolData['name'] ?? 'SMPN 3 SAWAN'))</title>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
 
-    <link rel="icon" type="image/png" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}">
 
-    <!-- Bootstrap CSS via Vite -->
+    <!-- Bootstrap & Material Design 3 CSS via Vite -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 
 <body class="layout-guest">
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark guest-header sticky-top">
+    <!-- Adaptive M3 Header -->
+    <nav id="guestNavbar" class="navbar navbar-expand-lg guest-header fixed-top" aria-label="Navigasi Utama">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('welcome') }}">
-                <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo" width="40" height="40" class="me-2">
-                <span class="fw-bold d-none d-md-block">SMPN 3 SAWAN</span>
+                <span class="brand-logo-wrap">
+                    <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}" width="36" height="36">
+                </span>
+                <span>
+                    <span class="brand-title d-block">{{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</span>
+                    <span class="brand-subtitle d-none d-sm-block">Kabupaten Buleleng, Bali</span>
+                </span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Buka menu navigasi">
+                <i class="fas fa-bars toggler-icon-bars"></i>
             </button>
+
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-lg-center gap-lg-1">
                     <li class="nav-item">
                         <a class="nav-link {{ Route::currentRouteName() == 'welcome' ? 'active' : '' }}" href="{{ route('welcome') }}">Beranda</a>
                     </li>
@@ -36,8 +42,16 @@
                             Profil
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="profilDropdown">
-                            <li><a class="dropdown-item" href="{{ route('guest.guru-staff') }}">Guru & Staf Pegawai</a></li>
-                            {{-- Add Visi Misi or others if needed --}}
+                            <li>
+                                <a class="dropdown-item" href="{{ route('welcome') }}#profil-sekolah">
+                                    <i class="fas fa-school me-2 text-primary"></i>Tentang & Visi Misi
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ Route::currentRouteName() == 'guest.guru-staff' ? 'active' : '' }}" href="{{ route('guest.guru-staff') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Guru & Staf Pegawai
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -47,21 +61,21 @@
                         <a class="nav-link {{ Str::startsWith(Route::currentRouteName(), 'guest.prestasi') ? 'active' : '' }}" href="{{ route('guest.prestasi.index') }}">Prestasi</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ Route::currentRouteName() == 'guest.galeri' ? 'active' : '' }}" href="{{ route('guest.galeri') }}">Galeri Sekolah</a>
+                        <a class="nav-link {{ Route::currentRouteName() == 'guest.galeri' ? 'active' : '' }}" href="{{ route('guest.galeri') }}">Galeri</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ Route::currentRouteName() == 'guest.kontak' ? 'active' : '' }}" href="{{ route('guest.kontak') }}">Kontak</a>
                     </li>
                     @auth
-                        <li class="nav-item ms-lg-3">
-                            <a href="{{ url('/home') }}" class="btn btn-light btn-sm mt-2 px-3">
-                                Dashboard
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                            <a href="{{ url('/home') }}" class="btn btn-nav-cta">
+                                <i class="fas fa-th-large me-1"></i> Dashboard
                             </a>
                         </li>
                     @else
-                        <li class="nav-item ms-lg-3">
-                            <a href="{{ route('login') }}" class="btn btn-light btn-sm mt-2 px-3">
-                                Masuk
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                            <a href="{{ route('login') }}" class="btn btn-nav-cta">
+                                <i class="fas fa-sign-in-alt me-1"></i> Masuk LMS
                             </a>
                         </li>
                     @endauth
@@ -76,46 +90,59 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <footer class="guest-footer pt-5 pb-4">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h5 class="mb-3">SMPN 3 SAWAN</h5>
-                    <p class="small text-white-50">
-                        Mewujudkan generasi yang cerdas, berkarakter, dan berwawasan global berlandaskan nilai-nilai luhur.
+            <div class="row g-4 pb-4">
+                <div class="col-lg-5 col-md-6">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <img src="{{ asset('assets/image/logo-sekolah-smpn3sawan.webp') }}" alt="Logo {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}" class="footer-brand-logo">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0">{{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</h5>
+                            <span class="small text-secondary">NPSN {{ $schoolData['npsn'] ?? '50100123' }} • Terakreditasi {{ $schoolData['akreditasi'] ?? 'A' }}</span>
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-3 pe-lg-4">
+                        {{ $schoolData['visi'] ?? 'Mewujudkan generasi yang cerdas, berkarakter, dan berwawasan global berlandaskan nilai-nilai luhur.' }}
                     </p>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h5 class="mb-3">Tautan Cepat</h5>
-                    <ul class="list-unstyled small">
-                        <li><a href="{{ route('guest.berita.index') }}" class="text-white-50 text-decoration-none">Berita Sekolah</a></li>
-                        <li><a href="{{ route('guest.prestasi.index') }}" class="text-white-50 text-decoration-none">Prestasi Siswa</a></li>
-                        <li><a href="{{ route('guest.galeri') }}" class="text-white-50 text-decoration-none">Galeri Foto & Video</a></li>
-                        <li><a href="{{ route('guest.guru-staff') }}" class="text-white-50 text-decoration-none">Data Pengajar</a></li>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading">Jelajahi</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{{ route('welcome') }}#profil-sekolah" class="footer-link"><i class="fas fa-angle-right small"></i> Profil & Visi Misi</a></li>
+                        <li><a href="{{ route('guest.guru-staff') }}" class="footer-link"><i class="fas fa-angle-right small"></i> Guru & Staf Pegawai</a></li>
+                        <li><a href="{{ route('guest.berita.index') }}" class="footer-link"><i class="fas fa-angle-right small"></i> Berita & Pengumuman</a></li>
+                        <li><a href="{{ route('guest.prestasi.index') }}" class="footer-link"><i class="fas fa-angle-right small"></i> Prestasi Siswa</a></li>
+                        <li><a href="{{ route('guest.galeri') }}" class="footer-link"><i class="fas fa-angle-right small"></i> Galeri Dokumentasi</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5 class="mb-3">Hubungi Kami</h5>
-                    <p class="small text-white-50 mb-1">
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        {{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}
-                    </p>
-                    <p class="small text-white-50 mb-1">
-                        <i class="fas fa-phone me-2"></i>
-                        {{ $schoolData['telepon'] ?? '085850190190' }}
-                    </p>
-                    <p class="small text-white-50">
-                        <i class="fas fa-envelope me-2"></i>
-                        {{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}
-                    </p>
+
+                <div class="col-lg-4 col-md-12">
+                    <h6 class="footer-heading">Kontak & Lokasi</h6>
+                    <div class="footer-contact-item">
+                        <span class="contact-icon"><i class="fas fa-map-marker-alt"></i></span>
+                        <span>{{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <span class="contact-icon"><i class="fas fa-phone"></i></span>
+                        <span>{{ $schoolData['telepon'] ?? '085850190190' }}</span>
+                    </div>
+                    <div class="footer-contact-item mb-0">
+                        <span class="contact-icon"><i class="fas fa-envelope"></i></span>
+                        <span>{{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}</span>
+                    </div>
                 </div>
             </div>
-            <hr class="border-secondary my-3">
-            <div class="text-center small text-white-50">
-                &copy; {{ date('Y') }} SMPN 3 SAWAN. All rights reserved.
+
+            <div class="footer-bottom pt-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                <div>
+                    &copy; {{ date('Y') }} {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}. Hak cipta dilindungi.
+                </div>
+                <div>
+                    Sistem Informasi Akademik &amp; LMS Terpadu
+                </div>
             </div>
         </div>
     </footer>
-
 </body>
 </html>

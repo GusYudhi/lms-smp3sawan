@@ -560,3 +560,912 @@ td.schedule-slot {
     flex-shrink: 0;
     margin-top: 5px;
 }
+
+// ============================================================================
+// Public Guest Landing Page & Sub-pages (Material Design 3 Editorial)
+// ============================================================================
+
+.honeypot-field {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+// --- 1. Full-Bleed Hero Slideshow ---
+.guest-hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #071326;
+    color: #ffffff;
+    overflow: hidden;
+    padding-top: 6rem;
+    padding-bottom: 2.5rem;
+
+    @media (min-width: 992px) {
+        padding-top: 7.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .hero-carousel-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+
+        .carousel-inner,
+        .carousel-item {
+            height: 100%;
+            width: 100%;
+        }
+
+        .hero-slide-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.06);
+            transition: transform 6.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .carousel-item.active .hero-slide-img {
+            transform: scale(1);
+        }
+
+        .hero-fallback-surface {
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 80% 25%, rgba(21, 101, 192, 0.45) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(3, 105, 161, 0.35) 0%, transparent 55%),
+                linear-gradient(160deg, #061224 0%, #0b2246 55%, #0d3b7a 100%);
+        }
+    }
+
+    // Directional scrim: ensures top navbar & left editorial text are always crisp
+    .hero-scrim-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background:
+            linear-gradient(180deg, rgba(6, 16, 34, 0.78) 0%, rgba(6, 16, 34, 0.32) 22%, rgba(6, 16, 34, 0.45) 65%, rgba(6, 16, 34, 0.88) 100%),
+            linear-gradient(90deg, rgba(6, 16, 34, 0.82) 0%, rgba(6, 16, 34, 0.5) 55%, rgba(6, 16, 34, 0.2) 100%);
+        pointer-events: none;
+    }
+
+    .hero-foreground {
+        position: relative;
+        z-index: 3;
+        margin-top: auto;
+        margin-bottom: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .hero-eyebrow-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: $radius-pill;
+        background-color: rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        color: #f8fafc;
+        font-size: 0.825rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        margin-bottom: 1.25rem;
+
+        .eyebrow-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #38bdf8;
+            display: inline-block;
+        }
+    }
+
+    .hero-display-title {
+        font-size: clamp(2.15rem, 4.5vw, 3.65rem);
+        font-weight: 700;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+        margin-bottom: 1.15rem;
+        max-width: 18ch;
+    }
+
+    .hero-lead-text {
+        font-size: clamp(1rem, 1.35vw, 1.175rem);
+        line-height: 1.65;
+        color: rgba(241, 245, 249, 0.9);
+        max-width: 58ch;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+
+    .hero-cta-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.875rem;
+        align-items: center;
+
+        .btn-hero-primary {
+            background-color: #ffffff;
+            color: $color-primary;
+            border: 1px solid #ffffff;
+            padding: 0.75rem 1.65rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: $radius-pill;
+            box-shadow: $m3-elevation-2;
+
+            &:hover {
+                background-color: $color-primary-container;
+                border-color: $color-primary-container;
+                color: $color-on-primary-container;
+            }
+        }
+
+        .btn-hero-tonal {
+            background-color: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: $radius-pill;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.24);
+                border-color: rgba(255, 255, 255, 0.5);
+                color: #ffffff;
+            }
+        }
+    }
+
+    .hero-bottom-bar {
+        position: relative;
+        z-index: 3;
+        margin-top: 1.5rem;
+    }
+
+    .hero-caption-surface {
+        background-color: rgba(15, 23, 42, 0.68);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: $radius-lg;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        box-shadow: $m3-elevation-3;
+    }
+
+    .hero-caption-item {
+        display: none;
+        align-items: center;
+        gap: 0.875rem;
+        flex: 1 1 280px;
+        min-width: 0;
+
+        &.active {
+            display: flex;
+            animation: fadeIn 0.35s ease-out;
+        }
+    }
+
+    .m3-source-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: $radius-pill;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        flex-shrink: 0;
+
+        &.m3-chip-berita {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+        }
+
+        &.m3-chip-prestasi {
+            background-color: #fef3c7;
+            color: #78350f;
+        }
+
+        &.m3-chip-galeri {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+    }
+
+    .caption-text-wrap {
+        min-width: 0;
+        flex: 1;
+
+        .caption-title-link {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.925rem;
+            text-decoration: none;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.15s ease;
+
+            &:hover {
+                color: #93c5fd;
+                text-decoration: underline;
+            }
+        }
+
+        .caption-date {
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            display: block;
+        }
+    }
+
+    .hero-slider-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+
+        .slide-counter {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-variant-numeric: tabular-nums;
+            margin-right: 0.35rem;
+        }
+
+        .btn-hero-nav {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            transition: all 0.2s ease;
+
+            &:hover {
+                background-color: #ffffff;
+                color: $color-primary;
+                border-color: #ffffff;
+            }
+        }
+    }
+}
+
+// --- 2. Sub-page Top Header Banner (Dark Tonal Surface for Transparent Navbar) ---
+.guest-page-banner {
+    position: relative;
+    background:
+        radial-gradient(circle at 85% 20%, rgba(21, 101, 192, 0.35) 0%, transparent 45%),
+        linear-gradient(155deg, #07152b 0%, #0b254b 60%, #0d3d80 100%);
+    color: #ffffff;
+    padding-top: 7.5rem;
+    padding-bottom: 3.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    @media (min-width: 992px) {
+        padding-top: 8.5rem;
+        padding-bottom: 4rem;
+    }
+
+    .banner-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #93c5fd;
+        margin-bottom: 0.65rem;
+    }
+
+    .banner-title {
+        font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .banner-subtitle {
+        font-size: 1rem;
+        color: #cbd5e1;
+        max-width: 60ch;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb {
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+
+        .breadcrumb-item {
+            a {
+                color: #cbd5e1;
+                text-decoration: none;
+
+                &:hover {
+                    color: #ffffff;
+                    text-decoration: underline;
+                }
+            }
+
+            &.active {
+                color: #93c5fd;
+                font-weight: 500;
+            }
+
+            + .breadcrumb-item::before {
+                color: rgba(203, 213, 225, 0.5);
+            }
+        }
+    }
+}
+
+// --- 3. Section Typography & Structure ---
+.guest-section {
+    padding-top: 4.5rem;
+    padding-bottom: 4.5rem;
+
+    @media (min-width: 992px) {
+        padding-top: 5.5rem;
+        padding-bottom: 5.5rem;
+    }
+
+    &.guest-section-tonal {
+        background-color: $color-surface-container;
+        border-top: 1px solid $color-outline-variant;
+        border-bottom: 1px solid $color-outline-variant;
+    }
+}
+
+.section-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+
+    .section-eyebrow {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $color-primary;
+        display: block;
+        margin-bottom: 0.35rem;
+    }
+
+    .section-heading {
+        font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+        font-weight: 700;
+        color: $color-body-text;
+        letter-spacing: -0.02em;
+        margin-bottom: 0;
+    }
+
+    .section-subtitle {
+        font-size: 0.95rem;
+        color: $color-muted-text;
+        margin-top: 0.35rem;
+        margin-bottom: 0;
+        max-width: 58ch;
+    }
+}
+
+// --- 4. Editorial Split: Tentang Sekolah & Visi Misi ---
+.editorial-narrative {
+    font-size: 1.025rem;
+    line-height: 1.75;
+    color: #334155;
+    max-width: 65ch;
+}
+
+.fact-strip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+
+    .fact-item-card {
+        background-color: #ffffff;
+        border: 1px solid $color-outline-variant;
+        border-radius: $radius-md;
+        padding: 1.15rem 1.25rem;
+        box-shadow: $m3-elevation-1;
+
+        .fact-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: $color-muted-text;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-bottom: 0.35rem;
+
+            i {
+                color: $color-primary;
+            }
+        }
+
+        .fact-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: $color-body-text;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 0;
+            line-height: 1.3;
+        }
+    }
+}
+
+.visi-misi-surface {
+    background-color: #ffffff;
+    border: 1px solid $color-outline-variant;
+    border-radius: $radius-lg;
+    padding: 2rem;
+    box-shadow: $m3-elevation-1;
+    height: 100%;
+
+    @media (min-width: 768px) {
+        padding: 2.5rem;
+    }
+
+    .visi-quote-card {
+        background-color: $color-primary-container;
+        color: $color-on-primary-container;
+        border-radius: $radius-md;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+
+        .visi-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: $color-primary;
+            margin-bottom: 0.5rem;
+        }
+
+        .visi-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.55;
+            margin-bottom: 0;
+            color: $color-on-primary-container;
+        }
+    }
+
+    .misi-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+
+        .misi-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.875rem;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: #334155;
+
+            .misi-number {
+                width: 28px;
+                height: 28px;
+                border-radius: $radius-xs;
+                background-color: $color-surface-container-high;
+                color: $color-body-text;
+                font-size: 0.78rem;
+                font-weight: 700;
+                font-variant-numeric: tabular-nums;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                margin-top: 0.1rem;
+            }
+        }
+    }
+}
+
+// --- 5. Featured Bento Layout: Berita Terbaru ---
+.news-featured-card {
+    border: 1px solid $color-outline-variant;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    height: 100%;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+
+    .featured-media-wrap {
+        position: relative;
+        aspect-ratio: 16 / 10;
+        background-color: $color-surface-container;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1);
+        }
+    }
+
+    &:hover .featured-media-wrap img {
+        transform: scale(1.03);
+    }
+
+    .featured-body {
+        padding: 1.5rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .news-meta {
+        font-size: 0.825rem;
+        color: $color-muted-text;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .featured-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: 0.75rem;
+
+        a {
+            color: $color-body-text;
+            text-decoration: none;
+
+            &:hover {
+                color: $color-primary;
+            }
+        }
+    }
+
+    .featured-excerpt {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: $color-muted-text;
+        margin-bottom: 1.25rem;
+    }
+}
+
+.news-side-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+.news-compact-card {
+    border: 1px solid $color-outline-variant;
+    border-radius: $radius-md;
+    background-color: #ffffff;
+    padding: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        box-shadow: $m3-elevation-2;
+        transform: translateY(-2px);
+        border-color: $color-outline;
+    }
+
+    .compact-thumb {
+        width: 96px;
+        height: 96px;
+        border-radius: $radius-sm;
+        overflow: hidden;
+        background-color: $color-surface-container;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .compact-content {
+        min-width: 0;
+        flex: 1;
+
+        .compact-date {
+            font-size: 0.78rem;
+            color: $color-muted-text;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .compact-title {
+            font-size: 0.975rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-bottom: 0.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+
+            a {
+                color: $color-body-text;
+                text-decoration: none;
+            }
+        }
+
+        .compact-excerpt {
+            font-size: 0.825rem;
+            color: $color-muted-text;
+            margin-bottom: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+// --- 6. Portrait Trophy Cards: Prestasi Siswa ---
+.prestasi-trophy-card {
+    border: 1px solid $color-outline-variant;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    background-color: #ffffff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    .trophy-media-wrap {
+        position: relative;
+        height: 210px;
+        background-color: $color-surface-container;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .trophy-badge-floating {
+            position: absolute;
+            top: 0.875rem;
+            left: 0.875rem;
+            background-color: $color-warning-container;
+            color: #78350f;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 0.3rem 0.75rem;
+            border-radius: $radius-pill;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: $m3-elevation-1;
+        }
+    }
+
+    &:hover .trophy-media-wrap img {
+        transform: scale(1.04);
+    }
+
+    .trophy-body {
+        padding: 1.25rem 1.35rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .trophy-date {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: $color-muted-text;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .trophy-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+
+            a {
+                color: $color-body-text;
+                text-decoration: none;
+
+                &:hover {
+                    color: $color-primary;
+                }
+            }
+        }
+
+        .trophy-desc {
+            font-size: 0.875rem;
+            color: $color-muted-text;
+            line-height: 1.55;
+            margin-bottom: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+}
+
+// --- 7. Unified Location & Suggestion Box Section ---
+.unified-contact-surface {
+    background-color: #ffffff;
+    border: 1px solid $color-outline-variant;
+    border-radius: $radius-xl;
+    overflow: hidden;
+    box-shadow: $m3-elevation-2;
+
+    .contact-map-pane {
+        background-color: $color-surface-container;
+        padding: 2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-bottom: 1px solid $color-outline-variant;
+
+        @media (min-width: 992px) {
+            padding: 2.75rem;
+            border-bottom: none;
+            border-right: 1px solid $color-outline-variant;
+        }
+    }
+
+    .contact-form-pane {
+        padding: 2rem;
+        background-color: #ffffff;
+        height: 100%;
+
+        @media (min-width: 992px) {
+            padding: 2.75rem;
+        }
+    }
+
+    .quick-contact-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+
+        .quick-contact-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.875rem;
+
+            .qc-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: $radius-sm;
+                background-color: $color-primary-container;
+                color: $color-primary;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                font-size: 1rem;
+            }
+
+            .qc-label {
+                font-size: 0.78rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: $color-muted-text;
+                display: block;
+            }
+
+            .qc-val {
+                font-size: 0.95rem;
+                font-weight: 500;
+                color: $color-body-text;
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .map-frame-wrapper {
+        border-radius: $radius-md;
+        overflow: hidden;
+        border: 1px solid $color-outline;
+        background-color: #e2e8f0;
+        flex: 1;
+        min-height: 260px;
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            border: 0;
+            display: block;
+        }
+    }
+}
+
+// --- 8. Shared Guest Sub-pages Media & Content Helpers ---
+.guest-card-img {
+    height: 210px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.guest-card-placeholder {
+    height: 210px;
+    background-color: $color-surface-container;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guest-avatar-lg {
+    width: 112px;
+    height: 112px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid $color-primary-container;
+}
+
+.guest-article-content {
+    line-height: 1.85;
+    font-size: 1.05rem;
+    color: #334155;
+    max-width: 72ch;
+}
+
+.guest-map-embed-lg {
+    width: 100%;
+    height: 400px;
+    border: 0;
+    display: block;
+}

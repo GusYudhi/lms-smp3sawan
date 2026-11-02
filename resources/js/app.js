@@ -90,4 +90,53 @@ document.addEventListener("DOMContentLoaded", function () {
             ripple.remove();
         }, 500);
     });
+
+    // Guest Navbar Adaptive Scroll & Mobile Collapse State
+    const guestNavbar = document.getElementById("guestNavbar");
+    const guestNavbarCollapse = document.getElementById("navbarNav");
+
+    if (guestNavbar) {
+        const updateGuestNavbarState = () => {
+            if (window.scrollY > 30) {
+                guestNavbar.classList.add("is-scrolled");
+            } else {
+                guestNavbar.classList.remove("is-scrolled");
+            }
+        };
+
+        updateGuestNavbarState();
+        window.addEventListener("scroll", updateGuestNavbarState, { passive: true });
+
+        if (guestNavbarCollapse) {
+            guestNavbarCollapse.addEventListener("show.bs.collapse", () => {
+                guestNavbar.classList.add("menu-expanded");
+            });
+            guestNavbarCollapse.addEventListener("hide.bs.collapse", () => {
+                guestNavbar.classList.remove("menu-expanded");
+            });
+        }
+    }
+
+    // Hero Carousel Dynamic Caption Synchronization
+    const heroCarousel = document.getElementById("heroCarousel");
+    if (heroCarousel) {
+        const captionItems = document.querySelectorAll(".hero-caption-item");
+        const slideCounterCurrent = document.getElementById("heroSlideCurrent");
+
+        heroCarousel.addEventListener("slide.bs.carousel", function (event) {
+            const nextIndex = event.to;
+
+            captionItems.forEach((item, idx) => {
+                if (idx === nextIndex) {
+                    item.classList.add("active");
+                } else {
+                    item.classList.remove("active");
+                }
+            });
+
+            if (slideCounterCurrent) {
+                slideCounterCurrent.textContent = String(nextIndex + 1).padStart(2, "0");
+            }
+        });
+    }
 });

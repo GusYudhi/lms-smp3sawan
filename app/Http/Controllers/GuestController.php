@@ -13,14 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class GuestController extends Controller
 {
-    public function welcome()
+    private function getSchoolData(): array
     {
-        // Get school data from database for landing page
         $schoolProfile = SchoolProfile::first();
 
         if (!$schoolProfile) {
-            // Default data if no record exists
-            $schoolData = [
+            return [
                 'name' => 'SMPN 3 SAWAN',
                 'visi' => 'Menjadi sekolah unggulan yang menghasilkan lulusan berkualitas, berkarakter, dan berdaya saing global.',
                 'misi' => [
@@ -41,50 +39,109 @@ class GuestController extends Controller
                 'akreditasi' => 'A',
                 'npsn' => '50100123'
             ];
-        } else {
-            $schoolData = $schoolProfile->toArray();
         }
+
+        return $schoolProfile->toArray();
+    }
+
+    public function welcome()
+    {
+        $schoolData = $this->getSchoolData();
 
         $prestasis = Prestasi::latest()->take(4)->get();
         $beritas = Berita::latest()->take(4)->get();
 
-        return view('welcome', compact('schoolData', 'prestasis', 'beritas'));
+        // Build hero slides combining Berita, Prestasi, and Galeri photos
+        $beritaSlides = Berita::whereNotNull('foto')->latest('tanggal')->take(3)->get()->map(function ($item) {
+            return [
+                'image' => asset('storage/' . $item->foto),
+                'category' => 'Berita Sekolah',
+                'badge_class' => 'm3-chip-berita',
+                'icon' => 'fa-newspaper',
+                'title' => $item->judul,
+                'date' => $item->tanggal ? $item->tanggal->format('d M Y') : '',
+                'url' => route('guest.berita.show', $item->id),
+                'sort_date' => $item->tanggal ? $item->tanggal->timestamp : ($item->created_at ? $item->created_at->timestamp : 0),
+            ];
+        });
+
+        $prestasiSlides = Prestasi::whereNotNull('foto')->latest('tanggal')->take(3)->get()->map(function ($item) {
+            return [
+                'image' => asset('storage/' . $item->foto),
+                'category' => 'Prestasi Siswa',
+                'badge_class' => 'm3-chip-prestasi',
+                'icon' => 'fa-trophy',
+                'title' => $item->judul,
+                'date' => $item->tanggal ? $item->tanggal->format('d M Y') : '',
+                'url' => route('guest.prestasi.show', $item->id),
+                'sort_date' => $item->tanggal ? $item->tanggal->timestamp : ($item->created_at ? $item->created_at->timestamp : 0),
+            ];
+        });
+
+        $galeriSlides = Galeri::where('tipe', 'foto')->whereNotNull('file_path')->latest()->take(3)->get()->map(function ($item) {
+            return [
+                'image' => asset('storage/' . $item->file_path),
+                'category' => 'Galeri Sekolah',
+                'badge_class' => 'm3-chip-galeri',
+                'icon' => 'fa-camera',
+                'title' => $item->judul ?: 'Dokumentasi Kegiatan SMPN 3 Sawan',
+                'date' => $item->created_at ? $item->created_at->format('d M Y') : '',
+                'url' => route('guest.galeri'),
+                'sort_date' => $item->created_at ? $item->created_at->timestamp : 0,
+            ];
+        });
+
+        $heroSlides = $beritaSlides
+            ->concat($prestasiSlides)
+            ->concat($galeriSlides)
+            ->sortByDesc('sort_date')
+            ->take(6)
+            ->values();
+
+        return view('welcome', compact('schoolData', 'prestasis', 'beritas', 'heroSlides'));
     }
 
     public function guruStaff()
     {
+        $schoolData = $this->getSchoolData();
         $gurus = User::whereIn('role', ['guru', 'kepala_sekolah'])
                      ->with('guruProfile')
                      ->paginate(16);
-        return view('guest.guru-staff', compact('gurus'));
+        return view('guest.guru-staff', compact('gurus', 'schoolData'));
     }
 
     public function berita()
     {
+        $schoolData = $this->getSchoolData();
         $beritas = Berita::latest()->paginate(9);
-        return view('guest.berita.index', compact('beritas'));
+        return view('guest.berita.index', compact('beritas', 'schoolData'));
     }
 
     public function showBerita($id)
     {
+        $schoolData = $this->getSchoolData();
         $berita = Berita::findOrFail($id);
-        return view('guest.berita.show', compact('berita'));
+        return view('guest.berita.show', compact('berita', 'schoolData'));
     }
 
     public function prestasi()
     {
+        $schoolData = $this->getSchoolData();
         $prestasis = Prestasi::latest()->paginate(9);
-        return view('guest.prestasi.index', compact('prestasis'));
+        return view('guest.prestasi.index', compact('prestasis', 'schoolData'));
     }
 
     public function showPrestasi($id)
     {
+        $schoolData = $this->getSchoolData();
         $prestasi = Prestasi::findOrFail($id);
-        return view('guest.prestasi.show', compact('prestasi'));
+        return view('guest.prestasi.show', compact('prestasi', 'schoolData'));
     }
 
     public function galeri()
     {
+        $schoolData = $this->getSchoolData();
+
         // Manual gallery items
         $galeris = Galeri::select('id', 'judul', 'file_path', 'tipe', 'deskripsi', 'created_at', DB::raw('"galeri" as source'));
 
@@ -101,13 +158,12 @@ class GuestController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        return view('guest.galeri', ['galeris' => $allGaleri]);
+        return view('guest.galeri', ['galeris' => $allGaleri, 'schoolData' => $schoolData]);
     }
 
     public function kontak()
     {
-        $schoolProfile = SchoolProfile::first();
-        $schoolData = $schoolProfile ? $schoolProfile->toArray() : [];
+        $schoolData = $this->getSchoolData();
         return view('guest.kontak', compact('schoolData'));
     }
 

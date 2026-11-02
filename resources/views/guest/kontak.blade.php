@@ -1,147 +1,137 @@
 @extends('layouts.guest')
 
-@section('title', 'Kontak Sekolah - SMPN 3 SAWAN')
+@section('title', 'Hubungi Kami - ' . ($schoolData['name'] ?? 'SMPN 3 SAWAN'))
 
 @section('content')
-<div class="container">
-    <div class="text-center mb-5">
-        <h2 class="fw-bold text-primary">Hubungi Kami</h2>
-        <p class="text-muted">Kami siap melayani dan menjawab pertanyaan Anda</p>
+<!-- Page Header Banner -->
+<section class="guest-page-banner">
+    <div class="container">
+        <span class="banner-eyebrow"><i class="fas fa-envelope-open-text"></i> Layanan Informasi</span>
+        <h1 class="banner-title">Hubungi {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}</h1>
+        <p class="banner-subtitle">Saluran informasi resmi, alamat kunjungan, dan kotak masukan untuk masyarakat.</p>
     </div>
+</section>
 
-    <div class="row g-4">
-        <!-- Contact Info -->
-        <div class="col-lg-5">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h4 class="mb-4 fw-bold">Informasi Kontak</h4>
+<section class="guest-section">
+    <div class="container">
+        <div class="unified-contact-surface">
+            <div class="row g-0">
+                <!-- Contact Info & Map -->
+                <div class="col-lg-5">
+                    <div class="contact-map-pane">
+                        <div>
+                            <h2 class="h4 fw-bold mb-4">Informasi Kontak</h2>
 
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                <i class="fas fa-map-marker-alt fa-lg"></i>
+                            <div class="quick-contact-list">
+                                <div class="quick-contact-row">
+                                    <span class="qc-icon"><i class="fas fa-map-marker-alt"></i></span>
+                                    <div>
+                                        <span class="qc-label">Alamat Lengkap</span>
+                                        <p class="qc-val">{{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-contact-row">
+                                    <span class="qc-icon"><i class="fas fa-phone"></i></span>
+                                    <div>
+                                        <span class="qc-label">Nomor Telepon</span>
+                                        <p class="qc-val">{{ $schoolData['telepon'] ?? '085850190190' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="quick-contact-row">
+                                    <span class="qc-icon"><i class="fas fa-envelope"></i></span>
+                                    <div>
+                                        <span class="qc-label">Email Resmi</span>
+                                        <p class="qc-val">{{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}</p>
+                                    </div>
+                                </div>
+
+                                @if(!empty($schoolData['website']))
+                                <div class="quick-contact-row">
+                                    <span class="qc-icon"><i class="fas fa-globe"></i></span>
+                                    <div>
+                                        <span class="qc-label">Situs Web</span>
+                                        <p class="qc-val">{{ $schoolData['website'] }}</p>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="fw-bold mb-1">Alamat</h6>
-                            <p class="text-muted mb-0">{{ $schoolData['alamat'] ?? 'Desa Suwug, Kecamatan Sawan, Kabupaten Buleleng, Bali 81171' }}</p>
-                        </div>
-                    </div>
 
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0">
-                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
-                                <i class="fas fa-phone fa-lg"></i>
-                            </div>
+                        @if(isset($schoolData['maps_latitude']) && isset($schoolData['maps_longitude']))
+                        <div class="map-frame-wrapper">
+                            <iframe
+                                title="Peta Lokasi {{ $schoolData['name'] ?? 'SMPN 3 SAWAN' }}"
+                                src="https://maps.google.com/maps?q={{ $schoolData['maps_latitude'] }},{{ $schoolData['maps_longitude'] }}&hl=id&z=16&output=embed"
+                                allowfullscreen=""
+                                loading="lazy">
+                            </iframe>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="fw-bold mb-1">Telepon</h6>
-                            <p class="text-muted mb-0">{{ $schoolData['telepon'] ?? '085850190190' }}</p>
-                        </div>
+                        @endif
                     </div>
+                </div>
 
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0">
-                            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
-                                <i class="fas fa-envelope fa-lg"></i>
-                            </div>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="fw-bold mb-1">Email</h6>
-                            <p class="text-muted mb-0">{{ $schoolData['email'] ?? 'admin@smpn3sawan.sch.id' }}</p>
-                        </div>
-                    </div>
+                <!-- Suggestion Box -->
+                <div class="col-lg-7">
+                    <div class="contact-form-pane">
+                        <h2 class="h4 fw-bold mb-2">Kirim Pesan atau Saran</h2>
+                        <p class="text-muted mb-4">Silakan lengkapi formulir di bawah ini untuk menyampaikan saran, masukan, atau pertanyaan kepada pihak sekolah.</p>
 
-                    @if(isset($schoolData['website']))
-                    <div class="d-flex">
-                        <div class="flex-shrink-0">
-                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
-                                <i class="fas fa-globe fa-lg"></i>
+                        @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                        @endif
+
+                        @if($errors->has('saran'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ $errors->first('saran') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                        @endif
+
+                        <form action="{{ route('guest.saran.store') }}" method="POST">
+                            @csrf
+                            {{-- Honeypot field (anti bot spam) --}}
+                            <div class="honeypot-field" aria-hidden="true">
+                                <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
                             </div>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="fw-bold mb-1">Website</h6>
-                            <a href="{{ $schoolData['website'] }}" target="_blank" class="text-decoration-none">
-                                {{ $schoolData['website'] }}
-                            </a>
-                        </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="nama_pengirim" class="form-label fw-medium">Nama Lengkap <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('nama_pengirim') is-invalid @enderror" id="nama_pengirim" name="nama_pengirim" placeholder="Contoh: I Made Wirawan" maxlength="100" value="{{ old('nama_pengirim') }}" required>
+                                    @error('nama_pengirim')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email_pengirim" class="form-label fw-medium">Alamat Email <span class="text-muted small">(Opsional)</span></label>
+                                    <input type="email" class="form-control @error('email_pengirim') is-invalid @enderror" id="email_pengirim" name="email_pengirim" placeholder="nama@email.com" maxlength="100" value="{{ old('email_pengirim') }}">
+                                    @error('email_pengirim')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12">
+                                    <label for="isi_saran" class="form-label fw-medium">Pesan atau Saran <span class="text-danger">*</span></label>
+                                    <textarea class="form-control @error('isi_saran') is-invalid @enderror" id="isi_saran" name="isi_saran" rows="5" placeholder="Tuliskan saran atau pertanyaan Anda secara jelas..." maxlength="1000" required>{{ old('isi_saran') }}</textarea>
+                                    @error('isi_saran')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12 pt-2">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-paper-plane me-2"></i>Kirim Pesan
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>
-
-        <!-- Suggestion Box (Reuse form) -->
-        <div class="col-lg-7">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h4 class="mb-4 fw-bold">Kirim Pesan / Saran</h4>
-
-                    @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    @endif
-
-                    @if($errors->has('saran'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ $errors->first('saran') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    @endif
-
-                    <form action="{{ route('guest.saran.store') }}" method="POST">
-                        @csrf
-                        {{-- Honeypot field (anti bot spam) --}}
-                        <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
-                            <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="nama_pengirim" class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control @error('nama_pengirim') is-invalid @enderror" id="nama_pengirim" name="nama_pengirim" maxlength="100" value="{{ old('nama_pengirim') }}" required>
-                                @error('nama_pengirim')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="email_pengirim" class="form-label">Email (Opsional)</label>
-                                <input type="email" class="form-control @error('email_pengirim') is-invalid @enderror" id="email_pengirim" name="email_pengirim" maxlength="100" value="{{ old('email_pengirim') }}">
-                                @error('email_pengirim')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="isi_saran" class="form-label">Pesan / Saran</label>
-                            <textarea class="form-control @error('isi_saran') is-invalid @enderror" id="isi_saran" name="isi_saran" rows="5" maxlength="1000" required>{{ old('isi_saran') }}</textarea>
-                            @error('isi_saran')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <button type="submit" class="btn btn-primary px-4">Kirim Pesan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Maps -->
-        @if(isset($schoolData['maps_latitude']) && isset($schoolData['maps_longitude']))
-        <div class="col-12 mt-4">
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <iframe
-                    src="https://maps.google.com/maps?q={{ $schoolData['maps_latitude'] }},{{ $schoolData['maps_longitude'] }}&hl=id&z=16&output=embed"
-                    width="100%"
-                    height="400"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy">
-                </iframe>
-            </div>
-        </div>
-        @endif
     </div>
-</div>
+</section>
 @endsection
