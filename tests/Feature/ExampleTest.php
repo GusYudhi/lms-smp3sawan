@@ -16,4 +16,13 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_halaman_galeri_dapat_diakses(): void
+    {
+        $response = $this->get('/galeri');
+
+        $response->assertStatus(200);
+        $response->assertSee('Galeri Dokumentasi Sekolah');
+        $response->assertDontSee('data-masonry');
+    }
 }
