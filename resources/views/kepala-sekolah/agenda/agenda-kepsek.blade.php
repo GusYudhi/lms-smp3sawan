@@ -64,16 +64,17 @@
                                            name="search"
                                            id="agendaSearch"
                                            class="form-control border-start-0 search-input"
-                                           placeholder="Cari materi atau kompetensi..."
+                                           placeholder="Cari materi atau keterangan..."
                                            value="{{ request('search') }}">
                                 </div>
                             </div>
 
                             <!-- Kelas Filter -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="kelasFilter" class="form-label text-medium-contrast fw-medium">Kelas</label>
                                 <select name="kelas" id="kelasFilter" class="form-select auto-submit">
                                     <option value="">Semua Kelas</option>
+                                    <option value="non_kelas" {{ request('kelas') == 'non_kelas' ? 'selected' : '' }}>Non-Kelas / Umum</option>
                                     @foreach($kelasList as $kelas)
                                         <option value="{{ $kelas->full_name }}" {{ request('kelas') == $kelas->full_name ? 'selected' : '' }}>
                                             {{ $kelas->full_name }}
@@ -83,23 +84,12 @@
                             </div>
 
                             <!-- Status Jurnal Filter -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="statusFilter" class="form-label text-medium-contrast fw-medium">Status Jurnal</label>
                                 <select name="status" id="statusFilter" class="form-select auto-submit">
                                     <option value="">Semua Status</option>
                                     <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                                     <option value="belum_selesai" {{ request('status') == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
-                                </select>
-                            </div>
-
-                            <!-- Keterangan Filter -->
-                            <div class="col-md-2">
-                                <label for="keteranganFilter" class="form-label text-medium-contrast fw-medium">Keterangan</label>
-                                <select name="keterangan" id="keteranganFilter" class="form-select auto-submit">
-                                    <option value="">Semua</option>
-                                    <option value="pengayaan" {{ request('keterangan') == 'pengayaan' ? 'selected' : '' }}>Pengayaan</option>
-                                    <option value="perbaikan" {{ request('keterangan') == 'perbaikan' ? 'selected' : '' }}>Perbaikan</option>
-                                    <option value="-" {{ request('keterangan') == '-' ? 'selected' : '' }}>Tidak Ada</option>
                                 </select>
                             </div>
 
@@ -163,7 +153,11 @@
                                         </div>
                                     </td>
                                     <td class="text-center" style="min-width: 100px;">
-                                        <span class="badge bg-primary-subtle text-primary border">{{ $agenda->kelas }}</span>
+                                        @if($agenda->kelas)
+                                            <span class="badge bg-primary-subtle text-primary border">{{ $agenda->kelas }}</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary border">Non-Kelas</span>
+                                        @endif
                                     </td>
                                     <td class="text-center" style="min-width: 100px;">
                                         <span class="badge bg-info-subtle text-info border">{{ $agenda->jam_ke }}</span>
@@ -184,24 +178,25 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="text-center" style="min-width: 150px;">
-                                        @if($agenda->keterangan == 'pengayaan')
-                                            <span class="badge bg-warning-subtle text-warning border">
-                                                <i class="fas fa-star me-1"></i>Pengayaan
-                                            </span>
-                                        @elseif($agenda->keterangan == 'perbaikan')
-                                            <span class="badge bg-info-subtle text-info border">
-                                                <i class="fas fa-wrench me-1"></i>Perbaikan
-                                            </span>
+                                    <td style="min-width: 150px;">
+                                        @if($agenda->keterangan)
+                                            <div class="text-start text-break" style="max-width: 250px;">{!! nl2br(e($agenda->keterangan)) !!}</div>
                                         @else
-                                            <span class="text-muted fst-italic">-</span>
+                                            <span class="text-muted fst-italic text-center d-block">-</span>
                                         @endif
                                     </td>
                                     <td class="text-center">
                                         <div class="d-inline-flex align-items-center gap-1">
                                             <button type="button"
-                                                    class="btn btn-sm btn-outline-warning"
-                                                    onclick="editAgenda({{ $agenda->id }}, '{{ $agenda->tanggal->format('Y-m-d') }}', '{{ $agenda->kelas }}', {{ $agenda->jam_mulai_id }}, {{ $agenda->jam_selesai_id }}, `{{ addslashes($agenda->materi) }}`, '{{ $agenda->status_jurnal }}', '{{ $agenda->keterangan }}')"
+                                                    class="btn btn-sm btn-outline-warning btn-edit-agenda"
+                                                    data-id="{{ $agenda->id }}"
+                                                    data-tanggal="{{ $agenda->tanggal->format('Y-m-d') }}"
+                                                    data-kelas="{{ $agenda->kelas ?? '' }}"
+                                                    data-jam-mulai="{{ $agenda->jam_mulai_id }}"
+                                                    data-jam-selesai="{{ $agenda->jam_selesai_id }}"
+                                                    data-materi="{{ $agenda->materi }}"
+                                                    data-status-jurnal="{{ $agenda->status_jurnal }}"
+                                                    data-keterangan="{{ $agenda->keterangan ?? '' }}"
                                                     title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -266,9 +261,9 @@
 
                         <!-- Kelas -->
                         <div class="col-md-6">
-                            <label for="kelas" class="form-label">Kelas <span class="text-danger">*</span></label>
-                            <select class="form-select" id="kelas" name="kelas" required>
-                                <option value="">Pilih Kelas</option>
+                            <label for="kelas" class="form-label">Kelas <span class="text-muted small fw-normal">(Opsional)</span></label>
+                            <select class="form-select" id="kelas" name="kelas">
+                                <option value="">-- Pilih Kelas (Opsional) --</option>
                                 @foreach($kelasList as $kelas)
                                     <option value="{{ $kelas->full_name }}">{{ $kelas->full_name }}</option>
                                 @endforeach
@@ -314,13 +309,9 @@
                         </div>
 
                         <!-- Keterangan -->
-                        <div class="col-md-6">
-                            <label for="keterangan" class="form-label">Keterangan</label>
-                            <select class="form-select" id="keterangan" name="keterangan">
-                                <option value="-">Tidak Ada</option>
-                                <option value="pengayaan">Pengayaan</option>
-                                <option value="perbaikan">Perbaikan</option>
-                            </select>
+                        <div class="col-12">
+                            <label for="keterangan" class="form-label">Keterangan <span class="text-muted small fw-normal">(Opsional)</span></label>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Tuliskan catatan atau keterangan agenda (opsional)..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -360,9 +351,9 @@
 
                         <!-- Kelas -->
                         <div class="col-md-6">
-                            <label for="edit_kelas" class="form-label">Kelas <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit_kelas" name="kelas" required>
-                                <option value="">Pilih Kelas</option>
+                            <label for="edit_kelas" class="form-label">Kelas <span class="text-muted small fw-normal">(Opsional)</span></label>
+                            <select class="form-select" id="edit_kelas" name="kelas">
+                                <option value="">-- Pilih Kelas (Opsional) --</option>
                                 @foreach($kelasList as $kelas)
                                     <option value="{{ $kelas->full_name }}">{{ $kelas->full_name }}</option>
                                 @endforeach
@@ -407,13 +398,9 @@
                         </div>
 
                         <!-- Keterangan -->
-                        <div class="col-md-6">
-                            <label for="edit_keterangan" class="form-label">Keterangan</label>
-                            <select class="form-select" id="edit_keterangan" name="keterangan">
-                                <option value="-">Tidak Ada</option>
-                                <option value="pengayaan">Pengayaan</option>
-                                <option value="perbaikan">Perbaikan</option>
-                            </select>
+                        <div class="col-12">
+                            <label for="edit_keterangan" class="form-label">Keterangan <span class="text-muted small fw-normal">(Opsional)</span></label>
+                            <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="3" placeholder="Tuliskan catatan atau keterangan agenda (opsional)..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -474,6 +461,21 @@
             e.preventDefault();
             $('#filterForm').submit();
         }
+    });
+
+    // Edit Agenda via Data Attributes
+    $(document).on('click', '.btn-edit-agenda', function() {
+        const btn = $(this);
+        editAgenda(
+            btn.data('id'),
+            btn.data('tanggal'),
+            btn.data('kelas') || '',
+            btn.data('jam-mulai'),
+            btn.data('jam-selesai'),
+            btn.data('materi'),
+            btn.data('status-jurnal'),
+            btn.data('keterangan') || ''
+        );
     });
 
     // Edit Agenda

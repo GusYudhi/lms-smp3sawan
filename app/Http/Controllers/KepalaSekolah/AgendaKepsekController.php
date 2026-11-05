@@ -22,11 +22,19 @@ class AgendaKepsekController extends Controller
 
         // Apply filters
         if ($request->filled('search')) {
-            $query->where('materi', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('materi', 'like', '%' . $search . '%')
+                  ->orWhere('keterangan', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
+            if ($request->kelas === 'non_kelas') {
+                $query->whereNull('kelas');
+            } else {
+                $query->where('kelas', $request->kelas);
+            }
         }
 
         if ($request->filled('status')) {
@@ -34,7 +42,7 @@ class AgendaKepsekController extends Controller
         }
 
         if ($request->filled('keterangan')) {
-            $query->where('keterangan', $request->keterangan);
+            $query->where('keterangan', 'like', '%' . $request->keterangan . '%');
         }
 
         // Order by date descending (most recent first)
@@ -70,12 +78,12 @@ class AgendaKepsekController extends Controller
     {
         $validated = $request->validate([
             'tanggal' => 'required|date',
-            'kelas' => 'required|string|max:50',
+            'kelas' => 'nullable|string|max:50',
             'jam_mulai_id' => 'required|exists:jam_pelajarans,id',
             'jam_selesai_id' => 'required|exists:jam_pelajarans,id',
             'materi' => 'required|string',
             'status_jurnal' => 'required|in:selesai,belum_selesai',
-            'keterangan' => 'nullable|string|max:50',
+            'keterangan' => 'nullable|string',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -95,12 +103,12 @@ class AgendaKepsekController extends Controller
 
         $validated = $request->validate([
             'tanggal' => 'required|date',
-            'kelas' => 'required|string|max:50',
+            'kelas' => 'nullable|string|max:50',
             'jam_mulai_id' => 'required|exists:jam_pelajarans,id',
             'jam_selesai_id' => 'required|exists:jam_pelajarans,id',
             'materi' => 'required|string',
             'status_jurnal' => 'required|in:selesai,belum_selesai',
-            'keterangan' => 'nullable|string|max:50',
+            'keterangan' => 'nullable|string',
         ]);
 
         $agenda->update($validated);

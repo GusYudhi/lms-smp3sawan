@@ -26,7 +26,7 @@
                         </tr>
                         <tr>
                             <th>Kelas</th>
-                            <td>{{ $agenda->kelas }}</td>
+                            <td>{{ $agenda->kelas ?: 'Non-Kelas' }}</td>
                         </tr>
                         <tr>
                             <th>Waktu</th>
@@ -41,7 +41,7 @@
                         </tr>
                         <tr>
                             <th>Materi</th>
-                            <td>{{ $agenda->materi }}</td>
+                            <td>{!! nl2br(e($agenda->materi)) !!}</td>
                         </tr>
                         <tr>
                             <th>Status Jurnal</th>
@@ -55,7 +55,7 @@
                         </tr>
                         <tr>
                             <th>Keterangan</th>
-                            <td>{{ $agenda->keterangan ?? '-' }}</td>
+                            <td>{!! $agenda->keterangan ? nl2br(e($agenda->keterangan)) : '-' !!}</td>
                         </tr>
                     </table>
                 </div>

@@ -42,11 +42,19 @@ class AgendaGuruExport implements FromCollection, WithHeadings, WithMapping, Wit
             ->where('user_id', $this->userId);
 
         if (!empty($this->filters['search'])) {
-            $query->where('materi', 'like', '%' . $this->filters['search'] . '%');
+            $search = $this->filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('materi', 'like', '%' . $search . '%')
+                  ->orWhere('keterangan', 'like', '%' . $search . '%');
+            });
         }
 
         if (!empty($this->filters['kelas'])) {
-            $query->where('kelas', $this->filters['kelas']);
+            if ($this->filters['kelas'] === 'non_kelas') {
+                $query->whereNull('kelas');
+            } else {
+                $query->where('kelas', $this->filters['kelas']);
+            }
         }
 
         if (!empty($this->filters['status'])) {
@@ -54,7 +62,7 @@ class AgendaGuruExport implements FromCollection, WithHeadings, WithMapping, Wit
         }
 
         if (!empty($this->filters['keterangan'])) {
-            $query->where('keterangan', $this->filters['keterangan']);
+            $query->where('keterangan', 'like', '%' . $this->filters['keterangan'] . '%');
         }
 
         return $query->orderBy('tanggal', 'desc')
@@ -111,10 +119,10 @@ class AgendaGuruExport implements FromCollection, WithHeadings, WithMapping, Wit
             $dayName,
             $jamKe,
             $waktu,
-            $agenda->kelas,
+            $agenda->kelas ?: 'Non-Kelas',
             $agenda->materi,
             $agenda->status_jurnal === 'selesai' ? 'Selesai' : 'Belum Selesai',
-            $agenda->keterangan ? ucfirst($agenda->keterangan) : '-',
+            $agenda->keterangan ?: '-',
         ];
     }
 

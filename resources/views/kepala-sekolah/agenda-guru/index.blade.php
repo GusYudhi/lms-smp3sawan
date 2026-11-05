@@ -143,7 +143,7 @@
                                             <strong>{{ $agenda->user->name }}</strong><br>
                                             <small class="text-muted">{{ $agenda->user->guruProfile->nip ?? '-' }}</small>
                                         </td>
-                                        <td><span class="badge bg-info-subtle text-info border">{{ $agenda->kelas }}</span></td>
+                                        <td><span class="badge bg-info-subtle text-info border">{{ $agenda->kelas ?: 'Non-Kelas' }}</span></td>
                                         <td>
                                             @if($agenda->jamMulai && $agenda->jamSelesai)
                                                 <small class="text-muted">{{ \Carbon\Carbon::parse($agenda->jamMulai->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($agenda->jamSelesai->jam_selesai)->format('H:i') }}</small>
@@ -194,7 +194,7 @@
                                             <i class="fas fa-calendar-day me-1"></i>{{ $agenda->tanggal->format('d M Y') }}
                                         </span>
                                         <span class="badge bg-info-subtle text-info border">
-                                            <i class="fas fa-door-open me-1"></i>Kelas {{ $agenda->kelas }}
+                                            <i class="fas fa-door-open me-1"></i>{{ $agenda->kelas ? 'Kelas ' . $agenda->kelas : 'Non-Kelas' }}
                                         </span>
                                         @if($agenda->jamMulai && $agenda->jamSelesai)
                                             <span class="badge bg-secondary-subtle text-secondary border">

@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Guru;
 
+use App\Exports\AgendaGuruExport;
 use App\Http\Controllers\Controller;
 use App\Models\AgendaGuru;
 use App\Models\JamPelajaran;
-use App\Models\Semester;
 use App\Models\Kelas;
-use App\Exports\AgendaGuruExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AgendaGuruController extends Controller
 {
@@ -24,11 +23,19 @@ class AgendaGuruController extends Controller
 
         // Apply filters
         if ($request->filled('search')) {
-            $query->where('materi', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('materi', 'like', '%'.$search.'%')
+                    ->orWhere('keterangan', 'like', '%'.$search.'%');
+            });
         }
 
         if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
+            if ($request->kelas === 'non_kelas') {
+                $query->whereNull('kelas');
+            } else {
+                $query->where('kelas', $request->kelas);
+            }
         }
 
         if ($request->filled('status')) {
@@ -36,14 +43,14 @@ class AgendaGuruController extends Controller
         }
 
         if ($request->filled('keterangan')) {
-            $query->where('keterangan', $request->keterangan);
+            $query->where('keterangan', 'like', '%'.$request->keterangan.'%');
         }
 
         // Order by date descending (most recent first)
         $agendas = $query->with(['jamMulai', 'jamSelesai'])
-                        ->orderBy('tanggal', 'desc')
-                        ->orderBy('jam_mulai_id', 'asc')
-                        ->paginate(15);
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('jam_mulai_id', 'asc')
+            ->paginate(15);
 
         // Get active semester and its jam pelajaran
         $activeSemester = Semester::getActive();
@@ -52,14 +59,14 @@ class AgendaGuruController extends Controller
 
         if ($activeSemester) {
             $jamPelajarans = JamPelajaran::where('semester_id', $activeSemester->id)
-                                        ->orderBy('jam_ke')
-                                        ->get();
+                ->orderBy('jam_ke')
+                ->get();
 
             // Get all kelas from active tahun pelajaran
             $kelasList = Kelas::where('tahun_pelajaran_id', $activeSemester->tahun_pelajaran_id)
-                             ->orderBy('tingkat')
-                             ->orderBy('nama_kelas')
-                             ->get();
+                ->orderBy('tingkat')
+                ->orderBy('nama_kelas')
+                ->get();
         }
 
         return view('guru.agenda-guru.agenda-guru', compact('agendas', 'jamPelajarans', 'kelasList'));
@@ -78,7 +85,7 @@ class AgendaGuruController extends Controller
         ];
 
         $teacherName = preg_replace('/[^A-Za-z0-9_]/', '_', Auth::user()->name);
-        $fileName = 'Agenda_Guru_' . $teacherName . '_' . date('Ymd_His') . '.xlsx';
+        $fileName = 'Agenda_Guru_'.$teacherName.'_'.date('Ymd_His').'.xlsx';
 
         return Excel::download(new AgendaGuruExport(Auth::id(), $filters), $fileName);
     }
@@ -90,12 +97,12 @@ class AgendaGuruController extends Controller
     {
         $validated = $request->validate([
             'tanggal' => 'required|date',
-            'kelas' => 'required|string|max:50',
+            'kelas' => 'nullable|string|max:50',
             'jam_mulai_id' => 'required|exists:jam_pelajarans,id',
             'jam_selesai_id' => 'required|exists:jam_pelajarans,id',
             'materi' => 'required|string',
             'status_jurnal' => 'required|in:selesai,belum_selesai',
-            'keterangan' => 'nullable|string|max:50',
+            'keterangan' => 'nullable|string',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -103,7 +110,7 @@ class AgendaGuruController extends Controller
         AgendaGuru::create($validated);
 
         return redirect()->route('guru.agenda')
-                        ->with('success', 'Agenda berhasil ditambahkan!');
+            ->with('success', 'Agenda berhasil ditambahkan!');
     }
 
     /**
@@ -115,18 +122,18 @@ class AgendaGuruController extends Controller
 
         $validated = $request->validate([
             'tanggal' => 'required|date',
-            'kelas' => 'required|string|max:50',
+            'kelas' => 'nullable|string|max:50',
             'jam_mulai_id' => 'required|exists:jam_pelajarans,id',
             'jam_selesai_id' => 'required|exists:jam_pelajarans,id',
             'materi' => 'required|string',
             'status_jurnal' => 'required|in:selesai,belum_selesai',
-            'keterangan' => 'nullable|string|max:50',
+            'keterangan' => 'nullable|string',
         ]);
 
         $agenda->update($validated);
 
         return redirect()->route('guru.agenda')
-                        ->with('success', 'Agenda berhasil diperbarui!');
+            ->with('success', 'Agenda berhasil diperbarui!');
     }
 
     /**
@@ -138,6 +145,6 @@ class AgendaGuruController extends Controller
         $agenda->delete();
 
         return redirect()->route('guru.agenda')
-                        ->with('success', 'Agenda berhasil dihapus!');
+            ->with('success', 'Agenda berhasil dihapus!');
     }
 }
