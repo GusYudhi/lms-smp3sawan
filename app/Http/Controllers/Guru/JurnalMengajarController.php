@@ -32,9 +32,29 @@ class JurnalMengajarController extends Controller
         $kelasId = $request->get('kelas_id');
         $mataPelajaranId = $request->get('mata_pelajaran_id');
 
-        $query = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai'])
-            ->byGuru($guru->id)
+        // Check if teacher is Wali Kelas (granted access to entire angkatan/tingkat)
+        $isWali = $guru->isWaliKelas();
+        $waliKelas = $isWali ? $guru->waliKelasOf() : null;
+        $angkatanKelasIds = [];
+        if ($waliKelas && $waliKelas->tingkat) {
+            $angkatanQuery = Kelas::where('tingkat', $waliKelas->tingkat);
+            if ($waliKelas->tahun_pelajaran_id) {
+                $angkatanQuery->where('tahun_pelajaran_id', $waliKelas->tahun_pelajaran_id);
+            }
+            $angkatanKelasIds = $angkatanQuery->pluck('id')->toArray();
+        }
+
+        $query = JurnalMengajar::with(['kelas', 'mataPelajaran', 'jamPelajaranMulai', 'jamPelajaranSelesai', 'guru'])
             ->byBulan($bulan, $tahun);
+
+        if (!empty($angkatanKelasIds)) {
+            $query->where(function ($q) use ($guru, $angkatanKelasIds) {
+                $q->where('guru_id', $guru->id)
+                  ->orWhereIn('kelas_id', $angkatanKelasIds);
+            });
+        } else {
+            $query->byGuru($guru->id);
+        }
 
         // Filter berdasarkan kelas jika dipilih
         if ($kelasId) {
@@ -51,24 +71,47 @@ class JurnalMengajarController extends Controller
             ->paginate(20)
             ->appends($request->except('page'));
 
-        // Ambil daftar kelas dan mata pelajaran yang pernah diajar oleh guru
-        $kelasList = JurnalMengajar::select('kelas_id')
-            ->where('guru_id', $guru->id)
-            ->distinct()
-            ->with('kelas')
-            ->get()
-            ->pluck('kelas')
-            ->sortBy('full_name');
+        // Ambil daftar kelas dan mata pelajaran yang relevan untuk filter
+        if (!empty($angkatanKelasIds)) {
+            $kelasList = Kelas::whereIn('id', function($sub) use ($guru, $angkatanKelasIds) {
+                $sub->select('kelas_id')
+                    ->from('jurnal_mengajars')
+                    ->where('guru_id', $guru->id)
+                    ->orWhereIn('kelas_id', $angkatanKelasIds);
+            })->orWhereIn('id', $angkatanKelasIds)
+              ->orderBy('tingkat')
+              ->orderBy('nama_kelas')
+              ->get();
 
-        $mataPelajaranList = JurnalMengajar::select('mata_pelajaran_id')
-            ->where('guru_id', $guru->id)
-            ->distinct()
-            ->with('mataPelajaran')
-            ->get()
-            ->pluck('mataPelajaran')
-            ->sortBy('nama_mapel');
+            $mataPelajaranList = MataPelajaran::whereIn('id', function($sub) use ($guru, $angkatanKelasIds) {
+                $sub->select('mata_pelajaran_id')
+                    ->from('jurnal_mengajars')
+                    ->where('guru_id', $guru->id)
+                    ->orWhereIn('kelas_id', $angkatanKelasIds);
+            })->orderBy('nama_mapel')->get();
+        } else {
+            $kelasList = JurnalMengajar::select('kelas_id')
+                ->where('guru_id', $guru->id)
+                ->distinct()
+                ->with('kelas')
+                ->get()
+                ->pluck('kelas')
+                ->filter()
+                ->sortBy('full_name')
+                ->values();
 
-        return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun', 'kelasId', 'mataPelajaranId', 'kelasList', 'mataPelajaranList'));
+            $mataPelajaranList = JurnalMengajar::select('mata_pelajaran_id')
+                ->where('guru_id', $guru->id)
+                ->distinct()
+                ->with('mataPelajaran')
+                ->get()
+                ->pluck('mataPelajaran')
+                ->filter()
+                ->sortBy('nama_mapel')
+                ->values();
+        }
+
+        return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun', 'kelasId', 'mataPelajaranId', 'kelasList', 'mataPelajaranList', 'isWali', 'waliKelas'));
     }
 
     /**

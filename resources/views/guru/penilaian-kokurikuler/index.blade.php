@@ -27,29 +27,51 @@
                 @endif
             </div>
 
-            @if(isset($accessibleClasses) && $accessibleClasses->count() > 1)
-                <div class="mt-2 d-flex align-items-center gap-2">
-                    <span class="small fw-semibold text-secondary">Pilih Kelas Dampingan:</span>
-                    <form action="{{ route('guru.penilaian-kokurikuler.index') }}" method="GET" class="d-inline">
-                        <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
-                        <select name="kelas_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; min-width: 140px;">
-                            @foreach($accessibleClasses as $ac)
-                                <option value="{{ $ac->id }}" {{ $kelas->id === $ac->id ? 'selected' : '' }}>
-                                    Kelas {{ $ac->full_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </form>
-                </div>
-            @endif
+            <div class="mt-2 d-flex align-items-center gap-3 flex-wrap">
+                @if(isset($semesters) && $semesters->count() > 1)
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small fw-semibold text-secondary">Semester:</span>
+                        <form action="{{ route('guru.penilaian-kokurikuler.index') }}" method="GET" class="d-inline">
+                            <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
+                            @if($kelas)
+                                <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
+                            @endif
+                            <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; min-width: 180px;">
+                                @foreach($semesters as $s)
+                                    <option value="{{ $s->id }}" {{ $activeSemester && $activeSemester->id === $s->id ? 'selected' : '' }}>
+                                        {{ $s->nama }} ({{ $s->tahunPelajaran->nama ?? '-' }}) {{ $s->is_active ? '★ Aktif' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+                @endif
+
+                @if(isset($accessibleClasses) && $accessibleClasses->count() > 1)
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small fw-semibold text-secondary">Pilih Kelas:</span>
+                        <form action="{{ route('guru.penilaian-kokurikuler.index') }}" method="GET" class="d-inline">
+                            <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
+                            @if($activeSemester)
+                                <input type="hidden" name="semester_id" value="{{ $activeSemester->id }}">
+                            @endif
+                            <select name="kelas_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; min-width: 140px;">
+                                @foreach($accessibleClasses as $ac)
+                                    <option value="{{ $ac->id }}" {{ $kelas->id === $ac->id ? 'selected' : '' }}>
+                                        Kelas {{ $ac->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+                @endif
+            </div>
         </div>
-        @if(auth()->user()->isWaliKelas())
-        <div class="d-flex gap-2">
-            <a href="{{ route('guru.penilaian-kokurikuler.rekap') }}" class="btn btn-outline-primary">
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a href="{{ route('guru.penilaian-kokurikuler.rekap', ['semester_id' => $activeSemester?->id, 'kelas_id' => $kelas?->id]) }}" class="btn btn-outline-primary">
                 <i class="fas fa-chart-bar me-1"></i> Rekap & Export Excel
             </a>
         </div>
-        @endif
     </div>
 
     @if(session('success'))

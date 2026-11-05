@@ -27,6 +27,16 @@
         </div>
     @endif
 
+    @if(!empty($isWali) && $waliKelas)
+        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-user-shield fs-4 me-3 text-primary"></i>
+            <div>
+                <strong>Akses Wali Kelas Aktif (Kelas {{ $waliKelas->full_name }}):</strong>
+                <span class="d-block small text-muted">Anda memiliki hak akses pemantauan untuk melihat seluruh jurnal mengajar pada angkatan tingkat {{ $waliKelas->tingkat }}.</span>
+            </div>
+        </div>
+    @endif
+
     <!-- Filter -->
     <div class="card mb-4">
         <div class="card-body">
@@ -94,17 +104,18 @@
     <div class="card">
         <div class="card-body">
             @if($jurnals->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-hover">
+                <!-- Desktop Table View -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">No</th>
                                 <th width="12%">Tanggal</th>
-                                <th width="10%">Hari</th>
                                 <th width="8%">Jam Ke</th>
                                 <th width="10%">Kelas</th>
                                 <th width="15%">Mata Pelajaran</th>
-                                <th width="25%">Materi</th>
+                                <th width="20%">Materi</th>
+                                <th width="15%">Guru</th>
                                 <th width="15%">Aksi</th>
                             </tr>
                         </thead>
@@ -112,8 +123,10 @@
                             @foreach($jurnals as $key => $jurnal)
                                 <tr>
                                     <td>{{ $jurnals->firstItem() + $key }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d/m/Y') }}</td>
-                                    <td>{{ ucfirst($jurnal->hari) }}</td>
+                                    <td>
+                                        <div><strong>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d/m/Y') }}</strong></div>
+                                        <small class="text-muted">{{ ucfirst($jurnal->hari) }}</small>
+                                    </td>
                                     <td class="text-center">
                                         @if($jurnal->jam_ke_mulai == $jurnal->jam_ke_selesai)
                                             <span class="badge bg-primary">{{ $jurnal->jam_ke_mulai }}</span>
@@ -122,13 +135,20 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <strong>{{ $jurnal->kelas->full_name }}</strong>
+                                        <span class="badge bg-info">{{ $jurnal->kelas->full_name }}</span>
                                     </td>
                                     <td>{{ $jurnal->mataPelajaran->nama_mapel }}</td>
                                     <td>
-                                        <div class="text-truncate" style="max-width: 300px;" title="{{ $jurnal->materi_pembelajaran }}">
+                                        <div class="text-truncate" style="max-width: 250px;" title="{{ $jurnal->materi_pembelajaran }}">
                                             {{ $jurnal->materi_pembelajaran }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        @if($jurnal->guru_id === Auth::id())
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Saya</span>
+                                        @else
+                                            <small class="fw-semibold text-secondary">{{ $jurnal->guru->name ?? 'Guru Lain' }}</small>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="d-inline-flex align-items-center gap-1">
@@ -137,30 +157,87 @@
                                                title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('guru.jurnal-mengajar.edit', $jurnal->id) }}"
-                                               class="btn btn-sm btn-outline-warning"
-                                               title="Edit Jurnal">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="confirmDelete({{ $jurnal->id }})"
-                                                    title="Hapus Jurnal">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            @if($jurnal->guru_id === Auth::id())
+                                                <a href="{{ route('guru.jurnal-mengajar.edit', $jurnal->id) }}"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="Edit Jurnal">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="confirmDelete({{ $jurnal->id }})"
+                                                        title="Hapus Jurnal">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endif
                                         </div>
-                                        <form id="delete-form-{{ $jurnal->id }}"
-                                              action="{{ route('guru.jurnal-mengajar.destroy', $jurnal->id) }}"
-                                              method="POST"
-                                              style="display: none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
+                                        @if($jurnal->guru_id === Auth::id())
+                                            <form id="delete-form-{{ $jurnal->id }}"
+                                                  action="{{ route('guru.jurnal-mengajar.destroy', $jurnal->id) }}"
+                                                  method="POST"
+                                                  style="display: none;">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="d-md-none d-flex flex-column gap-3">
+                    @foreach($jurnals as $key => $jurnal)
+                        <div class="card border border-light-subtle shadow-sm rounded-3">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary">Kelas {{ $jurnal->kelas->full_name }}</span>
+                                        <span class="badge bg-secondary">
+                                            Jam {{ $jurnal->jam_ke_mulai }}{{ $jurnal->jam_ke_mulai != $jurnal->jam_ke_selesai ? '-'.$jurnal->jam_ke_selesai : '' }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted fw-semibold">
+                                        {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d M Y') }}
+                                    </small>
+                                </div>
+
+                                <h6 class="fw-bold text-dark mb-1">{{ $jurnal->mataPelajaran->nama_mapel }}</h6>
+                                <p class="text-muted small mb-2 text-truncate-2">
+                                    {{ $jurnal->materi_pembelajaran }}
+                                </p>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <div>
+                                        @if($jurnal->guru_id === Auth::id())
+                                            <span class="badge bg-success-subtle text-success">Oleh Saya</span>
+                                        @else
+                                            <small class="text-muted"><i class="fas fa-chalkboard-teacher me-1"></i>{{ $jurnal->guru->name ?? 'Guru Lain' }}</small>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <a href="{{ route('guru.jurnal-mengajar.show', $jurnal->id) }}"
+                                           class="btn btn-sm btn-outline-primary px-2 py-1">
+                                            <i class="fas fa-eye me-1"></i>Detail
+                                        </a>
+                                        @if($jurnal->guru_id === Auth::id())
+                                            <a href="{{ route('guru.jurnal-mengajar.edit', $jurnal->id) }}"
+                                               class="btn btn-sm btn-outline-warning px-2 py-1">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger px-2 py-1"
+                                                    onclick="confirmDelete({{ $jurnal->id }})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
 
                 <!-- Pagination -->

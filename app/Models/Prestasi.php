@@ -27,4 +27,9 @@ class Prestasi extends Model
     {
         return $this->belongsTo(User::class, 'penulis_id');
     }
+
+    public function images()
+    {
+        return $this->hasMany(PrestasiImage::class, 'prestasi_id')->orderBy('urutan', 'asc');
+    }
 }

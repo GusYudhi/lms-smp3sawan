@@ -33,15 +33,46 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="foto" class="form-label">Foto Utama</label>
+                    <label for="foto" class="form-label fw-semibold">Foto Sampul Utama</label>
                     @if($berita->foto)
                         <div class="mb-2">
-                            <img src="{{ asset('storage/' . $berita->foto) }}" alt="Current Photo" width="150" class="img-thumbnail">
+                            <img src="{{ asset('storage/' . $berita->foto) }}" alt="Current Photo" width="160" class="img-thumbnail rounded">
                         </div>
                     @endif
                     <input type="file" class="form-control @error('foto') is-invalid @enderror" id="foto" name="foto" accept="image/*">
-                    <small class="text-muted">Biarkan kosong jika tidak ingin mengubah foto. Format: jpg, jpeg, png. Maksimal 2MB.</small>
+                    <small class="text-muted">Biarkan kosong jika tidak ingin mengubah foto sampul utama.</small>
                     @error('foto')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                @if($berita->images && $berita->images->count() > 0)
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Foto-Foto Tambahan Tersimpan</label>
+                        <div class="row g-2" id="existingExtraImages">
+                            @foreach($berita->images as $img)
+                                <div class="col-4 col-md-3 col-lg-2" id="image-box-{{ $img->id }}">
+                                    <div class="position-relative border rounded p-1 bg-light">
+                                        <img src="{{ asset('storage/' . $img->foto) }}" class="img-fluid rounded object-fit-cover w-100" style="height: 100px;" alt="Dokumentasi">
+                                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle delete-extra-image"
+                                                style="width: 24px; height: 24px;"
+                                                data-url="{{ route('admin.berita.delete-image', ['id' => $berita->id, 'imageId' => $img->id]) }}"
+                                                data-target="#image-box-{{ $img->id }}"
+                                                title="Hapus foto ini">
+                                            &times;
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="mb-3">
+                    <label for="foto_tambahan" class="form-label fw-semibold">Tambah Foto Tambahan Baru (Bisa Lebih Dari 1)</label>
+                    <input type="file" class="form-control @error('foto_tambahan.*') is-invalid @enderror" id="foto_tambahan" name="foto_tambahan[]" accept="image/*" multiple>
+                    <small class="text-muted">Pilih satu atau beberapa foto untuk ditambahkan ke galeri berita ini.</small>
+                    @error('foto_tambahan.*')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -59,4 +90,40 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    document.querySelectorAll('.delete-extra-image').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const targetId = this.dataset.target;
+            Swal.fire({
+                title: 'Hapus foto ini?',
+                text: 'Foto tambahan ini akan dihapus permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const elem = document.querySelector(targetId);
+                            if (elem) elem.remove();
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -29,8 +29,8 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
-            @if(auth()->user()->isWaliKelas())
-                <a href="{{ route('guru.penilaian-kokurikuler.index') }}" class="btn btn-outline-secondary">
+            @if(auth()->user()->canAccessKokurikuler())
+                <a href="{{ route('guru.penilaian-kokurikuler.index', ['semester_id' => $activeSemester?->id, 'kelas_id' => $kelas?->id]) }}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Kembali ke Input Harian
                 </a>
             @endif
@@ -39,12 +39,10 @@
                 @php
                     $exportParams = [
                         'semester_id' => $activeSemester->id,
+                        'kelas_id' => $kelas->id,
                         'bulan' => $selectedBulan ?? 'all',
                         'hari' => $selectedHari ?? 'all',
                     ];
-                    if (auth()->user()->isAdmin() || auth()->user()->isKepalaSekolah()) {
-                        $exportParams['kelas_id'] = $kelas->id;
-                    }
                     $exportRoute = auth()->user()->isAdmin()
                         ? route('admin.penilaian-kokurikuler.export', $exportParams)
                         : (auth()->user()->isKepalaSekolah()

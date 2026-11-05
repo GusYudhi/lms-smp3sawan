@@ -35,6 +35,20 @@
                             {!! nl2br(e($berita->konten)) !!}
                         </div>
                     </div>
+                    @if($berita->images && $berita->images->count() > 0)
+                        <div class="px-4 px-md-5 pb-4">
+                            <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-images text-primary me-2"></i>Galeri Foto Tambahan</h5>
+                            <div class="row g-3">
+                                @foreach($berita->images as $img)
+                                    <div class="col-6 col-md-4">
+                                        <a href="{{ asset('storage/' . $img->foto) }}" target="_blank" class="d-block rounded-3 overflow-hidden shadow-sm border border-light-subtle">
+                                            <img src="{{ asset('storage/' . $img->foto) }}" class="img-fluid w-100 object-fit-cover" style="height: 160px;" alt="Dokumentasi Berita">
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                     <div class="card-footer bg-white border-top py-3 px-4 px-md-5">
                         <a href="{{ route('guest.berita.index') }}" class="btn btn-outline-primary">
                             <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar Berita

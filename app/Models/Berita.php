@@ -27,4 +27,9 @@ class Berita extends Model
     {
         return $this->belongsTo(User::class, 'penulis_id');
     }
+
+    public function images()
+    {
+        return $this->hasMany(BeritaImage::class, 'berita_id')->orderBy('urutan', 'asc');
+    }
 }

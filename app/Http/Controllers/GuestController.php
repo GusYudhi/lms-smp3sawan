@@ -8,6 +8,7 @@ use App\Models\Berita;
 use App\Models\User;
 use App\Models\Saran;
 use App\Models\Galeri;
+use App\Models\LandingHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -51,54 +52,38 @@ class GuestController extends Controller
         $prestasis = Prestasi::latest()->take(4)->get();
         $beritas = Berita::latest()->take(4)->get();
 
-        // Build hero slides combining Berita, Prestasi, and Galeri photos
-        $beritaSlides = Berita::whereNotNull('foto')->latest('tanggal')->take(3)->get()->map(function ($item) {
-            return [
-                'image' => asset('storage/' . $item->foto),
-                'category' => 'Berita Sekolah',
-                'badge_class' => 'm3-chip-berita',
-                'icon' => 'fa-newspaper',
-                'title' => $item->judul,
-                'date' => $item->tanggal ? $item->tanggal->format('d M Y') : '',
-                'url' => route('guest.berita.show', $item->id),
-                'sort_date' => $item->tanggal ? $item->tanggal->timestamp : ($item->created_at ? $item->created_at->timestamp : 0),
-            ];
-        });
+        $schoolProfile = SchoolProfile::first();
+        $heroMode = $schoolProfile ? ($schoolProfile->hero_mode ?? 'slideshow') : 'slideshow';
 
-        $prestasiSlides = Prestasi::whereNotNull('foto')->latest('tanggal')->take(3)->get()->map(function ($item) {
-            return [
-                'image' => asset('storage/' . $item->foto),
-                'category' => 'Prestasi Siswa',
-                'badge_class' => 'm3-chip-prestasi',
-                'icon' => 'fa-trophy',
-                'title' => $item->judul,
-                'date' => $item->tanggal ? $item->tanggal->format('d M Y') : '',
-                'url' => route('guest.prestasi.show', $item->id),
-                'sort_date' => $item->tanggal ? $item->tanggal->timestamp : ($item->created_at ? $item->created_at->timestamp : 0),
-            ];
-        });
+        $heroSlides = LandingHero::where('is_active', true)
+            ->orderBy('urutan', 'asc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'image' => asset('storage/' . $item->gambar),
+                    'title' => $item->judul ?: 'SMPN 3 Sawan',
+                    'subtitle' => $item->subjudul,
+                ];
+            });
 
-        $galeriSlides = Galeri::where('tipe', 'foto')->whereNotNull('file_path')->latest()->take(3)->get()->map(function ($item) {
-            return [
-                'image' => asset('storage/' . $item->file_path),
-                'category' => 'Galeri Sekolah',
-                'badge_class' => 'm3-chip-galeri',
-                'icon' => 'fa-camera',
-                'title' => $item->judul ?: 'Dokumentasi Kegiatan SMPN 3 Sawan',
-                'date' => $item->created_at ? $item->created_at->format('d M Y') : '',
-                'url' => route('guest.galeri'),
-                'sort_date' => $item->created_at ? $item->created_at->timestamp : 0,
-            ];
-        });
+        // Fallback default jika belum ada wallpaper yang diunggah
+        if ($heroSlides->isEmpty()) {
+            $heroSlides = collect([
+                [
+                    'image' => asset('assets/images/hero-bg.jpg'),
+                    'title' => 'SMPN 3 Sawan',
+                    'subtitle' => 'Gerbang Pembelajaran & Kebersamaan',
+                ]
+            ]);
+        }
 
-        $heroSlides = $beritaSlides
-            ->concat($prestasiSlides)
-            ->concat($galeriSlides)
-            ->sortByDesc('sort_date')
-            ->take(6)
-            ->values();
+        // Jika mode statis (tetap), hanya ambil 1 wallpaper utama
+        if ($heroMode === 'static') {
+            $heroSlides = $heroSlides->take(1);
+        }
 
-        return view('welcome', compact('schoolData', 'prestasis', 'beritas', 'heroSlides'));
+        return view('welcome', compact('schoolData', 'prestasis', 'beritas', 'heroSlides', 'heroMode'));
     }
 
     public function guruStaff()
@@ -120,7 +105,7 @@ class GuestController extends Controller
     public function showBerita($id)
     {
         $schoolData = $this->getSchoolData();
-        $berita = Berita::findOrFail($id);
+        $berita = Berita::with(['images', 'penulis'])->findOrFail($id);
         return view('guest.berita.show', compact('berita', 'schoolData'));
     }
 
@@ -134,7 +119,7 @@ class GuestController extends Controller
     public function showPrestasi($id)
     {
         $schoolData = $this->getSchoolData();
-        $prestasi = Prestasi::findOrFail($id);
+        $prestasi = Prestasi::with(['images', 'penulis'])->findOrFail($id);
         return view('guest.prestasi.show', compact('prestasi', 'schoolData'));
     }
 

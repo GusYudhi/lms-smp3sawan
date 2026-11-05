@@ -31,7 +31,11 @@
                             </h1>
                             <p class="text-subtle mb-0 fw-medium">Kelola agenda mengajar dan jurnal pembelajaran Anda</p>
                         </div>
-                        <div class="col-md-4 text-end">
+                        <div class="col-md-5 text-end mt-3 mt-md-0 d-flex justify-content-md-end gap-2 flex-wrap">
+                            <a href="{{ route('guru.agenda.export', request()->all()) }}" class="btn btn-outline-success shadow-sm">
+                                <i class="fas fa-file-excel me-1"></i>
+                                Download Excel
+                            </a>
                             <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addAgendaModal">
                                 <i class="fas fa-plus me-1"></i>
                                 Tambah Agenda

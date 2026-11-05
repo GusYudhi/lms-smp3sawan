@@ -180,9 +180,11 @@ Route::middleware(['auth'])->group(function () {
 
         // Prestasi
         Route::resource('prestasi', App\Http\Controllers\Admin\PrestasiController::class)->names('admin.prestasi');
+        Route::delete('/prestasi/{id}/image/{imageId}', [App\Http\Controllers\Admin\PrestasiController::class, 'destroyImage'])->name('admin.prestasi.delete-image');
 
         // Berita
         Route::resource('berita', App\Http\Controllers\Admin\BeritaController::class)->names('admin.berita');
+        Route::delete('/berita/{id}/image/{imageId}', [App\Http\Controllers\Admin\BeritaController::class, 'destroyImage'])->name('admin.berita.delete-image');
 
         // Saran
         Route::get('/saran', [App\Http\Controllers\Admin\SaranController::class, 'index'])->name('admin.saran.index');
@@ -191,6 +193,14 @@ Route::middleware(['auth'])->group(function () {
 
         // Galeri
         Route::resource('galeri', App\Http\Controllers\Admin\GaleriController::class)->names('admin.galeri');
+
+        // Landing Hero Wallpaper & Slideshow
+        Route::get('/landing-hero', [App\Http\Controllers\Admin\LandingHeroController::class, 'index'])->name('admin.landing-hero.index');
+        Route::post('/landing-hero', [App\Http\Controllers\Admin\LandingHeroController::class, 'store'])->name('admin.landing-hero.store');
+        Route::put('/landing-hero/{id}', [App\Http\Controllers\Admin\LandingHeroController::class, 'update'])->name('admin.landing-hero.update');
+        Route::delete('/landing-hero/{id}', [App\Http\Controllers\Admin\LandingHeroController::class, 'destroy'])->name('admin.landing-hero.destroy');
+        Route::post('/landing-hero/toggle-mode', [App\Http\Controllers\Admin\LandingHeroController::class, 'toggleMode'])->name('admin.landing-hero.toggle-mode');
+        Route::post('/landing-hero/{id}/toggle-status', [App\Http\Controllers\Admin\LandingHeroController::class, 'toggleStatus'])->name('admin.landing-hero.toggle-status');
     });
 
     // Kepala Sekolah routes
@@ -336,6 +346,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Agenda Guru routes
         Route::get('/agenda', [App\Http\Controllers\Guru\AgendaGuruController::class, 'index'])->name('guru.agenda');
+        Route::get('/agenda/export', [App\Http\Controllers\Guru\AgendaGuruController::class, 'export'])->name('guru.agenda.export');
         Route::post('/agenda', [App\Http\Controllers\Guru\AgendaGuruController::class, 'store'])->name('guru.agenda.store');
         Route::put('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'update'])->name('guru.agenda.update');
         Route::delete('/agenda/{id}', [App\Http\Controllers\Guru\AgendaGuruController::class, 'destroy'])->name('guru.agenda.destroy');

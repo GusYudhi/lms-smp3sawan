@@ -7,6 +7,8 @@ use App\Models\AgendaGuru;
 use App\Models\JamPelajaran;
 use App\Models\Semester;
 use App\Models\Kelas;
+use App\Exports\AgendaGuruExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -61,6 +63,24 @@ class AgendaGuruController extends Controller
         }
 
         return view('guru.agenda-guru.agenda-guru', compact('agendas', 'jamPelajarans', 'kelasList'));
+    }
+
+    /**
+     * Export agendas to Excel based on active filter.
+     */
+    public function export(Request $request)
+    {
+        $filters = [
+            'search' => $request->get('search'),
+            'kelas' => $request->get('kelas'),
+            'status' => $request->get('status'),
+            'keterangan' => $request->get('keterangan'),
+        ];
+
+        $teacherName = preg_replace('/[^A-Za-z0-9_]/', '_', Auth::user()->name);
+        $fileName = 'Agenda_Guru_' . $teacherName . '_' . date('Ymd_His') . '.xlsx';
+
+        return Excel::download(new AgendaGuruExport(Auth::id(), $filters), $fileName);
     }
 
     /**

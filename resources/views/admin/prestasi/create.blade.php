@@ -32,10 +32,19 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="foto" class="form-label">Foto Dokumentasi</label>
+                    <label for="foto" class="form-label fw-semibold">Foto Sampul Utama</label>
                     <input type="file" class="form-control @error('foto') is-invalid @enderror" id="foto" name="foto" accept="image/*">
-                    <small class="text-muted">Format: jpg, jpeg, png. Maksimal 2MB.</small>
+                    <small class="text-muted">Foto utama yang tampil di kartu prestasi dan galeri beranda.</small>
                     @error('foto')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="foto_tambahan" class="form-label fw-semibold">Foto Dokumentasi Tambahan (Bisa Lebih Dari 1)</label>
+                    <input type="file" class="form-control @error('foto_tambahan.*') is-invalid @enderror" id="foto_tambahan" name="foto_tambahan[]" accept="image/*" multiple>
+                    <small class="text-muted">Pilih satu atau beberapa foto bukti/dokumentasi prestasi. Otomatis dikompres WebP.</small>
+                    @error('foto_tambahan.*')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>

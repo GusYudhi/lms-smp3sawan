@@ -55,11 +55,12 @@ class AbsensiRekapController extends Controller
     }
 
     /**
-     * Get classes taught by current teacher
+     * Get classes taught by current teacher (or entire grade level if user is Wali Kelas)
      */
     private function getTeacherClasses()
     {
-        $currentUserId = auth()->id();
+        $user = auth()->user();
+        $currentUserId = $user->id;
 
         // Get active semester
         $semesterId = Semester::getActive()?->id;
@@ -73,7 +74,22 @@ class AbsensiRekapController extends Controller
             $query->where('semester_id', $semesterId);
         }
 
-        return $query->pluck('kelas_id')->toArray();
+        $taughtClasses = $query->pluck('kelas_id')->toArray();
+
+        // If user is Wali Kelas, include all classes in their angkatan/grade level
+        if ($user->isWaliKelas()) {
+            $waliKelas = $user->waliKelasOf();
+            if ($waliKelas && $waliKelas->tingkat) {
+                $angkatanQuery = Kelas::where('tingkat', $waliKelas->tingkat);
+                if ($waliKelas->tahun_pelajaran_id) {
+                    $angkatanQuery->where('tahun_pelajaran_id', $waliKelas->tahun_pelajaran_id);
+                }
+                $angkatanClasses = $angkatanQuery->pluck('id')->toArray();
+                return array_values(array_unique(array_merge($taughtClasses, $angkatanClasses)));
+            }
+        }
+
+        return $taughtClasses;
     }
 
     /**

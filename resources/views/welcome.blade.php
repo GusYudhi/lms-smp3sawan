@@ -5,8 +5,11 @@
 @section('content')
 <!-- 1. Full-Bleed Hero Slideshow -->
 <section class="guest-hero">
-    <!-- Background Slideshow -->
-    <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel-bg" data-bs-ride="carousel" data-bs-interval="6000" data-bs-pause="false">
+    <!-- Background Slideshow / Static Wallpaper -->
+    <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel-bg"
+         @if(($heroMode ?? 'slideshow') === 'slideshow' && $heroSlides->count() > 1)
+             data-bs-ride="carousel" data-bs-interval="6000" data-bs-pause="false"
+         @endif>
         <div class="carousel-inner">
             @forelse($heroSlides as $index => $slide)
                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
@@ -58,40 +61,38 @@
         </div>
     </div>
 
-    <!-- Dynamic Slide Source Caption Bar -->
-    @if(isset($heroSlides) && $heroSlides->count() > 0)
+    <!-- Dynamic Slide Source Caption Bar (Shown if Slideshow has multiple slides) -->
+    @if(($heroMode ?? 'slideshow') === 'slideshow' && isset($heroSlides) && $heroSlides->count() > 1)
     <div class="container hero-bottom-bar">
         <div class="hero-caption-surface">
             @foreach($heroSlides as $index => $slide)
                 <div class="hero-caption-item {{ $index === 0 ? 'active' : '' }}" data-slide-index="{{ $index }}">
-                    <span class="m3-source-chip {{ $slide['badge_class'] }}">
-                        <i class="fas {{ $slide['icon'] }}"></i>
-                        {{ $slide['category'] }}
+                    <span class="m3-source-chip m3-chip-galeri">
+                        <i class="fas fa-camera"></i>
+                        Galeri Latar
                     </span>
                     <div class="caption-text-wrap">
-                        <a href="{{ $slide['url'] }}" class="caption-title-link">
+                        <span class="caption-title-link">
                             {{ $slide['title'] }}
-                        </a>
-                        @if(!empty($slide['date']))
-                            <span class="caption-date">Dipublikasikan pada {{ $slide['date'] }}</span>
+                        </span>
+                        @if(!empty($slide['subtitle']))
+                            <span class="caption-date">{{ $slide['subtitle'] }}</span>
                         @endif
                     </div>
                 </div>
             @endforeach
 
-            @if($heroSlides->count() > 1)
-                <div class="hero-slider-controls">
-                    <span class="slide-counter">
-                        <span id="heroSlideCurrent">01</span> / {{ str_pad($heroSlides->count(), 2, '0', STR_PAD_LEFT) }}
-                    </span>
-                    <button type="button" class="btn btn-hero-nav" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Slide sebelumnya">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button type="button" class="btn btn-hero-nav" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Slide berikutnya">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            @endif
+            <div class="hero-slider-controls">
+                <span class="slide-counter">
+                    <span id="heroSlideCurrent">01</span> / {{ str_pad($heroSlides->count(), 2, '0', STR_PAD_LEFT) }}
+                </span>
+                <button type="button" class="btn btn-hero-nav" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Slide sebelumnya">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button type="button" class="btn btn-hero-nav" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Slide berikutnya">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
     @endif

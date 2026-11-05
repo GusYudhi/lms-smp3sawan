@@ -121,7 +121,8 @@
                             <p class="text-muted">Belum ada data absensi untuk periode yang dipilih</p>
                         </div>
                     @else
-                        <div class="table-responsive">
+                        <!-- Desktop View: Table -->
+                        <div class="table-responsive d-none d-md-block">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
@@ -186,6 +187,64 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Mobile View: Modern Cards -->
+                        <div class="d-md-none d-flex flex-column gap-3">
+                            @foreach($rekap as $index => $item)
+                                <div class="card border border-light-subtle shadow-sm rounded-3">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="fw-bold mb-0 text-dark">{{ $item['siswa']->name }}</h6>
+                                                <small class="text-muted">NISN: {{ $item['siswa']->studentProfile->nisn ?? '-' }}</small>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="badge bg-primary px-2 py-1">
+                                                    {{ $item['siswa']->studentProfile->kelas->tingkat ?? '' }}{{ $item['siswa']->studentProfile->kelas->nama_kelas ?? '' }}
+                                                </span>
+                                                @if($item['persentase_hadir'] >= 80)
+                                                    <span class="badge bg-success px-2 py-1">{{ $item['persentase_hadir'] }}%</span>
+                                                @elseif($item['persentase_hadir'] >= 60)
+                                                    <span class="badge bg-warning px-2 py-1">{{ $item['persentase_hadir'] }}%</span>
+                                                @else
+                                                    <span class="badge bg-danger px-2 py-1">{{ $item['persentase_hadir'] }}%</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-1 text-center my-2 p-2 bg-light rounded-2">
+                                            <div class="col">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Hadir</small>
+                                                <span class="fw-bold text-success">{{ $item['summary']['hadir'] }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Sakit</small>
+                                                <span class="fw-bold text-warning">{{ $item['summary']['sakit'] }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Izin</small>
+                                                <span class="fw-bold text-info">{{ $item['summary']['izin'] }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Alpha</small>
+                                                <span class="fw-bold text-danger">{{ $item['summary']['alpha'] }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Telat</small>
+                                                <span class="fw-bold text-secondary">{{ $item['summary']['terlambat'] }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid mt-2">
+                                            <a href="{{ route('guru.rekap-absensi.siswa.detail', $item['siswa']->id) }}?filter={{ $filter }}&start_date={{ $startDate }}&end_date={{ $endDate }}"
+                                               class="btn btn-sm btn-outline-primary py-1">
+                                                <i class="fas fa-eye me-1"></i>Lihat Riwayat Lengkap
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     @endif
                 </div>

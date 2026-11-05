@@ -28,10 +28,11 @@ class BeritaController extends Controller
             'judul' => 'required|string|max:255',
             'konten' => 'required',
             'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
+            'foto_tambahan.*' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['foto_tambahan']);
         $data['penulis_id'] = Auth::id();
 
         if ($request->hasFile('foto')) {
@@ -44,14 +45,30 @@ class BeritaController extends Controller
             );
         }
 
-        Berita::create($data);
+        $berita = Berita::create($data);
+
+        if ($request->hasFile('foto_tambahan')) {
+            foreach ($request->file('foto_tambahan') as $index => $file) {
+                $extraPath = ImageCompressor::compressAndStore(
+                    $file,
+                    'berita',
+                    'berita_extra_' . time() . '_' . uniqid(),
+                    75,
+                    1280
+                );
+                $berita->images()->create([
+                    'foto' => $extraPath,
+                    'urutan' => $index + 1,
+                ]);
+            }
+        }
 
         return redirect()->route('guru.berita.index')->with('success', 'Berita berhasil ditambahkan');
     }
 
     public function edit($id)
     {
-        $berita = Berita::findOrFail($id);
+        $berita = Berita::with('images')->findOrFail($id);
         return view('guru.berita.edit', compact('berita'));
     }
 
@@ -63,10 +80,11 @@ class BeritaController extends Controller
             'judul' => 'required|string|max:255',
             'konten' => 'required',
             'foto' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
+            'foto_tambahan.*' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:10240',
             'tanggal' => 'required|date',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['foto_tambahan']);
 
         if ($request->hasFile('foto')) {
             if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
@@ -83,14 +101,36 @@ class BeritaController extends Controller
 
         $berita->update($data);
 
+        if ($request->hasFile('foto_tambahan')) {
+            $currentMax = $berita->images()->max('urutan') ?? 0;
+            foreach ($request->file('foto_tambahan') as $index => $file) {
+                $extraPath = ImageCompressor::compressAndStore(
+                    $file,
+                    'berita',
+                    'berita_extra_' . time() . '_' . uniqid(),
+                    75,
+                    1280
+                );
+                $berita->images()->create([
+                    'foto' => $extraPath,
+                    'urutan' => $currentMax + $index + 1,
+                ]);
+            }
+        }
+
         return redirect()->route('guru.berita.index')->with('success', 'Berita berhasil diperbarui');
     }
 
     public function destroy($id)
     {
-        $berita = Berita::findOrFail($id);
+        $berita = Berita::with('images')->findOrFail($id);
         if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
             Storage::disk('public')->delete($berita->foto);
+        }
+        foreach ($berita->images as $img) {
+            if ($img->foto && Storage::disk('public')->exists($img->foto)) {
+                Storage::disk('public')->delete($img->foto);
+            }
         }
         $berita->delete();
 

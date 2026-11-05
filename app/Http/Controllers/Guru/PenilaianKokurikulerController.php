@@ -12,6 +12,7 @@ use App\Models\KokurikulerSession;
 use App\Models\PenilaianKokurikuler;
 use App\Models\Semester;
 use App\Models\StudentProfile;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,25 +22,25 @@ use Maatwebsite\Excel\Facades\Excel;
 class PenilaianKokurikulerController extends Controller
 {
     public const INDONESIAN_DAYS = [
-        'Sunday'    => 'Minggu',
-        'Monday'    => 'Senin',
-        'Tuesday'   => 'Selasa',
+        'Sunday' => 'Minggu',
+        'Monday' => 'Senin',
+        'Tuesday' => 'Selasa',
         'Wednesday' => 'Rabu',
-        'Thursday'  => 'Kamis',
-        'Friday'    => 'Jumat',
-        'Saturday'  => 'Sabtu',
+        'Thursday' => 'Kamis',
+        'Friday' => 'Jumat',
+        'Saturday' => 'Sabtu',
     ];
 
     public const INDONESIAN_MONTHS = [
-        1  => 'Januari',
-        2  => 'Februari',
-        3  => 'Maret',
-        4  => 'April',
-        5  => 'Mei',
-        6  => 'Juni',
-        7  => 'Juli',
-        8  => 'Agustus',
-        9  => 'September',
+        1 => 'Januari',
+        2 => 'Februari',
+        3 => 'Maret',
+        4 => 'April',
+        5 => 'Mei',
+        6 => 'Juni',
+        7 => 'Juli',
+        8 => 'Agustus',
+        9 => 'September',
         10 => 'Oktober',
         11 => 'November',
         12 => 'Desember',
@@ -50,10 +51,10 @@ class PenilaianKokurikulerController extends Controller
      */
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
-        if (!$user->canAccessKokurikuler()) {
+        if (! $user->canAccessKokurikuler()) {
             abort(403, 'Halaman ini hanya dapat diakses oleh Wali Kelas atau Guru Pendamping.');
         }
 
@@ -67,19 +68,24 @@ class PenilaianKokurikulerController extends Controller
             ? $accessibleClasses->firstWhere('id', (int) $selectedKelasId)
             : null;
 
-        if (!$kelas) {
+        if (! $kelas) {
             $kelas = $accessibleClasses->first();
         }
 
         $canAssessRubric = $user->isWaliKelas() && optional($user->waliKelasOf())->id === $kelas->id;
-        $activeSemester = Semester::with('tahunPelajaran')->where('is_active', true)->first();
 
-        if (!$activeSemester) {
+        $semesters = Semester::with('tahunPelajaran')->orderByDesc('is_active')->orderByDesc('id')->get();
+        $activeSemester = $request->filled('semester_id')
+            ? Semester::with('tahunPelajaran')->find($request->input('semester_id'))
+            : ($semesters->firstWhere('is_active', true) ?? $semesters->first());
+
+        if (! $activeSemester) {
             return view('guru.penilaian-kokurikuler.index', [
                 'kelas' => $kelas,
                 'accessibleClasses' => $accessibleClasses,
                 'canAssessRubric' => $canAssessRubric,
                 'activeSemester' => null,
+                'semesters' => $semesters,
                 'selectedDate' => Carbon::today()->format('Y-m-d'),
                 'selectedDayName' => self::INDONESIAN_DAYS[Carbon::today()->format('l')],
                 'kokurikulerSchedule' => null,
@@ -141,12 +147,12 @@ class PenilaianKokurikulerController extends Controller
 
         // Get history of assessed dates for quick navigation
         $historySessions = PenilaianKokurikuler::select(
-                'tanggal',
-                'hari',
-                'tema',
-                DB::raw('COUNT(*) as total_siswa'),
-                DB::raw("SUM(CASE WHEN predikat IS NOT NULL AND predikat != '' THEN 1 ELSE 0 END) as total_dinilai")
-            )
+            'tanggal',
+            'hari',
+            'tema',
+            DB::raw('COUNT(*) as total_siswa'),
+            DB::raw("SUM(CASE WHEN predikat IS NOT NULL AND predikat != '' THEN 1 ELSE 0 END) as total_dinilai")
+        )
             ->where('semester_id', $activeSemester->id)
             ->where('kelas_id', $kelas->id)
             ->groupBy('tanggal', 'hari', 'tema')
@@ -159,6 +165,7 @@ class PenilaianKokurikulerController extends Controller
             'accessibleClasses',
             'canAssessRubric',
             'activeSemester',
+            'semesters',
             'selectedDate',
             'selectedDayName',
             'kokurikulerSchedule',
@@ -176,10 +183,10 @@ class PenilaianKokurikulerController extends Controller
      */
     public function store(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
-        if (!$user->canAccessKokurikuler()) {
+        if (! $user->canAccessKokurikuler()) {
             abort(403, 'Hanya Wali Kelas atau Guru Pendamping yang dapat menyimpan data kokurikuler.');
         }
 
@@ -189,11 +196,11 @@ class PenilaianKokurikulerController extends Controller
             ? $accessibleClasses->firstWhere('id', (int) $kelasId)
             : $accessibleClasses->first();
 
-        if (!$kelas) {
+        if (! $kelas) {
             abort(403, 'Kelas tidak valid atau Anda tidak memiliki akses ke kelas ini.');
         }
 
-        if (!$request->filled('kelas_id')) {
+        if (! $request->filled('kelas_id')) {
             $request->merge(['kelas_id' => $kelas->id]);
         }
 
@@ -253,8 +260,8 @@ class PenilaianKokurikulerController extends Controller
                     1200
                 );
 
-                $filename = 'koku_' . $kelas->id . '_' . $user->id . '_' . time() . '_' . uniqid() . '.webp';
-                $newPath = 'kokurikuler_bukti/' . $filename;
+                $filename = 'koku_'.$kelas->id.'_'.$user->id.'_'.time().'_'.uniqid().'.webp';
+                $newPath = 'kokurikuler_bukti/'.$filename;
 
                 Storage::disk('public')->put($newPath, $compressedImage);
 
@@ -265,7 +272,7 @@ class PenilaianKokurikulerController extends Controller
 
                 $fotoPath = $newPath;
             } catch (\Exception $e) {
-                return back()->withErrors(['foto_bukti' => 'Gagal memproses foto bukti: ' . $e->getMessage()])->withInput();
+                return back()->withErrors(['foto_bukti' => 'Gagal memproses foto bukti: '.$e->getMessage()])->withInput();
             }
         }
 
@@ -323,7 +330,7 @@ class PenilaianKokurikulerController extends Controller
                 if ($canAssessRubric) {
                     $itemNilai = $nilaiInput[$studentUserId] ?? [];
                     $predikat = $isPresent ? ($itemNilai['predikat'] ?? null) : null;
-                    $catatan = !empty($itemNilai['catatan']) ? trim($itemNilai['catatan']) : null;
+                    $catatan = ! empty($itemNilai['catatan']) ? trim($itemNilai['catatan']) : null;
                     $penilaiUserId = $user->id;
                 } else {
                     // Guru Pendamping: jaga predikat & catatan sebelumnya dari Wali Kelas jika hadir
@@ -333,7 +340,7 @@ class PenilaianKokurikulerController extends Controller
                 }
 
                 // Skip if neither attendance was explicitly submitted nor existing/rubric data
-                if (!isset($absensiInput[$studentUserId]) && empty($predikat) && empty($catatan)) {
+                if (! isset($absensiInput[$studentUserId]) && empty($predikat) && empty($catatan)) {
                     continue;
                 }
 
@@ -368,15 +375,15 @@ class PenilaianKokurikulerController extends Controller
     }
 
     /**
-     * Recap page accessible by Wali Kelas (own class) or Admin & Kepala Sekolah (all classes)
+     * Recap page accessible by Wali Kelas, Guru Pendamping, Admin & Kepala Sekolah
      */
     public function rekap(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
-        if ($user->isGuru() && !$user->isWaliKelas()) {
-            abort(403, 'Hanya Wali Kelas yang dapat mengakses rekap penilaian kokurikuler.');
+        if ($user->isGuru() && ! $user->canAccessKokurikuler()) {
+            abort(403, 'Hanya Wali Kelas atau Guru Pendamping yang dapat mengakses rekap penilaian kokurikuler.');
         }
 
         $semesters = Semester::with('tahunPelajaran')->orderByDesc('is_active')->orderByDesc('id')->get();
@@ -390,8 +397,11 @@ class PenilaianKokurikulerController extends Controller
             $selectedKelasId = $request->input('kelas_id', $kelasList->first()?->id);
             $kelas = $selectedKelasId ? Kelas::with('waliKelas.user')->find($selectedKelasId) : null;
         } else {
-            $kelas = $user->waliKelasOf();
-            $kelasList = $kelas ? collect([$kelas]) : collect();
+            $kelasList = $user->kokurikulerKelasList();
+            $selectedKelasId = $request->input('kelas_id');
+            $kelas = $selectedKelasId
+                ? $kelasList->firstWhere('id', (int) $selectedKelasId)
+                : $kelasList->first();
         }
 
         $students = collect();
@@ -449,6 +459,7 @@ class PenilaianKokurikulerController extends Controller
                 ->map(function ($group, $dateStr) use ($sessionModels) {
                     $first = $group->first();
                     $sessModel = $sessionModels->get($dateStr);
+
                     return [
                         'tanggal' => $dateStr,
                         'hari' => $first->hari,
@@ -483,10 +494,10 @@ class PenilaianKokurikulerController extends Controller
      */
     public function export(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
-        if ($user->isGuru() && !$user->isWaliKelas()) {
+        if ($user->isGuru() && ! $user->canAccessKokurikuler()) {
             abort(403, 'Unauthorized');
         }
 
@@ -497,9 +508,11 @@ class PenilaianKokurikulerController extends Controller
         if ($user->isAdmin() || $user->isKepalaSekolah()) {
             $kelas = Kelas::findOrFail($request->input('kelas_id'));
         } else {
-            $kelas = $user->waliKelasOf();
-            if (!$kelas) {
-                abort(403, 'Kelas perwalian tidak ditemukan.');
+            $accessible = $user->kokurikulerKelasList();
+            $selectedId = $request->input('kelas_id');
+            $kelas = $selectedId ? $accessible->firstWhere('id', (int) $selectedId) : $accessible->first();
+            if (! $kelas) {
+                abort(403, 'Kelas tidak ditemukan atau tidak memiliki akses.');
             }
         }
 
@@ -508,13 +521,13 @@ class PenilaianKokurikulerController extends Controller
 
         $suffix = '';
         if ($bulan !== 'all' && isset(self::INDONESIAN_MONTHS[(int) $bulan])) {
-            $suffix .= '_' . self::INDONESIAN_MONTHS[(int) $bulan];
+            $suffix .= '_'.self::INDONESIAN_MONTHS[(int) $bulan];
         }
         if ($hari !== 'all') {
-            $suffix .= '_' . $hari;
+            $suffix .= '_'.$hari;
         }
 
-        $filename = 'Rekap_Penilaian_Kokurikuler_Kelas_' . $kelas->full_name . $suffix . '_' . str_replace(['/', ' '], '_', $semester->nama) . '.xlsx';
+        $filename = 'Rekap_Penilaian_Kokurikuler_Kelas_'.$kelas->full_name.$suffix.'_'.str_replace(['/', ' '], '_', $semester->nama).'.xlsx';
 
         return Excel::download(new PenilaianKokurikulerExport($kelas, $semester, $bulan, $hari), $filename);
     }

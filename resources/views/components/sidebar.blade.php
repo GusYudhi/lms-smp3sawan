@@ -78,6 +78,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.landing-hero.*') ? 'active' : '' }}" href="{{ route('admin.landing-hero.index') }}">
+                        <i class="fas fa-image me-2"></i> Hero Wallpaper
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('school.profile') ? 'active' : '' }}" href="{{ route('school.profile') }}">
                         <i class="fas fa-school me-2"></i> Data Sekolah
                     </a>
