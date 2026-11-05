@@ -879,14 +879,14 @@
             // Create QR code canvas
             const qrCanvas = document.createElement('canvas');
             QRCode.toCanvas(qrCanvas, nisn, {
-                width: 250,
-                height: 250,
+                width: 320,
+                height: 320,
                 margin: 1,
                 color: {
                     dark: '#000000',
                     light: '#FFFFFF'
                 },
-                errorCorrectionLevel: 'M'
+                errorCorrectionLevel: 'H'
             })
             .then(() => {
                 // Draw QR code background (larger)
@@ -990,7 +990,7 @@
                         dark: '#000000',    // Black modules
                         light: '#FFFFFF'   // White background
                     },
-                    errorCorrectionLevel: 'M',  // Medium error correction
+                    errorCorrectionLevel: 'H',  // High error correction (up to 30% damage tolerance)
                     type: 'image/png',
                     quality: 0.92,
                     scale: 4

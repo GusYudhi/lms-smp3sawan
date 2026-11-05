@@ -1073,14 +1073,14 @@ function drawQRCodeSync(ctx, nisn) {
 
         const qrCanvas = document.createElement('canvas');
         QRCode.toCanvas(qrCanvas, nisn, {
-            width: 250,
-            height: 250,
+            width: 320,
+            height: 320,
             margin: 1,
             color: {
                 dark: '#000000',
                 light: '#FFFFFF'
             },
-            errorCorrectionLevel: 'M'
+            errorCorrectionLevel: 'H'
         })
         .then(() => {
             ctx.fillStyle = 'white';

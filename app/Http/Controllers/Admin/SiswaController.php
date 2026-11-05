@@ -380,11 +380,14 @@ class SiswaController extends Controller
 
             // Create ZIP file
             $zipFileName = 'Kartu_Identitas_Siswa_' . date('Ymd_His') . '.zip';
-            $zipFilePath = storage_path('app/temp/' . $zipFileName);
+            $tempDir = storage_path('app/temp');
+            \Illuminate\Support\Facades\File::ensureDirectoryExists($tempDir);
+            $zipFilePath = $tempDir . '/' . $zipFileName;
 
             $zip = new \ZipArchive();
-            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-                throw new \Exception('Gagal membuat file ZIP');
+            $openResult = $zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            if ($openResult !== true) {
+                throw new \Exception('Gagal membuat file ZIP (kode error: ' . $openResult . ')');
             }
 
             // Process each class
@@ -543,11 +546,14 @@ class SiswaController extends Controller
 
             // Create ZIP file
             $zipFileName = 'Kartu_Identitas_Siswa_' . date('Ymd_His') . '.zip';
-            $zipFilePath = storage_path('app/temp/' . $zipFileName);
+            $tempDir = storage_path('app/temp');
+            \Illuminate\Support\Facades\File::ensureDirectoryExists($tempDir);
+            $zipFilePath = $tempDir . '/' . $zipFileName;
 
             $zip = new \ZipArchive();
-            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-                throw new \Exception('Gagal membuat file ZIP');
+            $openResult = $zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            if ($openResult !== true) {
+                throw new \Exception('Gagal membuat file ZIP (kode error: ' . $openResult . ')');
             }
 
             // Process each class
