@@ -90,15 +90,15 @@
         <div class="card border-0 shadow-sm d-none d-md-block mb-4">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle mb-0" style="min-width: 820px;">
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center" style="width: 130px;">Jam Ke</th>
-                                <th class="text-center" style="width: 160px;">Waktu</th>
-                                <th>Mata Pelajaran</th>
-                                <th>Kelas</th>
-                                <th class="text-center" style="width: 140px;">Status</th>
-                                <th class="text-center" style="width: 160px;">Aksi</th>
+                                <th class="text-center text-nowrap" style="width: 120px; min-width: 120px;">Jam Ke</th>
+                                <th class="text-center text-nowrap" style="width: 150px; min-width: 150px;">Waktu</th>
+                                <th style="min-width: 180px;">Mata Pelajaran</th>
+                                <th class="text-nowrap" style="width: 90px; min-width: 90px;">Kelas</th>
+                                <th class="text-center text-nowrap" style="width: 140px; min-width: 140px;">Status</th>
+                                <th class="text-center text-nowrap" style="width: 150px; min-width: 150px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -127,7 +127,7 @@
                                 }
                             @endphp
                             <tr class="{{ $isCurrentSession ? 'table-active-session' : '' }}">
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     <span class="badge bg-secondary">{{ $jamKeText }}</span>
                                     @if(($schedule->jumlah_jp ?? 1) > 1)
                                         <span class="badge bg-light text-dark border ms-1">{{ $schedule->jumlah_jp }} JP</span>
@@ -138,7 +138,7 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     <small class="text-dark fw-bold">{{ $waktu }}</small>
                                 </td>
                                 <td>
@@ -147,10 +147,10 @@
                                         <small class="text-muted">{{ $schedule->mataPelajaran->kode_mapel ?? '-' }}</small>
                                     </div>
                                 </td>
-                                <td>
+                                <td class="text-nowrap">
                                     <span class="badge bg-info">{{ $schedule->kelas_full }}</span>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     @if($hasJurnal)
                                         <span class="badge bg-success">
                                             <i class="fas fa-check-circle me-1"></i>Sudah Mengisi
@@ -161,20 +161,20 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     @if(!$hasJurnal)
                                         <a href="{{ route('guru.jurnal-mengajar.wizard') }}?tanggal={{ $tanggalHariIni }}&kelas_id={{ $schedule->kelas_id }}&mata_pelajaran_id={{ $schedule->mata_pelajaran_id }}&jam_ke_mulai={{ $schedule->jam_ke_mulai }}&jam_ke_selesai={{ $schedule->jam_ke_selesai }}&return_to=today"
-                                           class="btn btn-sm btn-primary">
-                                            <i class="fas fa-plus-circle me-1"></i>Isi Jurnal
+                                           class="btn btn-sm btn-primary text-nowrap px-3 shadow-sm">
+                                            <i class="fas fa-plus-circle me-1"></i><span>Isi Jurnal</span>
                                         </a>
                                     @else
                                         @if($schedule->jurnal)
-                                            <a href="{{ route('guru.jurnal-mengajar.show', $schedule->jurnal->id) }}" class="btn btn-sm btn-outline-success">
-                                                <i class="fas fa-eye me-1"></i>Lihat Jurnal
+                                            <a href="{{ route('guru.jurnal-mengajar.show', $schedule->jurnal->id) }}" class="btn btn-sm btn-outline-success text-nowrap px-3">
+                                                <i class="fas fa-eye me-1"></i><span>Lihat Jurnal</span>
                                             </a>
                                         @else
-                                            <button class="btn btn-sm btn-success" disabled>
-                                                <i class="fas fa-check me-1"></i>Selesai
+                                            <button class="btn btn-sm btn-success text-nowrap px-3" disabled>
+                                                <i class="fas fa-check me-1"></i><span>Selesai</span>
                                             </button>
                                         @endif
                                     @endif

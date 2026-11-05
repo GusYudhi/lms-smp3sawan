@@ -169,10 +169,18 @@
                 box-shadow: none;
             }
 
-            // If button contains text span (e.g. .d-none .d-lg-inline), allow auto width
-            &:has(span) {
+            // If button contains text span (e.g. .d-none .d-lg-inline) or text utilities, allow auto width
+            &:has(span),
+            &.btn-labeled,
+            &.btn-text,
+            &.w-auto,
+            &.text-nowrap {
                 width: auto;
-                padding: 0 0.65rem;
+                min-width: 34px;
+                height: auto;
+                min-height: 34px;
+                padding: 0.35rem 0.85rem;
+                white-space: nowrap;
             }
         }
 

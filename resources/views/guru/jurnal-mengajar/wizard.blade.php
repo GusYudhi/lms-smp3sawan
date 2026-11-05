@@ -98,7 +98,13 @@
                 <div class="card-body">
                     <div class="alert alert-info d-flex align-items-center mb-3">
                         <i class="fas fa-info-circle me-2 fs-5"></i>
-                        <span class="small">Silakan periksa absensi siswa. Default kehadiran disesuaikan dengan absensi pagi. Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.</span>
+                        <span class="small">
+                            @if(isset($acuanKehadiran) && $acuanKehadiran['tipe'] === 'jurnal_sebelumnya')
+                                Status absensi otomatis mengikuti data dari <strong>{{ $acuanKehadiran['label'] }} ({{ $acuanKehadiran['mapel'] }})</strong>. Siswa yang sebelumnya terlambat otomatis disesuaikan menjadi Hadir. Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.
+                            @else
+                                Silakan periksa absensi siswa. Default kehadiran disesuaikan dengan absensi pagi (atau default Hadir bila belum scan). Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.
+                            @endif
+                        </span>
                     </div>
 
                     <!-- DESKTOP TABLE VIEW (>= 768px) -->
@@ -109,34 +115,42 @@
                                     <th class="text-center" style="width: 50px;">No</th>
                                     <th style="width: 140px;">NIS</th>
                                     <th>Nama Siswa</th>
-                                    <th class="text-center" style="width: 150px;">Absensi Pagi</th>
+                                    <th class="text-center" style="width: 170px;">
+                                        {{ (isset($acuanKehadiran) && $acuanKehadiran['tipe'] === 'jurnal_sebelumnya') ? 'Status Jam Lalu' : 'Absensi Pagi' }}
+                                    </th>
                                     <th style="width: 180px;">Status Absensi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($siswaKelas as $index => $siswa)
                                     @php
-                                        $absensiHarian = $absensiPagi->get($siswa->user_id);
-                                        $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
-                                        $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'hadir';
-                                        if ($statusPagi === 'sakit') $defaultStatus = 'sakit';
-                                        elseif ($statusPagi === 'izin') $defaultStatus = 'izin';
-                                        elseif ($statusPagi === 'alpa') $defaultStatus = 'alpa';
+                                        $infoSiswa = $defaultAbsensiSiswa[$siswa->id] ?? [
+                                            'default_status' => 'hadir',
+                                            'status_acuan' => 'hadir',
+                                            'label_acuan' => 'Hadir',
+                                        ];
+                                        $defaultStatus = $infoSiswa['default_status'];
+                                        $statusAcuan = $infoSiswa['status_acuan'];
+                                        $isJurnalSebelumnya = isset($acuanKehadiran) && $acuanKehadiran['tipe'] === 'jurnal_sebelumnya';
                                     @endphp
                                     <tr>
                                         <td class="text-center">{{ $index + 1 }}</td>
                                         <td><code>{{ $siswa->nis }}</code></td>
                                         <td class="fw-bold">{{ $siswa->user->name ?? '-' }}</td>
                                         <td class="text-center">
-                                            @if($statusPagi == 'hadir')
+                                            @if($statusAcuan == 'hadir')
                                                 <span class="badge bg-success">Hadir</span>
-                                            @elseif($statusPagi == 'terlambat')
-                                                <span class="badge bg-warning text-dark">Terlambat</span>
-                                            @elseif($statusPagi == 'sakit')
+                                            @elseif($statusAcuan == 'terlambat')
+                                                @if($isJurnalSebelumnya)
+                                                    <span class="badge bg-warning text-dark" title="Terlambat di jam sebelumnya, otomatis Hadir di jam ini">Telat &rarr; Hadir</span>
+                                                @else
+                                                    <span class="badge bg-warning text-dark">Terlambat</span>
+                                                @endif
+                                            @elseif($statusAcuan == 'sakit')
                                                 <span class="badge bg-info">Sakit</span>
-                                            @elseif($statusPagi == 'izin')
+                                            @elseif($statusAcuan == 'izin')
                                                 <span class="badge bg-secondary">Izin</span>
-                                            @elseif($statusPagi == 'alpa')
+                                            @elseif(in_array($statusAcuan, ['alpa', 'alpha']))
                                                 <span class="badge bg-danger">Alpa</span>
                                             @else
                                                 <span class="badge bg-light text-dark border">Belum Absen</span>
@@ -169,12 +183,15 @@
                         </div>
                         @foreach($siswaKelas as $index => $siswa)
                             @php
-                                $absensiHarian = $absensiPagi->get($siswa->user_id);
-                                $statusPagi = $absensiHarian ? $absensiHarian->status : 'belum_absen';
-                                $defaultStatus = ($absensiHarian && in_array($absensiHarian->status, ['hadir', 'terlambat'])) ? 'hadir' : 'hadir';
-                                if ($statusPagi === 'sakit') $defaultStatus = 'sakit';
-                                elseif ($statusPagi === 'izin') $defaultStatus = 'izin';
-                                elseif ($statusPagi === 'alpa') $defaultStatus = 'alpa';
+                                $infoSiswa = $defaultAbsensiSiswa[$siswa->id] ?? [
+                                    'default_status' => 'hadir',
+                                    'status_acuan' => 'hadir',
+                                    'label_acuan' => 'Hadir',
+                                ];
+                                $defaultStatus = $infoSiswa['default_status'];
+                                $statusAcuan = $infoSiswa['status_acuan'];
+                                $isJurnalSebelumnya = isset($acuanKehadiran) && $acuanKehadiran['tipe'] === 'jurnal_sebelumnya';
+                                $badgePrefix = $isJurnalSebelumnya ? 'Jam Lalu: ' : 'Pagi: ';
                             @endphp
                             <div class="student-attendance-card">
                                 <div class="student-card-header">
@@ -186,18 +203,22 @@
                                         </div>
                                     </div>
                                     <div>
-                                        @if($statusPagi == 'hadir')
-                                            <span class="badge bg-success">Pagi: Hadir</span>
-                                        @elseif($statusPagi == 'terlambat')
-                                            <span class="badge bg-warning text-dark">Pagi: Telat</span>
-                                        @elseif($statusPagi == 'sakit')
-                                            <span class="badge bg-info">Pagi: Sakit</span>
-                                        @elseif($statusPagi == 'izin')
-                                            <span class="badge bg-secondary">Pagi: Izin</span>
-                                        @elseif($statusPagi == 'alpa')
-                                            <span class="badge bg-danger">Pagi: Alpa</span>
+                                        @if($statusAcuan == 'hadir')
+                                            <span class="badge bg-success">{{ $badgePrefix }}Hadir</span>
+                                        @elseif($statusAcuan == 'terlambat')
+                                            @if($isJurnalSebelumnya)
+                                                <span class="badge bg-warning text-dark">{{ $badgePrefix }}Telat &rarr; Hadir</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">{{ $badgePrefix }}Telat</span>
+                                            @endif
+                                        @elseif($statusAcuan == 'sakit')
+                                            <span class="badge bg-info">{{ $badgePrefix }}Sakit</span>
+                                        @elseif($statusAcuan == 'izin')
+                                            <span class="badge bg-secondary">{{ $badgePrefix }}Izin</span>
+                                        @elseif(in_array($statusAcuan, ['alpa', 'alpha']))
+                                            <span class="badge bg-danger">{{ $badgePrefix }}Alpa</span>
                                         @else
-                                            <span class="badge bg-light text-dark border">Pagi: -</span>
+                                            <span class="badge bg-light text-dark border">{{ $badgePrefix }}-</span>
                                         @endif
                                     </div>
                                 </div>

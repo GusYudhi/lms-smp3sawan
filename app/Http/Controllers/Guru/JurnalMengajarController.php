@@ -161,6 +161,83 @@ class JurnalMengajarController extends Controller
             ->get()
             ->keyBy('user_id');
 
+        // Cari jurnal mengajar sebelumnya di kelas dan tanggal yang sama (jam_ke_selesai <= jam_ke_mulai)
+        $jurnalSebelumnya = JurnalMengajar::with(['jurnalAttendances', 'mataPelajaran'])
+            ->where('kelas_id', $kelasId)
+            ->whereDate('tanggal', $tanggal)
+            ->where('jam_ke_selesai', '<=', $jamKeMulai)
+            ->orderBy('jam_ke_selesai', 'desc')
+            ->first();
+
+        // Hitung default status dan metadata acuan untuk setiap siswa
+        $defaultAbsensiSiswa = [];
+        $acuanKehadiran = null;
+
+        if ($jurnalSebelumnya && $jurnalSebelumnya->jurnalAttendances->isNotEmpty()) {
+            $prevAttendances = $jurnalSebelumnya->jurnalAttendances->keyBy('student_profile_id');
+            $labelJam = 'Jam ' . $jurnalSebelumnya->jam_ke_mulai . ($jurnalSebelumnya->jam_ke_mulai != $jurnalSebelumnya->jam_ke_selesai ? '-' . $jurnalSebelumnya->jam_ke_selesai : '');
+            $acuanKehadiran = [
+                'tipe' => 'jurnal_sebelumnya',
+                'label' => $labelJam,
+                'mapel' => $jurnalSebelumnya->mataPelajaran->nama_mapel ?? 'Mapel Sebelumnya',
+                'jurnal_id' => $jurnalSebelumnya->id,
+            ];
+
+            foreach ($siswaKelas as $siswa) {
+                $prevAtt = $prevAttendances->get($siswa->id);
+                $prevStatus = $prevAtt ? $prevAtt->status : null;
+
+                // Konversi: 'terlambat' di jam sebelumnya menjadi 'hadir' di jam berikutnya
+                // Status sakit, izin, alpa dipertahankan
+                if ($prevStatus === 'terlambat') {
+                    $defaultStatus = 'hadir';
+                } elseif (in_array($prevStatus, ['sakit', 'izin', 'alpa'])) {
+                    $defaultStatus = $prevStatus;
+                } elseif ($prevStatus === 'hadir') {
+                    $defaultStatus = 'hadir';
+                } else {
+                    // Fallback jika belum tercatat di jurnal sebelumnya
+                    $pagi = $absensiPagi->get($siswa->user_id);
+                    $statusPagi = $pagi ? ($pagi->status === 'alpha' ? 'alpa' : $pagi->status) : 'hadir';
+                    $defaultStatus = in_array($statusPagi, ['sakit', 'izin', 'alpa']) ? $statusPagi : 'hadir';
+                }
+
+                $defaultAbsensiSiswa[$siswa->id] = [
+                    'default_status' => $defaultStatus,
+                    'status_acuan' => $prevStatus ?? 'hadir',
+                    'label_acuan' => $acuanKehadiran['label'] . ' (' . ($prevStatus ? ucfirst($prevStatus) : 'Hadir') . ')',
+                ];
+            }
+        } else {
+            // Jam pertama atau belum ada jurnal sebelumnya -> Mengacu ke Absensi Pagi
+            $acuanKehadiran = [
+                'tipe' => 'absensi_pagi',
+                'label' => 'Absensi Pagi',
+                'mapel' => null,
+                'jurnal_id' => null,
+            ];
+
+            foreach ($siswaKelas as $siswa) {
+                $pagi = $absensiPagi->get($siswa->user_id);
+                $statusPagi = $pagi ? ($pagi->status === 'alpha' ? 'alpa' : $pagi->status) : 'belum_absen';
+
+                if ($statusPagi === 'terlambat') {
+                    $defaultStatus = 'terlambat';
+                } elseif (in_array($statusPagi, ['sakit', 'izin', 'alpa'])) {
+                    $defaultStatus = $statusPagi;
+                } else {
+                    // Hadir atau belum absen -> default 'hadir'
+                    $defaultStatus = 'hadir';
+                }
+
+                $defaultAbsensiSiswa[$siswa->id] = [
+                    'default_status' => $defaultStatus,
+                    'status_acuan' => $statusPagi,
+                    'label_acuan' => $statusPagi === 'belum_absen' ? 'Belum Absen' : ucfirst($statusPagi),
+                ];
+            }
+        }
+
         // Ambil jam pelajaran untuk display
         $semesterAktif = Semester::getActive();
         $jamPelajarans = [];
@@ -182,7 +259,9 @@ class JurnalMengajarController extends Controller
             'siswaKelas',
             'absensiPagi',
             'jamPelajarans',
-            'returnTo'
+            'returnTo',
+            'defaultAbsensiSiswa',
+            'acuanKehadiran'
         ));
     }
 
@@ -274,18 +353,33 @@ class JurnalMengajarController extends Controller
             'foto_bukti' => $fotoPath,
         ]);
 
-        // Buat data absensi siswa dari input form (jika ada) atau dari absensi harian
+        // Cari jurnal mengajar sebelumnya di kelas dan tanggal yang sama
+        $jurnalSebelumnya = JurnalMengajar::with('jurnalAttendances')
+            ->where('kelas_id', $request->kelas_id)
+            ->whereDate('tanggal', $request->tanggal)
+            ->where('jam_ke_selesai', '<=', $request->jam_ke_mulai)
+            ->orderBy('jam_ke_selesai', 'desc')
+            ->first();
+
+        $prevAttendances = ($jurnalSebelumnya && $jurnalSebelumnya->jurnalAttendances->isNotEmpty())
+            ? $jurnalSebelumnya->jurnalAttendances->keyBy('student_profile_id')
+            : null;
+
+        // Buat data absensi siswa dari input form (jika ada) atau dari jurnal sebelumnya / absensi harian
         if ($request->has('absensi') && is_array($request->absensi)) {
             // Dari wizard form - ada input absensi manual
             foreach ($request->absensi as $studentProfileId => $statusAbsensi) {
                 $siswa = StudentProfile::find($studentProfileId);
                 if ($siswa) {
-                    // Cek absensi pagi
-                    $absensiHarian = Attendance::where('user_id', $siswa->user_id)
-                        ->whereDate('date', $request->tanggal)
-                        ->first();
+                    if ($prevAttendances && $prevAttendances->has($studentProfileId)) {
+                        $statusAwal = $prevAttendances->get($studentProfileId)->status;
+                    } else {
+                        $absensiHarian = Attendance::where('user_id', $siswa->user_id)
+                            ->whereDate('date', $request->tanggal)
+                            ->first();
 
-                    $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                        $statusAwal = $absensiHarian ? ($absensiHarian->status === 'alpha' ? 'alpa' : $absensiHarian->status) : 'belum_absen';
+                    }
 
                     JurnalAttendance::create([
                         'jurnal_mengajar_id' => $jurnal->id,
@@ -296,23 +390,32 @@ class JurnalMengajarController extends Controller
                 }
             }
         } else {
-            // Fallback - buat otomatis dari absensi harian (untuk form lama)
+            // Fallback - buat otomatis dari jurnal sebelumnya atau absensi harian (untuk form lama / API)
             $siswaKelas = StudentProfile::where('kelas_id', $request->kelas_id)
                 ->where('is_active', true)
                 ->get();
 
             foreach ($siswaKelas as $siswa) {
-                $absensiHarian = Attendance::where('user_id', $siswa->user_id)
-                    ->whereDate('date', $request->tanggal)
-                    ->first();
+                if ($prevAttendances && $prevAttendances->has($siswa->id)) {
+                    $prevStatus = $prevAttendances->get($siswa->id)->status;
+                    $statusAwal = $prevStatus;
+                    // Konversi: 'terlambat' di jam sebelumnya menjadi 'hadir' di jam berikutnya
+                    $status = ($prevStatus === 'terlambat') ? 'hadir' : $prevStatus;
+                } else {
+                    $absensiHarian = Attendance::where('user_id', $siswa->user_id)
+                        ->whereDate('date', $request->tanggal)
+                        ->first();
 
-                $statusAwal = $absensiHarian ? $absensiHarian->status : 'belum_absen';
+                    $statusAwal = $absensiHarian ? ($absensiHarian->status === 'alpha' ? 'alpa' : $absensiHarian->status) : 'belum_absen';
 
-                // Determine status based on daily attendance
-                $status = 'hadir'; // Default hadir jika tidak ada scan
-                if ($absensiHarian) {
-                    if (in_array($absensiHarian->status, ['sakit', 'izin', 'alpha', 'alpa'])) {
-                        $status = $absensiHarian->status == 'alpha' ? 'alpa' : $absensiHarian->status;
+                    // Default hadir jika tidak ada scan
+                    $status = 'hadir';
+                    if ($absensiHarian) {
+                        if (in_array($absensiHarian->status, ['sakit', 'izin', 'alpha', 'alpa'])) {
+                            $status = $absensiHarian->status === 'alpha' ? 'alpa' : $absensiHarian->status;
+                        } elseif ($absensiHarian->status === 'terlambat') {
+                            $status = 'terlambat';
+                        }
                     }
                 }
 
