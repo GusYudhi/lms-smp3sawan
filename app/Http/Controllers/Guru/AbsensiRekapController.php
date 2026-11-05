@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Attendance;
 use App\Models\Kelas;
 use App\Models\Semester;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class AbsensiRekapController extends Controller
 {
@@ -34,9 +34,9 @@ class AbsensiRekapController extends Controller
 
         // Get kelas list for filter (only teacher's classes)
         $kelasList = Kelas::whereIn('id', $teacherKelas)
-                          ->orderBy('tingkat', 'asc')
-                          ->orderBy('nama_kelas', 'asc')
-                          ->get();
+            ->orderBy('tingkat', 'asc')
+            ->orderBy('nama_kelas', 'asc')
+            ->get();
 
         // Get active semester
         $activeSemester = Semester::getActive();
@@ -62,19 +62,21 @@ class AbsensiRekapController extends Controller
         $user = auth()->user();
         $currentUserId = $user->id;
 
-        // Get active semester
-        $semesterId = Semester::getActive()?->id;
-
         // Get unique kelas_id from jadwal_pelajarans where guru is current user
-        $query = DB::table('jadwal_pelajarans')
+        $taughtClasses = DB::table('jadwal_pelajarans')
             ->where('guru_id', $currentUserId)
-            ->distinct();
+            ->distinct()
+            ->pluck('kelas_id')
+            ->toArray();
 
-        if ($semesterId) {
-            $query->where('semester_id', $semesterId);
-        }
+        // Also include classes where this teacher has created journals
+        $journalClasses = DB::table('jurnal_mengajar')
+            ->where('guru_id', $currentUserId)
+            ->distinct()
+            ->pluck('kelas_id')
+            ->toArray();
 
-        $taughtClasses = $query->pluck('kelas_id')->toArray();
+        $allTaughtClasses = array_values(array_unique(array_merge($taughtClasses, $journalClasses)));
 
         // If user is Wali Kelas, include all classes in their angkatan/grade level
         if ($user->isWaliKelas()) {
@@ -85,11 +87,12 @@ class AbsensiRekapController extends Controller
                     $angkatanQuery->where('tahun_pelajaran_id', $waliKelas->tahun_pelajaran_id);
                 }
                 $angkatanClasses = $angkatanQuery->pluck('id')->toArray();
-                return array_values(array_unique(array_merge($taughtClasses, $angkatanClasses)));
+
+                return array_values(array_unique(array_merge($allTaughtClasses, $angkatanClasses)));
             }
         }
 
-        return $taughtClasses;
+        return $allTaughtClasses;
     }
 
     /**
@@ -99,12 +102,14 @@ class AbsensiRekapController extends Controller
     {
         $query = User::with(['studentProfile.kelas'])
             ->where('role', 'siswa')
-            ->whereHas('studentProfile', function($q) use ($kelasId, $teacherKelas) {
+            ->whereHas('studentProfile', function ($q) use ($kelasId, $teacherKelas) {
                 $q->where('is_active', true);
-                if ($kelasId) {
+                if ($kelasId && in_array($kelasId, $teacherKelas)) {
                     $q->where('kelas_id', $kelasId);
-                } elseif (!empty($teacherKelas)) {
+                } elseif (! empty($teacherKelas)) {
                     $q->whereIn('kelas_id', $teacherKelas);
+                } else {
+                    $q->whereRaw('1 = 0');
                 }
             });
 
@@ -156,7 +161,7 @@ class AbsensiRekapController extends Controller
 
         // Check if student is in teacher's classes
         $teacherKelas = $this->getTeacherClasses();
-        if ($siswa->studentProfile && !in_array($siswa->studentProfile->kelas_id, $teacherKelas)) {
+        if ($siswa->studentProfile && ! in_array($siswa->studentProfile->kelas_id, $teacherKelas)) {
             abort(403, 'Unauthorized access');
         }
 
@@ -214,6 +219,12 @@ class AbsensiRekapController extends Controller
     public function monthlySiswa($userId, Request $request)
     {
         try {
+            $siswa = User::with(['studentProfile.kelas'])->findOrFail($userId);
+            $teacherKelas = $this->getTeacherClasses();
+            if ($siswa->studentProfile && ! in_array($siswa->studentProfile->kelas_id, $teacherKelas)) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access'], 403);
+            }
+
             $year = $request->input('year', date('Y'));
             $month = $request->input('month', date('m'));
 
@@ -234,7 +245,7 @@ class AbsensiRekapController extends Controller
                     'status' => $attendance->status,
                     'status_label' => ucfirst($attendance->status),
                     'waktu' => $attendance->time ? $attendance->time->format('H:i') : null,
-                    'notes' => $attendance->notes
+                    'notes' => $attendance->notes,
                 ];
             }
 
@@ -266,13 +277,13 @@ class AbsensiRekapController extends Controller
                 'data' => $attendanceByDate,
                 'summary' => $summary,
                 'persentase_hadir' => $persentaseHadir,
-                'month_name' => $firstDay->locale('id')->isoFormat('MMMM Y')
+                'month_name' => $firstDay->locale('id')->isoFormat('MMMM Y'),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }

@@ -75,7 +75,7 @@ class JurnalMengajarController extends Controller
         if (!empty($angkatanKelasIds)) {
             $kelasList = Kelas::whereIn('id', function($sub) use ($guru, $angkatanKelasIds) {
                 $sub->select('kelas_id')
-                    ->from('jurnal_mengajars')
+                    ->from('jurnal_mengajar')
                     ->where('guru_id', $guru->id)
                     ->orWhereIn('kelas_id', $angkatanKelasIds);
             })->orWhereIn('id', $angkatanKelasIds)
@@ -85,30 +85,44 @@ class JurnalMengajarController extends Controller
 
             $mataPelajaranList = MataPelajaran::whereIn('id', function($sub) use ($guru, $angkatanKelasIds) {
                 $sub->select('mata_pelajaran_id')
-                    ->from('jurnal_mengajars')
+                    ->from('jurnal_mengajar')
                     ->where('guru_id', $guru->id)
                     ->orWhereIn('kelas_id', $angkatanKelasIds);
             })->orderBy('nama_mapel')->get();
         } else {
-            $kelasList = JurnalMengajar::select('kelas_id')
+            // Guru biasa: dropdown kelas mencakup seluruh kelas yang diajar (dari jadwal dan jurnal)
+            $taughtKelasIds = \Illuminate\Support\Facades\DB::table('jadwal_pelajarans')
                 ->where('guru_id', $guru->id)
                 ->distinct()
-                ->with('kelas')
-                ->get()
-                ->pluck('kelas')
-                ->filter()
-                ->sortBy('full_name')
-                ->values();
+                ->pluck('kelas_id')
+                ->toArray();
+            $journalKelasIds = JurnalMengajar::where('guru_id', $guru->id)
+                ->distinct()
+                ->pluck('kelas_id')
+                ->toArray();
+            $allKelasIds = array_values(array_unique(array_merge($taughtKelasIds, $journalKelasIds)));
 
-            $mataPelajaranList = JurnalMengajar::select('mata_pelajaran_id')
+            $kelasList = Kelas::whereIn('id', $allKelasIds)
+                ->orderBy('tingkat')
+                ->orderBy('nama_kelas')
+                ->get();
+
+            // Dropdown mapel mencakup seluruh mapel yang diajar (dari jadwal, profil/pivot, dan jurnal)
+            $taughtMapelIds = \Illuminate\Support\Facades\DB::table('jadwal_pelajarans')
                 ->where('guru_id', $guru->id)
                 ->distinct()
-                ->with('mataPelajaran')
-                ->get()
-                ->pluck('mataPelajaran')
-                ->filter()
-                ->sortBy('nama_mapel')
-                ->values();
+                ->pluck('mata_pelajaran_id')
+                ->toArray();
+            $journalMapelIds = JurnalMengajar::where('guru_id', $guru->id)
+                ->distinct()
+                ->pluck('mata_pelajaran_id')
+                ->toArray();
+            $profileMapelIds = $guru->guruProfile ? $guru->guruProfile->all_mata_pelajaran_ids : [];
+            $allMapelIds = array_values(array_unique(array_merge($taughtMapelIds, $journalMapelIds, $profileMapelIds)));
+
+            $mataPelajaranList = MataPelajaran::whereIn('id', $allMapelIds)
+                ->orderBy('nama_mapel')
+                ->get();
         }
 
         return view('guru.jurnal-mengajar.index', compact('jurnals', 'bulan', 'tahun', 'kelasId', 'mataPelajaranId', 'kelasList', 'mataPelajaranList', 'isWali', 'waliKelas'));
