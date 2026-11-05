@@ -344,8 +344,8 @@
                     <div id="import-step-1">
                         <div class="mb-3">
                             <label class="form-label fw-bold">1. Download Template</label>
-                            <p class="small text-muted">Unduh template Excel yang berisi format import dan daftar kode referensi (Guru, Mapel, Kelas).</p>
-                            <a href="{{ route('admin.jadwal.template') }}" class="btn btn-outline-primary btn-sm">
+                            <p class="small text-muted">Unduh template Excel yang berisi format import, jadwal saat ini, jadwal tetap (abu-abu), dan daftar kode referensi (Guru, Mapel, Kelas).</p>
+                            <a href="{{ route('admin.jadwal.template', ['semester_id' => $semester ? $semester->id : '']) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-download me-1"></i> Download Template (.xlsx)
                             </a>
                         </div>
@@ -355,14 +355,14 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">2. Upload File</label>
                             <input type="file" class="form-control" name="file" accept=".xlsx, .xls" required>
-                            <div class="form-text">Sistem akan mengecek perubahan kode guru terlebih dahulu.</div>
+                            <div class="form-text">Sistem akan mengecek rincian perubahan jadwal pelajaran dan kode guru terlebih dahulu.</div>
                         </div>
                     </div>
 
                     <!-- Step 2: Review -->
                     <div id="import-step-2" class="d-none">
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading fw-bold"><i class="fas fa-info-circle me-1"></i>Hasil Pengecekan</h6>
+                        <div class="alert alert-info alert-permanent mb-3">
+                            <h6 class="alert-heading fw-bold mb-1"><i class="fas fa-info-circle me-1"></i>Hasil Pengecekan</h6>
                             <p class="mb-0 small">Berikut adalah ringkasan perubahan yang akan terjadi jika Anda melanjutkan:</p>
                         </div>
 
@@ -379,18 +379,48 @@
 
                         <!-- Errors Section -->
                         <div id="errors-section" class="d-none mb-3">
-                            <h6 class="fw-bold text-danger"><i class="fas fa-times-circle me-1"></i>Detail Error</h6>
-                            <div class="alert alert-danger p-0" style="max-height: 150px; overflow-y: auto;">
-                                <ul class="list-group list-group-flush list-group-item-danger small" id="errors-list">
+                            <div class="border border-danger border-opacity-25 bg-danger bg-opacity-10 rounded p-2 mb-2" style="max-height: 160px; overflow-y: auto;">
+                                <h6 class="fw-bold text-danger mb-2 small"><i class="fas fa-exclamation-triangle me-1"></i>Detail Error / Peringatan:</h6>
+                                <ul class="mb-0 ps-3 small text-danger" id="errors-list">
                                     <!-- Injected by JS -->
                                 </ul>
+                                <div class="mt-2 pt-2 border-top border-danger border-opacity-25 text-danger small">
+                                    <i class="fas fa-lock me-1"></i>Harap perbaiki berkas Excel terlebih dahulu untuk melanjutkan import.
+                                </div>
                             </div>
                         </div>
 
-                        <div id="changes-section" class="d-none">
+                        <!-- Schedule Changes Section -->
+                        <div id="schedule-changes-section" class="d-none mb-3">
+                            <h6 class="fw-bold text-primary"><i class="fas fa-calendar-alt me-1"></i>Daftar Perubahan Jadwal Pelajaran</h6>
+                            <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-striped font-small align-middle mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Kelas</th>
+                                            <th>Hari &amp; Jam</th>
+                                            <th>Jadwal Sebelumnya</th>
+                                            <th>Jadwal Baru</th>
+                                            <th class="text-center" style="width: 175px; min-width: 175px;">
+                                                <div class="d-flex align-items-center justify-content-center" style="gap: 10px;">
+                                                    <span class="fw-bold">Terapkan</span>
+                                                    <input type="checkbox" id="toggle-all-changes" class="form-check-input mt-0 cursor-pointer" checked title="Pilih / Batal Semua">
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="schedule-changes-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Code Changes Section -->
+                        <div id="changes-section" class="d-none mb-3">
                             <h6 class="fw-bold text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Perubahan Kode Guru</h6>
-                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
-                                <table class="table table-sm table-bordered table-striped font-small">
+                            <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-striped font-small align-middle mb-0">
                                     <thead class="table-light sticky-top">
                                         <tr>
                                             <th>Nama Guru</th>
@@ -403,13 +433,13 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="alert alert-warning py-2 mt-2">
+                            <div class="alert alert-warning alert-permanent py-2 mt-2 mb-0">
                                 <small><strong>Perhatian:</strong> Mengubah kode guru dapat mempengaruhi jadwal di semester lain yang menggunakan kode lama.</small>
                             </div>
                         </div>
                         
                         <div id="no-changes-msg" class="text-center py-3 d-none">
-                            <span class="text-muted fst-italic">Tidak ada perubahan kode guru yang terdeteksi.</span>
+                            <span class="text-muted fst-italic">Semua data jadwal di file Excel sama dengan data di database (tidak ada perubahan).</span>
                         </div>
                     </div>
                 </div>
@@ -919,9 +949,16 @@ $(document).ready(function() {
         $('#import-step-1').removeClass('d-none');
         $('#import-step-2').addClass('d-none');
         $('#btn-check').removeClass('d-none');
-        $('#btn-execute').addClass('d-none');
+        $('#btn-execute').addClass('d-none').prop('disabled', false).html('<i class="fas fa-file-import me-1"></i> Lanjutkan Import').removeAttr('title');
         $('#dry_run').val('1');
         $('#changes-table-body').empty();
+        $('#schedule-changes-table-body').empty();
+        $('#errors-list').empty();
+        $('#errors-section').addClass('d-none');
+        $('#schedule-changes-section').addClass('d-none');
+        $('#changes-section').addClass('d-none');
+        $('#no-changes-msg').addClass('d-none');
+        $('#toggle-all-changes').prop('disabled', false).prop('checked', true);
     });
 
     // Handle Import Form (2-Step)
@@ -947,18 +984,21 @@ $(document).ready(function() {
                     // --- STEP 1: PREVIEW ---
                     
                     // Update Stats
+                    const failCount = Number(response.failure_count || 0);
                     $('#preview-success').text(response.success_count);
-                    $('#preview-fail').text(response.failure_count);
+                    $('#preview-fail').text(failCount);
 
                     // Show Errors
                     const errors = response.errors || [];
                     const errorList = $('#errors-list');
                     errorList.empty();
 
-                    if (errors.length > 0) {
+                    const hasErrors = failCount > 0 || errors.length > 0;
+
+                    if (hasErrors) {
                         $('#errors-section').removeClass('d-none');
                         errors.forEach(err => {
-                            errorList.append(`<li class="list-group-item bg-transparent text-danger py-1"><i class="fas fa-angle-right me-2"></i>${err}</li>`);
+                            errorList.append(`<li class="py-1"><i class="fas fa-angle-right me-2 text-danger"></i>${err}</li>`);
                         });
                     } else {
                         $('#errors-section').addClass('d-none');
@@ -966,25 +1006,78 @@ $(document).ready(function() {
 
                     // Show Changes
                     const changes = response.changes || [];
-                    const tbody = $('#changes-table-body');
-                    tbody.empty();
+                    const scheduleChanges = changes.filter(c => c.type === 'jadwal_update' || c.type === 'jadwal_new');
+                    const guruChanges = changes.filter(c => c.type === 'guru_code');
 
-                    if (changes.length > 0) {
+                    // 1. Render Schedule Changes
+                    const schedTbody = $('#schedule-changes-table-body');
+                    schedTbody.empty();
+                    if (scheduleChanges.length > 0) {
+                        $('#schedule-changes-section').removeClass('d-none');
+                        scheduleChanges.forEach((change, idx) => {
+                            const isUpdate = change.action === 'Diperbarui';
+                            const badgeText = isUpdate ? 'Diperbarui' : 'Baru';
+                            const badgeClass = isUpdate ? 'bg-warning text-dark' : 'bg-success';
+                            const iconClass = isUpdate ? 'fa-edit' : 'fa-plus';
+
+                            schedTbody.append(`
+                                <tr class="change-row" id="change_row_${idx}">
+                                    <td class="fw-bold">${change.kelas}</td>
+                                    <td>${change.hari}, Jam ke-${change.jam_ke}</td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary border font-monospace">${change.old}</span></td>
+                                    <td><span class="badge bg-primary-subtle text-primary border font-monospace">${change.new}</span></td>
+                                    <td class="text-center" style="width: 175px; min-width: 175px;">
+                                        <div class="d-flex align-items-center justify-content-center" style="gap: 10px;">
+                                            <div class="form-check form-switch m-0 d-flex align-items-center" style="min-height: auto; padding-left: 2.5em;">
+                                                <input class="form-check-input change-toggle cursor-pointer m-0" 
+                                                       type="checkbox" 
+                                                       id="toggle_${idx}" 
+                                                       style="float: none; margin-left: -2.5em;"
+                                                       data-slot-key="${change.slot_key}" 
+                                                       data-idx="${idx}"
+                                                       data-badge-class="${badgeClass}"
+                                                       data-badge-text="${badgeText}"
+                                                       data-icon-class="${iconClass}"
+                                                       ${hasErrors ? 'disabled' : ''}
+                                                       checked>
+                                            </div>
+                                            <div style="width: 95px; flex-shrink: 0; text-align: left;">
+                                                <span class="badge ${badgeClass} toggle-badge w-100 text-center py-1" id="badge_${idx}">
+                                                    <i class="fas ${iconClass} me-1"></i>${badgeText}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        $('#toggle-all-changes').prop('checked', true).prop('disabled', hasErrors);
+                    } else {
+                        $('#schedule-changes-section').addClass('d-none');
+                    }
+
+                    // 2. Render Guru Code Changes
+                    const guruTbody = $('#changes-table-body');
+                    guruTbody.empty();
+                    if (guruChanges.length > 0) {
                         $('#changes-section').removeClass('d-none');
-                        $('#no-changes-msg').addClass('d-none');
-                        
-                        changes.forEach(change => {
-                            tbody.append(`
+                        guruChanges.forEach(change => {
+                            guruTbody.append(`
                                 <tr>
                                     <td>${change.name}</td>
-                                    <td><span class="badge bg-secondary">${change.old}</span></td>
-                                    <td><span class="badge bg-primary">${change.new}</span></td>
+                                    <td><span class="badge bg-secondary font-monospace">${change.old}</span></td>
+                                    <td><span class="badge bg-primary font-monospace">${change.new}</span></td>
                                 </tr>
                             `);
                         });
                     } else {
                         $('#changes-section').addClass('d-none');
+                    }
+
+                    if (scheduleChanges.length === 0 && guruChanges.length === 0) {
                         $('#no-changes-msg').removeClass('d-none');
+                    } else {
+                        $('#no-changes-msg').addClass('d-none');
                     }
 
                     // Switch View
@@ -994,6 +1087,12 @@ $(document).ready(function() {
                     // Switch Buttons
                     $('#btn-check').addClass('d-none');
                     $('#btn-execute').removeClass('d-none');
+
+                    // Tombol Lanjutkan Import otomatis disabled jika terdapat error
+                    $('#btn-execute')
+                        .prop('disabled', hasErrors)
+                        .html('<i class="fas fa-file-import me-1"></i> Lanjutkan Import')
+                        .attr('title', hasErrors ? 'Perbaiki seluruh error pada file Excel terlebih dahulu' : '');
                     
                     // Set flag for next submit
                     $('#dry_run').val('0');
@@ -1044,8 +1143,50 @@ $(document).ready(function() {
         });
     });
 
+    // Toggle Perubahan Individual
+    $(document).on('change', '.change-toggle', function() {
+        const isChecked = $(this).is(':checked');
+        const idx = $(this).data('idx');
+        const row = $(`#change_row_${idx}`);
+        const badge = $(`#badge_${idx}`);
+        const badgeClass = $(this).data('badge-class');
+        const badgeText = $(this).data('badge-text');
+        const iconClass = $(this).data('icon-class');
+
+        if (isChecked) {
+            row.removeClass('table-secondary opacity-50');
+            badge.attr('class', `badge ${badgeClass} toggle-badge w-100 text-center py-1`)
+                 .html(`<i class="fas ${iconClass} me-1"></i>${badgeText}`);
+        } else {
+            row.addClass('table-secondary opacity-50');
+            badge.attr('class', 'badge bg-secondary text-white toggle-badge w-100 text-center py-1')
+                 .html('<i class="fas fa-ban me-1"></i>Lewati');
+        }
+
+        const total = $('.change-toggle').length;
+        const checked = $('.change-toggle:checked').length;
+        $('#toggle-all-changes').prop('checked', total === checked);
+    });
+
+    // Toggle Semua Perubahan
+    $(document).on('change', '#toggle-all-changes', function() {
+        const isChecked = $(this).is(':checked');
+        $('.change-toggle').prop('checked', isChecked).trigger('change');
+    });
+
     // Handle Import Form (Secondary Button Trigger)
     $('#btn-execute').click(function(e) {
+        // Kumpulkan slot key yang toggle-nya tidak dicentang (dilewati)
+        const skippedSlots = [];
+        $('.change-toggle:not(:checked)').each(function() {
+            skippedSlots.push($(this).data('slot-key'));
+        });
+
+        $('#importForm input[name="skipped_slots"]').remove();
+        if (skippedSlots.length > 0) {
+            $('#importForm').append(`<input type="hidden" name="skipped_slots" value='${JSON.stringify(skippedSlots)}'>`);
+        }
+
         // Trigger form submit again
         $('#importForm').submit();
     });

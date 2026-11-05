@@ -453,9 +453,10 @@ class JadwalPelajaranController extends Controller
         }
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
-        return Excel::download(new JadwalTemplateExport, 'template_jadwal_pelajaran.xlsx');
+        $semesterId = $request->query('semester_id');
+        return Excel::download(new JadwalTemplateExport($semesterId), 'template_jadwal_pelajaran.xlsx');
     }
 
     public function import(Request $request)
@@ -467,10 +468,18 @@ class JadwalPelajaranController extends Controller
         ]);
 
         $isDryRun = $request->boolean('dry_run');
+        $skippedSlots = [];
+        if ($request->filled('skipped_slots')) {
+            $raw = $request->input('skipped_slots');
+            $skippedSlots = is_array($raw) ? $raw : json_decode($raw, true);
+            if (!is_array($skippedSlots)) {
+                $skippedSlots = [];
+            }
+        }
 
         DB::beginTransaction();
         try {
-            $import = new JadwalImport($request->semester_id);
+            $import = new JadwalImport($request->semester_id, $skippedSlots);
             Excel::import($import, $request->file('file'));
 
             if ($isDryRun) {
@@ -486,22 +495,25 @@ class JadwalPelajaranController extends Controller
                 ]);
             }
 
-            // Commit for real run
-            DB::commit();
+            // Zero-Tolerance Error: Batalkan seluruh transaksi jika ada error validasi
+            if ($import->failureCount > 0 || ! empty($import->errors)) {
+                DB::rollBack();
 
-            $message = "Import selesai! Berhasil: {$import->successCount}, Gagal: {$import->failureCount}.";
-
-            if (! empty($import->errors)) {
                 $errorList = implode("\n", array_slice($import->errors, 0, 5));
                 if (count($import->errors) > 5) {
                     $errorList .= "\n...dan lainnya.";
                 }
 
                 return response()->json([
-                    'message' => $message,
+                    'message' => "Import dibatalkan! Ditemukan {$import->failureCount} kesalahan pada file Excel. Harap perbaiki seluruh kesalahan sebelum mengimpor.",
                     'errors' => $errorList,
                 ], 422);
             }
+
+            // Commit hanya jika 100% bersih (0 Error)
+            DB::commit();
+
+            $message = "Import berhasil diterapkan! Sebanyak {$import->successCount} jadwal berhasil disimpan.";
 
             return response()->json(['message' => $message]);
 

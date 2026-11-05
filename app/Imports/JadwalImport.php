@@ -20,6 +20,8 @@ class JadwalImport implements SkipsUnknownSheets, WithMultipleSheets
 {
     protected $semesterId;
 
+    protected $skippedSlots = [];
+
     public $successCount = 0;
 
     public $failureCount = 0;
@@ -30,9 +32,10 @@ class JadwalImport implements SkipsUnknownSheets, WithMultipleSheets
 
     public $changes = []; // Track modifications
 
-    public function __construct($semesterId)
+    public function __construct($semesterId, array $skippedSlots = [])
     {
         $this->semesterId = $semesterId;
+        $this->skippedSlots = $skippedSlots;
     }
 
     public function sheets(): array
@@ -40,7 +43,7 @@ class JadwalImport implements SkipsUnknownSheets, WithMultipleSheets
         return [
             'KODE_MAPEL' => new MapelSheetImport($this->semesterId, $this),
             'KODE_GURU' => new GuruSheetImport($this),
-            'INPUT_JADWAL' => new JadwalSheetImport($this->semesterId, $this),
+            'INPUT_JADWAL' => new JadwalSheetImport($this->semesterId, $this, $this->skippedSlots),
         ];
     }
 
@@ -97,13 +100,18 @@ class GuruSheetImport implements ToCollection, WithHeadingRow
             $nama = trim($row['nama_guru'] ?? '');
 
             if ($kode && $nama) {
-                // Try to find teacher by name
-                $user = User::where('role', 'guru')
-                    ->where('name', 'like', "%{$nama}%")
+                // Try to find teacher profile by profile name or user name (handles both guru and kepala_sekolah)
+                $guruProfile = GuruProfile::with('user')
+                    ->where(function ($q) use ($nama) {
+                        $q->where('nama', 'like', "%{$nama}%")
+                            ->orWhereHas('user', function ($uq) use ($nama) {
+                                $uq->where('name', 'like', "%{$nama}%");
+                            });
+                    })
                     ->first();
 
-                if ($user && $user->guruProfile) {
-                    $oldCode = $user->guruProfile->kode_guru;
+                if ($guruProfile) {
+                    $oldCode = $guruProfile->kode_guru;
 
                     // Normalize for comparison
                     $isDifferent = (strtoupper(trim($oldCode ?? '')) !== $kode);
@@ -111,19 +119,20 @@ class GuruSheetImport implements ToCollection, WithHeadingRow
                     if ($isDifferent) {
                         // Check collision
                         $existingOwner = GuruProfile::where('kode_guru', $kode)
-                            ->where('id', '!=', $user->guruProfile->id)
+                            ->where('id', '!=', $guruProfile->id)
                             ->first();
 
                         if ($existingOwner) {
                             $existingOwner->update(['kode_guru' => null]);
                         }
 
-                        $user->guruProfile->update(['kode_guru' => $kode]);
+                        $guruProfile->update(['kode_guru' => $kode]);
 
                         // Log Change
+                        $displayName = $guruProfile->nama ?: ($guruProfile->user->name ?? $nama);
                         $this->parent->changes[] = [
                             'type' => 'guru_code',
-                            'name' => $user->name,
+                            'name' => $displayName,
                             'old' => $oldCode ?? '-',
                             'new' => $kode,
                         ];
@@ -144,12 +153,15 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
 
     protected $parent;
 
+    protected $skippedSlots = [];
+
     protected $assignedInSheet = [];
 
-    public function __construct($semesterId, $parent)
+    public function __construct($semesterId, $parent, array $skippedSlots = [])
     {
         $this->semesterId = $semesterId;
         $this->parent = $parent;
+        $this->skippedSlots = $skippedSlots;
     }
 
     public function headingRow(): int
@@ -187,9 +199,11 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         // 1. Prepare Maps for Lookups (Refreshed after Mapel import)
-        $kelasMap = Kelas::all()->mapWithKeys(function ($k) {
+        $allKelas = Kelas::all();
+        $kelasMap = $allKelas->mapWithKeys(function ($k) {
             return [Str::slug($k->tingkat.$k->nama_kelas, '_') => $k->id];
         });
+        $kelasObjMap = $allKelas->keyBy('id');
 
         // Store keys as uppercase strings
         $mapelMap = MataPelajaran::pluck('id', 'kode_mapel')->mapWithKeys(function ($item, $key) {
@@ -200,6 +214,18 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
             return [strtoupper((string) $key) => $item];
         });
 
+        // Preload Fixed Schedules and Existing Lessons for this semester
+        $fixedSchedules = $this->semesterId
+            ? \App\Models\FixedSchedule::where('semester_id', $this->semesterId)->get()
+            : collect();
+
+        $existingJadwals = $this->semesterId
+            ? JadwalPelajaran::with(['mataPelajaran', 'guru.guruProfile'])
+                ->where('semester_id', $this->semesterId)
+                ->get()
+                ->groupBy(['hari', 'jam_ke', 'kelas_id'])
+            : collect();
+
         $lastHari = null;
 
         foreach ($rows as $index => $row) {
@@ -209,16 +235,16 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                 // 2. Handle Hari
                 $rawHari = $row['hari'] ?? null;
                 if (! empty($rawHari)) {
-                    $lastHari = ucfirst(strtolower($rawHari));
+                    $lastHari = ucfirst(strtolower(trim($rawHari)));
                 }
                 $hari = $lastHari;
 
-                $jamKe = $row['jam_ke'] ?? null;
-                $waktu = $row['waktu'] ?? null;
-
-                if (! $hari || ($jamKe === null || $jamKe === '')) {
+                // Tangani jam_ke secara aman termasuk jam ke-0
+                if (! $hari || ! isset($row['jam_ke']) || $row['jam_ke'] === '') {
                     continue;
                 }
+                $jamKe = (int) $row['jam_ke'];
+                $waktu = $row['waktu'] ?? null;
 
                 // 2.5 Auto-Import Jam Pelajaran (Waktu)
                 if ($waktu && $this->semesterId) {
@@ -230,7 +256,7 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                     if (in_array($key, ['hari', 'jam_ke', 'waktu'])) {
                         continue;
                     }
-                    if (empty($value)) {
+                    if ($value === null || trim((string) $value) === '') {
                         continue;
                     }
                     if (! isset($kelasMap[$key])) {
@@ -238,9 +264,16 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                     }
 
                     $kelasId = $kelasMap[$key];
-                    $cellValue = trim($value);
+                    $cellValue = trim((string) $value);
 
-                    if (strtoupper($cellValue) === 'UPACARA' || strtoupper($cellValue) === 'ISTIRAHAT') {
+                    // Lewati jika merupakan slot Jadwal Tetap atau cell penanda jadwal tetap
+                    $cellUpper = strtoupper($cellValue);
+                    $isFixedSlot = $fixedSchedules->where('hari', $hari)->where('jam_ke', $jamKe)->isNotEmpty();
+                    $isFixedKeyword = in_array($cellUpper, ['UPACARA', 'ISTIRAHAT', 'LITERASI', 'KOKURIKULER', 'P5', 'SENAM', 'APEL', 'JADWAL TETAP'])
+                        || str_contains($cellUpper, 'JADWAL TETAP')
+                        || str_contains($cellUpper, 'ISTIRAHAT');
+
+                    if ($isFixedSlot || $isFixedKeyword) {
                         continue;
                     }
 
@@ -283,17 +316,79 @@ class JadwalSheetImport implements ToCollection, WithHeadingRow
                         continue;
                     }
 
+                    $slotKey = "{$hari}_{$jamKe}_{$kelasId}";
+
+                    // Jika admin menonaktifkan toggle perubahan untuk slot ini, lewati tanpa menimpa database
+                    if (! empty($this->skippedSlots) && in_array($slotKey, $this->skippedSlots)) {
+                        continue;
+                    }
+
                     // Check if teacher is already assigned in another class at the same day & hour in this import sheet
-                    $slotKey = "{$hari}_{$jamKe}_{$guruId}";
-                    if (isset($this->assignedInSheet[$slotKey])) {
-                        $conflictClass = $this->assignedInSheet[$slotKey];
+                    $teacherSlotKey = "{$hari}_{$jamKe}_{$guruId}";
+                    if (isset($this->assignedInSheet[$teacherSlotKey])) {
+                        $conflictInfo = $this->assignedInSheet[$teacherSlotKey];
+                        $conflictClass = is_array($conflictInfo) ? ($conflictInfo['class'] ?? '?') : $conflictInfo;
                         $this->parent->errors[] = "Baris $rowNumber, Kelas $key: Guru ($code2) bentrok di file Excel! Sudah dijadwalkan di Kelas $conflictClass pada hari $hari jam ke-$jamKe.";
                         $this->parent->failureCount++;
+
+                        // Tandai juga slot terdahulu di daftar perubahan bahwa slot tersebut terlibat bentrok
+                        if (is_array($conflictInfo) && isset($conflictInfo['change_index'])) {
+                            $chIdx = $conflictInfo['change_index'];
+                            if (isset($this->parent->changes[$chIdx])) {
+                                $this->parent->changes[$chIdx]['is_conflict'] = true;
+                                $this->parent->changes[$chIdx]['conflict_note'] = "Bentrok dengan Kelas $key";
+                            }
+                        }
 
                         continue;
                     }
 
-                    $this->assignedInSheet[$slotKey] = $key;
+                    $changeIndex = count($this->parent->changes);
+                    $this->assignedInSheet[$teacherSlotKey] = [
+                        'class' => $key,
+                        'slot_key' => $slotKey,
+                        'change_index' => $changeIndex,
+                    ];
+
+                    // Lacak perubahan jadwal pelajaran (Baru vs Diperbarui)
+                    $kelasObj = $kelasObjMap[$kelasId] ?? null;
+                    $kelasName = $kelasObj ? ($kelasObj->tingkat . $kelasObj->nama_kelas) : $key;
+
+                    $existing = isset($existingJadwals[$hari][$jamKe][$kelasId])
+                        ? $existingJadwals[$hari][$jamKe][$kelasId]->first()
+                        : null;
+
+                    if ($existing) {
+                        if ($existing->mata_pelajaran_id != $mapelId || $existing->guru_id != $guruId) {
+                            $oldMapel = $existing->mataPelajaran->kode_mapel ?? '?';
+                            $oldGuru = $existing->guru->guruProfile->kode_guru ?? '?';
+                            $this->parent->changes[] = [
+                                'type' => 'jadwal_update',
+                                'kelas_id' => $kelasId,
+                                'slot_key' => $slotKey,
+                                'kelas' => $kelasName,
+                                'hari' => $hari,
+                                'jam_ke' => $jamKe,
+                                'name' => "Kelas {$kelasName} ({$hari}, Jam ke-{$jamKe})",
+                                'old' => "{$oldMapel} {$oldGuru}",
+                                'new' => "{$code1} {$code2}",
+                                'action' => 'Diperbarui',
+                            ];
+                        }
+                    } else {
+                        $this->parent->changes[] = [
+                            'type' => 'jadwal_new',
+                            'kelas_id' => $kelasId,
+                            'slot_key' => $slotKey,
+                            'kelas' => $kelasName,
+                            'hari' => $hari,
+                            'jam_ke' => $jamKe,
+                            'name' => "Kelas {$kelasName} ({$hari}, Jam ke-{$jamKe})",
+                            'old' => '(Kosong)',
+                            'new' => "{$code1} {$code2}",
+                            'action' => 'Baru',
+                        ];
+                    }
 
                     JadwalPelajaran::updateOrCreate(
                         [

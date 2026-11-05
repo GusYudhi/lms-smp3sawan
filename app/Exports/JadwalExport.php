@@ -70,21 +70,27 @@ class JadwalDataSheet implements FromCollection, WithHeadings, WithTitle, WithSt
             ->get()
             ->keyBy('jam_ke');
 
+        $existingJams = $jamPelajarans->keys();
+        $maxJam = $existingJams->isNotEmpty() ? max(10, $existingJams->max()) : 10;
+        $slotNumbers = collect(range(0, $maxJam))->unique()->sort()->values();
+
         foreach ($days as $day) {
-            for ($jam = 1; $jam <= 10; $jam++) {
+            $isFirstJam = true;
+            foreach ($slotNumbers as $jam) {
                 $waktu = '';
                 if (isset($jamPelajarans[$jam])) {
                     $jp = $jamPelajarans[$jam];
                     $waktu = substr($jp->jam_mulai, 0, 5) . ' - ' . substr($jp->jam_selesai, 0, 5);
                 } else {
-                    $waktu = '00:00 - 00:00';
+                    $waktu = ($jam === 0) ? '07:00 - 07:30' : '07:30 - 08:15';
                 }
 
                 $row = [
-                    $jam === 1 ? $day : '', // Merge visual
+                    $isFirstJam ? $day : '', // Merge visual
                     $jam,
                     $waktu, 
                 ];
+                $isFirstJam = false;
                 
                 foreach ($classes as $kelas) {
                     $cellValue = '';
