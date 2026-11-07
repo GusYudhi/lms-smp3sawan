@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StudentProfile;
+use App\Models\JamPelajaran;
+use App\Models\JadwalPelajaran;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -105,15 +108,14 @@ class AbsensiController extends Controller
             ], 400);
         }
 
-        // Determine attendance status based on time
-        $cutoffTime = Carbon::today()->setTime(7, 30); // 07:30 as cutoff time
+        // Determine attendance status based on dynamic morning cutoff time
+        $cutoffTime = $this->getTodayCutoffTime($today);
 
         if ($currentTime->lte($cutoffTime)) {
             $status = 'hadir';
             $notes = null;
         } else {
-            // Jika terlambat, tetap dianggap hadir tapi dengan catatan
-            $status = 'hadir';
+            $status = 'terlambat';
             $notes = 'Terlambat';
         }
 
@@ -172,5 +174,53 @@ class AbsensiController extends Controller
             'nisn' => $nisn,
             'qr_data' => $nisn // This would be the QR code data
         ]);
+    }
+
+    /**
+     * Get dynamic morning cutoff time based on the earliest scheduled lesson of the day
+     */
+    public function getTodayCutoffTime(?Carbon $date = null): Carbon
+    {
+        $targetDate = $date ? $date->copy() : Carbon::today();
+        $dayName = $targetDate->locale('id')->dayName;
+        $semesterAktif = Semester::getActive();
+
+        // 1. Cek jam pelajaran paling awal dari jadwal pelajaran hari tersebut
+        $minJamKeQuery = JadwalPelajaran::where('hari', $dayName);
+        if ($semesterAktif) {
+            $minJamKeQuery->where('semester_id', $semesterAktif->id);
+        }
+        $minJamKe = $minJamKeQuery->min('jam_ke');
+
+        $earliestJam = null;
+        if ($minJamKe !== null) {
+            $jpQuery = JamPelajaran::where('jam_ke', $minJamKe);
+            if ($semesterAktif) {
+                $jpQuery->where('semester_id', $semesterAktif->id);
+            }
+            $earliestJam = $jpQuery->first();
+        }
+
+        // 2. Fallback: jika tidak ada jadwal di hari tersebut, gunakan jam pelajaran paling awal di semester aktif
+        if (!$earliestJam) {
+            $jpQuery = JamPelajaran::orderBy('jam_ke', 'asc');
+            if ($semesterAktif) {
+                $jpQuery->where('semester_id', $semesterAktif->id);
+            }
+            $earliestJam = $jpQuery->first();
+        }
+
+        // 3. Konversi string jam_mulai (HH:mm:ss atau HH:mm) ke Carbon pada tanggal target
+        if ($earliestJam && $earliestJam->jam_mulai) {
+            $timeParts = explode(':', $earliestJam->jam_mulai);
+            $hour = (int) ($timeParts[0] ?? 7);
+            $minute = (int) ($timeParts[1] ?? 0);
+            $second = (int) ($timeParts[2] ?? 0);
+
+            return $targetDate->copy()->setTime($hour, $minute, $second);
+        }
+
+        // Fallback default jika master jam belum tersedia
+        return $targetDate->copy()->setTime(7, 0, 0);
     }
 }

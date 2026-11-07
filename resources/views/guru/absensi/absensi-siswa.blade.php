@@ -217,8 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Restart scanner button
     $(document).on('click', '#restart-scanner', function() {
-        stopScanner();
-        setTimeout(() => startScanner(), 500);
+        stopScanner(function() {
+            startScanner();
+        });
     });
 
     // Switch camera button
@@ -504,48 +505,67 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-function stopScanner() {
+function stopScanner(callback) {
     console.log('Stopping HTML5-QRCODE scanner...');
+    $('#camera-switch-container').hide();
+    $('#scanner-action-buttons').hide();
 
-    // Clear HTML5-QRCODE scanner
+    const resetUI = () => {
+        isScanning = false;
+        html5QrCode = null;
+
+        $('#scanner-placeholder').empty().html(`
+            <div class="text-center">
+                <i class="fas fa-qrcode text-primary fs-1 mb-3"></i>
+                <h5 class="text-muted">Scan QR Code NISN Siswa</h5>
+                <p class="text-muted small mb-3">Arahkan kamera ke QR Code yang ada di kartu identitas siswa</p>
+                <button id="start-scanner" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i>Mulai Scanner
+                </button>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Pastikan QR Code terlihat jelas dan pencahayaan cukup
+                    </small>
+                </div>
+            </div>
+        `);
+
+        $('#scanner-controls').show();
+
+        if (typeof callback === 'function') {
+            callback();
+        }
+    };
+
     if (html5QrCode && isScanning) {
         html5QrCode.stop()
             .then(() => {
                 console.log('Scanner stopped successfully');
-                // Don't clear instance, just stop scanning
+                if (html5QrCode) {
+                    try {
+                        html5QrCode.clear();
+                    } catch (e) {
+                        console.warn('Clear error (ignored):', e);
+                    }
+                }
             })
             .catch((err) => {
-                console.error('Error stopping scanner:', err);
+                console.warn('Error stopping scanner:', err);
+            })
+            .finally(() => {
+                resetUI();
             });
+    } else {
+        if (html5QrCode) {
+            try {
+                html5QrCode.clear();
+            } catch (e) {
+                // ignore
+            }
+        }
+        resetUI();
     }
-
-    isScanning = false;
-    $('#camera-switch-container').hide();
-
-    $('#scanner-placeholder').empty().html(`
-        <div class="text-center">
-            <i class="fas fa-qrcode text-primary fs-1 mb-3"></i>
-            <h5 class="text-muted">Scan QR Code NISN Siswa</h5>
-            <p class="text-muted small mb-3">Arahkan kamera ke QR Code yang ada di kartu identitas siswa</p>
-            <button id="start-scanner" class="btn btn-primary btn-lg">
-                <i class="fas fa-play me-2"></i>Mulai Scanner
-            </button>
-            <div class="mt-3">
-                <small class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Pastikan QR Code terlihat jelas dan pencahayaan cukup
-                </small>
-            </div>
-        </div>
-    `);
-
-    $('#scanner-action-buttons').hide();
-    $('#scanner-controls').show();
-
-    // Re-bind start button
-    $('#start-scanner').click(function() {
-        startScanner();
-    });
 }
 
 function playSuccessSound() {

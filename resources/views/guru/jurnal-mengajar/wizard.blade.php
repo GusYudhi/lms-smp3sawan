@@ -102,7 +102,7 @@
                             @if(isset($acuanKehadiran) && $acuanKehadiran['tipe'] === 'jurnal_sebelumnya')
                                 Status absensi otomatis mengikuti data dari <strong>{{ $acuanKehadiran['label'] }} ({{ $acuanKehadiran['mapel'] }})</strong>. Siswa yang sebelumnya terlambat otomatis disesuaikan menjadi Hadir. Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.
                             @else
-                                Silakan periksa absensi siswa. Default kehadiran disesuaikan dengan absensi pagi (atau default Hadir bila belum scan). Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.
+                                Silakan periksa absensi siswa. Siswa yang belum scan di gerbang pagi otomatis berstatus <strong>Alpa</strong>. Jika siswa hadir di kelas, ubah menjadi <strong>Hadir</strong> (akan otomatis tercatat <em>Terlambat</em> pada absensi harian). Di HP, cukup ketuk tombol status untuk mengubah status kehadiran seketika.
                             @endif
                         </span>
                     </div>
@@ -153,7 +153,7 @@
                                             @elseif(in_array($statusAcuan, ['alpa', 'alpha']))
                                                 <span class="badge bg-danger">Alpa</span>
                                             @else
-                                                <span class="badge bg-light text-dark border">Belum Absen</span>
+                                                <span class="badge bg-danger bg-opacity-75 text-white" title="Belum scan di gerbang pagi, otomatis Alpa">Belum Absen (Alpa)</span>
                                             @endif
                                         </td>
                                         <td>
@@ -218,7 +218,7 @@
                                         @elseif(in_array($statusAcuan, ['alpa', 'alpha']))
                                             <span class="badge bg-danger">{{ $badgePrefix }}Alpa</span>
                                         @else
-                                            <span class="badge bg-light text-dark border">{{ $badgePrefix }}-</span>
+                                            <span class="badge bg-danger bg-opacity-75 text-white">{{ $badgePrefix }}Alpa</span>
                                         @endif
                                     </div>
                                 </div>

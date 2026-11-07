@@ -121,10 +121,16 @@
 
 @media (max-width: 768px) {
     #scanner-placeholder {
-        min-height: 300px !important;
-        padding: 0 !important;
-        border: none !important;
-        background: #000;
+        min-height: 280px !important;
+        padding: 1.5rem 1rem !important;
+        border: 2px dashed rgba(13, 110, 253, 0.4) !important;
+        background: #f8f9fa;
+
+        &:has(video) {
+            background: #000;
+            border: none !important;
+            padding: 0 !important;
+        }
 
         video {
             max-width: 100% !important;
@@ -134,7 +140,7 @@
     }
 
     .scanner-container {
-        margin: -1rem -1rem 1rem -1rem;
+        margin: 0 0 1rem 0;
     }
 }
 

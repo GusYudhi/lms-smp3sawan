@@ -255,14 +255,22 @@ class JurnalMengajarController extends Controller
                 } else {
                     // Fallback jika belum tercatat di jurnal sebelumnya
                     $pagi = $absensiPagi->get($siswa->user_id);
-                    $statusPagi = $pagi ? ($pagi->status === 'alpha' ? 'alpa' : $pagi->status) : 'hadir';
-                    $defaultStatus = in_array($statusPagi, ['sakit', 'izin', 'alpa']) ? $statusPagi : 'hadir';
+                    $statusPagi = $pagi ? ($pagi->status === 'alpha' ? 'alpa' : $pagi->status) : 'belum_absen';
+                    if ($statusPagi === 'terlambat') {
+                        $defaultStatus = 'terlambat';
+                    } elseif (in_array($statusPagi, ['sakit', 'izin', 'alpa'])) {
+                        $defaultStatus = $statusPagi;
+                    } elseif ($statusPagi === 'hadir') {
+                        $defaultStatus = 'hadir';
+                    } else {
+                        $defaultStatus = 'alpa';
+                    }
                 }
 
                 $defaultAbsensiSiswa[$siswa->id] = [
                     'default_status' => $defaultStatus,
-                    'status_acuan' => $prevStatus ?? 'hadir',
-                    'label_acuan' => $acuanKehadiran['label'] . ' (' . ($prevStatus ? ucfirst($prevStatus) : 'Hadir') . ')',
+                    'status_acuan' => $prevStatus ?? 'alpa',
+                    'label_acuan' => $acuanKehadiran['label'] . ' (' . ($prevStatus ? ucfirst($prevStatus) : 'Alpa') . ')',
                 ];
             }
         } else {
@@ -282,15 +290,17 @@ class JurnalMengajarController extends Controller
                     $defaultStatus = 'terlambat';
                 } elseif (in_array($statusPagi, ['sakit', 'izin', 'alpa'])) {
                     $defaultStatus = $statusPagi;
-                } else {
-                    // Hadir atau belum absen -> default 'hadir'
+                } elseif ($statusPagi === 'hadir') {
                     $defaultStatus = 'hadir';
+                } else {
+                    // Belum absen pagi -> default 'alpa'
+                    $defaultStatus = 'alpa';
                 }
 
                 $defaultAbsensiSiswa[$siswa->id] = [
                     'default_status' => $defaultStatus,
                     'status_acuan' => $statusPagi,
-                    'label_acuan' => $statusPagi === 'belum_absen' ? 'Belum Absen' : ucfirst($statusPagi),
+                    'label_acuan' => $statusPagi === 'belum_absen' ? 'Belum Absen (Alpa)' : ucfirst($statusPagi),
                 ];
             }
         }
@@ -444,6 +454,9 @@ class JurnalMengajarController extends Controller
                         'status' => $statusAbsensi,
                         'status_awal' => $statusAwal,
                     ]);
+
+                    // Sinkronisasi status absensi jurnal ke absensi harian jika belum scan pagi
+                    $this->syncToDailyAttendance($siswa->user_id, $request->tanggal, $statusAbsensi, $request->jam_ke_mulai);
                 }
             }
         } else {
@@ -465,13 +478,15 @@ class JurnalMengajarController extends Controller
 
                     $statusAwal = $absensiHarian ? ($absensiHarian->status === 'alpha' ? 'alpa' : $absensiHarian->status) : 'belum_absen';
 
-                    // Default hadir jika tidak ada scan
-                    $status = 'hadir';
+                    // Default alpa jika tidak ada scan
+                    $status = 'alpa';
                     if ($absensiHarian) {
                         if (in_array($absensiHarian->status, ['sakit', 'izin', 'alpha', 'alpa'])) {
                             $status = $absensiHarian->status === 'alpha' ? 'alpa' : $absensiHarian->status;
                         } elseif ($absensiHarian->status === 'terlambat') {
                             $status = 'terlambat';
+                        } elseif ($absensiHarian->status === 'hadir') {
+                            $status = 'hadir';
                         }
                     }
                 }
@@ -482,6 +497,9 @@ class JurnalMengajarController extends Controller
                     'status' => $status,
                     'status_awal' => $statusAwal,
                 ]);
+
+                // Sinkronisasi status absensi jurnal ke absensi harian jika belum scan pagi
+                $this->syncToDailyAttendance($siswa->user_id, $request->tanggal, $status, $request->jam_ke_mulai);
             }
         }
 
@@ -645,9 +663,52 @@ class JurnalMengajarController extends Controller
 
         if ($jurnalAttendance) {
             $jurnalAttendance->update(['status' => $request->status]);
+
+            // Sinkronisasi status absensi jurnal ke absensi harian jika belum scan pagi
+            $siswa = StudentProfile::find($request->student_profile_id);
+            if ($siswa) {
+                $this->syncToDailyAttendance($siswa->user_id, $jurnal->tanggal, $request->status, $jurnal->jam_ke_mulai);
+            }
         }
 
         return back()->with('success', 'Absensi siswa berhasil diperbarui!');
+    }
+
+    /**
+     * Sinkronisasi status absensi jurnal ke absensi harian (attendance) jika belum ada scan pagi
+     */
+    protected function syncToDailyAttendance($userId, $tanggal, $statusAbsensi, $jamKeMulai)
+    {
+        $existingDaily = Attendance::where('user_id', $userId)
+            ->whereDate('date', $tanggal)
+            ->first();
+
+        if ($statusAbsensi === 'hadir') {
+            if (!$existingDaily) {
+                // Belum ada absen pagi, tapi hadir di kelas -> otomatis tercatat TERLAMBAT di harian
+                Attendance::create([
+                    'user_id' => $userId,
+                    'date' => $tanggal,
+                    'time' => now(),
+                    'status' => 'terlambat',
+                    'notes' => 'Hadir di kelas jam ke-' . $jamKeMulai . ' (Terlambat)',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+        } elseif (in_array($statusAbsensi, ['sakit', 'izin'])) {
+            if (!$existingDaily) {
+                // Belum ada absen pagi, ada keterangan sakit/izin di kelas -> catat sakit/izin di harian
+                Attendance::create([
+                    'user_id' => $userId,
+                    'date' => $tanggal,
+                    'time' => null,
+                    'status' => $statusAbsensi,
+                    'notes' => 'Dicatat dari Jurnal Mengajar Jam ke-' . $jamKeMulai,
+                    'created_by' => Auth::id(),
+                ]);
+            }
+            // Jika sudah ada record 'hadir' atau 'terlambat' di pagi hari, TIDAK ditimpa!
+        }
     }
 
     /**
