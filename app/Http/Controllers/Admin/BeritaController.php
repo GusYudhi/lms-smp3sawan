@@ -159,4 +159,63 @@ class BeritaController extends Controller
             'message' => 'Foto tambahan berhasil dihapus',
         ]);
     }
+
+    public function destroyMainImage($id)
+    {
+        $berita = Berita::with('images')->findOrFail($id);
+
+        if ($berita->foto && Storage::disk('public')->exists($berita->foto)) {
+            Storage::disk('public')->delete($berita->foto);
+        }
+
+        $firstExtra = $berita->images()->orderBy('urutan')->first();
+        if ($firstExtra) {
+            $berita->foto = $firstExtra->foto;
+            $berita->save();
+            $promotedId = $firstExtra->id;
+            $promotedUrl = asset('storage/' . $berita->foto);
+            $firstExtra->delete();
+
+            return response()->json([
+                'success' => true,
+                'promoted' => true,
+                'promoted_id' => $promotedId,
+                'new_main_url' => $promotedUrl,
+                'message' => 'Foto sampul dihapus dan foto galeri berikutnya otomatis dipromosikan jadi sampul utama.',
+            ]);
+        }
+
+        $berita->foto = null;
+        $berita->save();
+
+        return response()->json([
+            'success' => true,
+            'promoted' => false,
+            'message' => 'Foto sampul berhasil dihapus.',
+        ]);
+    }
+
+    public function setMainImage($id, $imageId)
+    {
+        $berita = Berita::findOrFail($id);
+        $targetExtra = $berita->images()->findOrFail($imageId);
+
+        $oldMain = $berita->foto;
+        $newMain = $targetExtra->foto;
+
+        $berita->foto = $newMain;
+        $berita->save();
+
+        if ($oldMain) {
+            $targetExtra->foto = $oldMain;
+            $targetExtra->save();
+        } else {
+            $targetExtra->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Foto berhasil dijadikan Sampul Utama.',
+        ]);
+    }
 }

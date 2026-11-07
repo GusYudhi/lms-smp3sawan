@@ -185,6 +185,8 @@ Route::middleware(['auth'])->group(function () {
         // Berita
         Route::resource('berita', App\Http\Controllers\Admin\BeritaController::class)->names('admin.berita');
         Route::delete('/berita/{id}/image/{imageId}', [App\Http\Controllers\Admin\BeritaController::class, 'destroyImage'])->name('admin.berita.delete-image');
+        Route::delete('/berita/{id}/main-image', [App\Http\Controllers\Admin\BeritaController::class, 'destroyMainImage'])->name('admin.berita.delete-main-image');
+        Route::post('/berita/{id}/set-main-image/{imageId}', [App\Http\Controllers\Admin\BeritaController::class, 'setMainImage'])->name('admin.berita.set-main-image');
 
         // Saran
         Route::get('/saran', [App\Http\Controllers\Admin\SaranController::class, 'index'])->name('admin.saran.index');
@@ -360,6 +362,9 @@ Route::middleware(['auth'])->group(function () {
         // Hak Akses Publikasi (Berita & Prestasi)
         Route::middleware('can.manage:berita')->group(function () {
             Route::resource('berita', App\Http\Controllers\Guru\BeritaController::class)->names('guru.berita');
+            Route::delete('/berita/{id}/image/{imageId}', [App\Http\Controllers\Guru\BeritaController::class, 'destroyImage'])->name('guru.berita.delete-image');
+            Route::delete('/berita/{id}/main-image', [App\Http\Controllers\Guru\BeritaController::class, 'destroyMainImage'])->name('guru.berita.delete-main-image');
+            Route::post('/berita/{id}/set-main-image/{imageId}', [App\Http\Controllers\Guru\BeritaController::class, 'setMainImage'])->name('guru.berita.set-main-image');
         });
 
         Route::middleware('can.manage:prestasi')->group(function () {
